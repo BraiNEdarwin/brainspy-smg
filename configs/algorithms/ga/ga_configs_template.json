@@ -1,0 +1,25 @@
+{
+  "results_path": "./tmp/output/genetic_algorithm/",
+  "experiment_name": "my_experiment",
+  "stop_threshold": 0.9,
+  "waveform_configs": {
+            "lengths": 80,
+            "slopes": 0
+            },
+  "ga_evaluation_configs": {
+            "platform": "simulation",
+            "simulation_type": "neural_network",
+            "torch_model_path": "/home/unai/Documents/3-programming/boron-doped-silicon-chip-simulation/checkpoint3000_02-07-23h47m.pt",
+            "input_indices": [0, 5, 6],
+            "control_indices": [0, 1, 2, 3],
+            "amplification": 10.0
+          },
+  "hyperparameters": {
+                    "mutationrate": 0.1,
+                    "epochs": 100,
+                    "fitness_function_type": "corrsig_fit",
+                    "seed": null,
+                    "generange": [ [-1.2, 0.6], [-1.2, 0.6], [-1.2, 0.6], [-0.7, 0.3], [-0.7, 0.3], [1, 1] ],
+                    "partition": [5, 5, 5, 5, 5]
+                    }
+}
