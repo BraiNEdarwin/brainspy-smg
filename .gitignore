@@ -40,4 +40,4 @@ coverage.xml
 # Mr Developer
 .mr.developer.cfg
 .project
-
+NameError: name 'pandas' is not defined"

@@ -1,0 +1,9 @@
+{
+    "output_dir": "/tmp/output/",
+    "surrogate_model_name": "checkpoint3000_02-07-23h47m",
+    "from_dimension": 4,
+    "to_dimension": 5,
+    "max_opportunities": 3,
+    "threshold_parameter": 0.5,
+    "show_plot": false
+}
