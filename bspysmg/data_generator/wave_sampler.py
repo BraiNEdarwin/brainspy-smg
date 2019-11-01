@@ -2,98 +2,111 @@
 """
 Created on Mon Dec 17 16:51:29 2018
 Script to sample a device using waves
-@author: M. BoonDa & HC Ruiz
+@author: M. Boon & HC Ruiz
 """
-# Import packages
-import SkyNEt.modules.SaveLib as SaveLib
-from SkyNEt.instruments import InstrumentImporter
+
+# import save
+# import instruments
 import time
-from SkyNEt.experiments.wave_search import transient_test
 import SkyNEt.experiments.wave_search.config_wave_search as config
-# temporary imports
 import numpy as np
 
-# %% Initialization of saving config file
-configSrc = config.__file__
 
-# Initialize config object
-cf = config.experiment_config()
+def input_generator(points, configs):
+    '''
+    Generates a wave that can be used as input data.
+    Args:
+        points: The datapoint(s) index for the wave value (1D array when multiple datapoints are used)
+        configs: Dictionary containing all the sampling configurations, including
+                    freq:       Frequencies of the inputs in an one-dimensional array
+                    amplitude:  Amplitude of the sine wave (Vmax in this case)
+                    sample_frequency:         Sample frequency of the device
+                    phase:      (Optional) phase offset at t=0
+    '''
+
+    rads = (2 * np.pi * configs['freq'][:, np.newaxis] * points) / configs['sample_frequency'] + configs['phase'][:, np.newaxis]
+
+    if configs['wave_type'] is 'sine':
+        wave = np.sin(rads)
+    elif configs['wave_type'] is 'triangle':
+        # There is an additional + np.pi/2 to make sure that if phase = 0. the inputs start at 0V
+        wave = signal.sawtooth(rads + np.pi / 2, width=0.5)
+
+    return wave * configs['amplitude'][:, np.newaxis] + np.outer(configs['offset'], np.ones(time_points.shape[0]))
 
 # initialize save directory
-saveDirectory = SaveLib.createSaveDirectory(cf.filepath, cf.name)
 
-# Initialize output data set
-data = np.zeros((int(cf.sampleTime * cf.fs), 1))
 
-batches = int(cf.fs * cf.sampleTime / cf.samplePoints)
-print('Starting measurement, ' + str(int(cf.samplePoints / cf.fs)) + ' seconds per minibatch')
+def wave_sampler(configs):
+    # Initialize output containers
+    data = np.zeros((int(configs['sampleTime'] * configs['sample_frequency']), 1))
 
-for i in range(0, batches):
-    start_wave = time.time()
+    nr_batches = int(configs['sample_frequency'] * configs['sampleTime'] / configs['samplePoints'])
 
-    t = np.linspace(i * cf.samplePoints, (i + 1) * cf.samplePoints - 1, cf.samplePoints)
-    waves = cf.inputData(cf.freq, t, cf.amplitude, cf.fs, cf.phase) + np.outer(cf.offset, np.ones(t.shape[0]))
-    # Use 0.5 second to ramp up to the value where data aqcuisition stopped previous iteration
-    # and 0.5 second to ramp down after the batch is done
-    wavesRamped = np.zeros((waves.shape[0], waves.shape[1] + int(cf.fs)))
-    dataRamped = np.zeros(wavesRamped.shape[1])
-    for j in range(wavesRamped.shape[0]):
-        wavesRamped[j, 0:int(0.5 * cf.fs)] = np.linspace(0, waves[j, 0], int(0.5 * cf.fs))
-        wavesRamped[j, int(0.5 * cf.fs): int(0.5 * cf.fs) + waves.shape[1]] = waves[j, :]
-        wavesRamped[j, int(0.5 * cf.fs) + waves.shape[1]:] = np.linspace(waves[j, -1], 0, int(0.5 * cf.fs))
+    for i in range(batches):
+        start_batch = time.time()
 
-    dataRamped = InstrumentImporter.nidaqIO.IO_cDAQ(wavesRamped, cf.fs)
-    data[i * cf.samplePoints: (i + 1) * cf.samplePoints, 0] = dataRamped[0, int(0.5 * cf.fs):int(0.5 * cf.fs) + waves.shape[1]]
+        time_points = np.arange(i * configs['samplePoints'], (i + 1) * configs['samplePoints'])
+        waves = input_generator(time_points, configs)
+        # Use 0.5 second to ramp up to the value where data aqcuisition stopped previous iteration
+        # and 0.5 second to ramp down after the batch is done
+        wavesRamped = np.zeros((waves.shape[0], waves.shape[1] + int(configs['sample_frequency'])))
+        dataRamped = np.zeros(wavesRamped.shape[1])
+        for j in range(wavesRamped.shape[0]):
+            wavesRamped[j, 0:int(0.5 * configs['sample_frequency'])] = np.linspace(0, waves[j, 0], int(0.5 * configs['sample_frequency']))
+            wavesRamped[j, int(0.5 * configs['sample_frequency']): int(0.5 * configs['sample_frequency']) + waves.shape[1]] = waves[j, :]
+            wavesRamped[j, int(0.5 * configs['sample_frequency']) + waves.shape[1]:] = np.linspace(waves[j, -1], 0, int(0.5 * configs['sample_frequency']))
 
-    if i % 10 == 0:  # Save after every 10 mini batches
+        dataRamped = InstrumentImporter.nidaqIO.IO_cDAQ(wavesRamped, configs['sample_frequency'])
+        data[i * configs['samplePoints']: (i + 1) * configs['samplePoints'], 0] = dataRamped[0, int(0.5 * configs['sample_frequency']):int(0.5 * configs['sample_frequency']) + waves.shape[1]]
+
+    if i % 10 == 0:  # Save after every 10 batches
         print('Saving...')
-        SaveLib.saveExperiment(cf.configSrc, saveDirectory,
-                               output=data * cf.amplification / cf.postgain,
-                               freq=cf.freq,
-                               sampleTime=cf.sampleTime,
-                               fs=cf.fs,
-                               phase=cf.phase,
-                               amplitude=cf.amplitude,
-                               offset=cf.offset,
-                               amplification=cf.amplification,
-                               electrodeSetup=cf.electrodeSetup,
-                               gain_info=cf.gain_info,
+        SaveLib.saveExperiment(configs['configSrc, saveDirectory,
+                               output=data * configs['amplification'] / configs['postgain'],
+                               freq=configs['freq'],
+                               sampleTime=configs['sampleTime'],
+                               sample_frequency=configs['sample_frequency'],
+                               phase=configs['phase'],
+                               amplitude=configs['amplitude'],
+                               offset=configs['offset'],
+                               amplification=configs['amplification'],
+                               electrodeSetup=configs['electrodeSetup'],
+                               gain_info=configs['gain_info'],
                                filename='training_NN_data')
-    end_wave = time.time()
-    print('Data collection for part ' + str(i + 1) + ' of ' + str(batches) + ' took ' + str(end_wave - start_wave) + ' sec.')
+    end_batch = time.time()
+    print('Data collection for part ' + str(i + 1) + ' of ' + str(batches) + ' took ' + str(end_batch - start_batch) + ' sec.')
 
-if cf.transientTest:
+if configs['transientTest']:
+    from SkyNEt.experiments.wave_search import transient_test
     print("Testing for transients...")
     print("Only for the last loaded data the transients are tested ")
-    ytestdata, difference, xtestdata = transient_test.transient_test(waves, data[(batches - 1) * cf.samplePoints:(batches) * cf.samplePoints], cf.fs, cf.sampleTime, cf.n)
-    SaveLib.saveExperiment(cf.configSrc, saveDirectory,
+    ytestdata, difference, xtestdata = transient_test.transient_test(waves, data[(batches - 1) * configs['samplePoints:(batches) * configs['samplePoints], configs['sample_frequency, configs['sampleTime, configs['n)
+    SaveLib.saveExperiment(configs['configSrc, saveDirectory,
                            xtestdata=xtestdata,
-                           ytestdata=ytestdata * cf.amplification / cf.postgain,
-                           diff=difference * cf.amplification / cf.postgain,
-                           output=data * cf.amplification / cf.postgain,
-                           freq=cf.freq,
-                           sampleTime=cf.sampleTime,
-                           fs=cf.fs,
-                           phase=cf.phase,
-                           amplitude=cf.amplitude,
-                           offset=cf.offset,
-                           amplification=cf.amplification,
-                           electrodeSetup=cf.electrodeSetup,
-                           gain_info=cf.gain_info,
+                           ytestdata=ytestdata * configs['amplification / configs['postgain,
+                           diff=difference * configs['amplification / configs['postgain,
+                           output=data * configs['amplification / configs['postgain,
+                           freq=configs['freq,
+                           sampleTime=configs['sampleTime,
+                           sample_frequency=configs['sample_frequency,
+                           phase=configs['phase,
+                           amplitude=configs['amplitude,
+                           offset=configs['offset,
+                           amplification=configs['amplification,
+                           electrodeSetup=configs['electrodeSetup,
+                           gain_info=configs['gain_info,
                            filename='training_NN_data')
 else:
-    SaveLib.saveExperiment(cf.configSrc, saveDirectory,
-                           output=data * cf.amplification / cf.postgain,
-                           freq=cf.freq,
-                           sampleTime=cf.sampleTime,
-                           fs=cf.fs,
-                           phase=cf.phase,
-                           amplitude=cf.amplitude,
-                           offset=cf.offset,
-                           amplification=cf.amplification,
-                           electrodeSetup=cf.electrodeSetup,
-                           gain_info=cf.gain_info,
+    SaveLib.saveExperiment(configs['configSrc, saveDirectory,
+                           output=data * configs['amplification / configs['postgain,
+                           freq=configs['freq,
+                           sampleTime=configs['sampleTime,
+                           sample_frequency=configs['sample_frequency,
+                           phase=configs['phase,
+                           amplitude=configs['amplitude,
+                           offset=configs['offset,
+                           amplification=configs['amplification,
+                           electrodeSetup=configs['electrodeSetup,
+                           gain_info=configs['gain_info,
                            filename='training_NN_data')
-
-
-InstrumentImporter.reset(0, 0)
