@@ -8,7 +8,6 @@ Script to sample a device using waves
 # import save
 # import instruments
 import time
-import SkyNEt.experiments.wave_search.config_wave_search as config
 import numpy as np
 
 
@@ -35,6 +34,33 @@ def input_generator(points, configs):
     return wave * configs['amplitude'][:, np.newaxis] + np.outer(configs['offset'], np.ones(time_points.shape[0]))
 
 # initialize save directory
+
+
+def generate_triangle(self, freq, t, amplitude, fs, phase=np.zeros(7)):
+    '''
+    Generates a triangle wave form that can be used for the input data.
+    freq:       Frequencies of the inputs in an one-dimensional array
+    t:          The datapoint(s) index where to generate a sine value (1D array when multiple datapoints are used)
+    amplitude:  Amplitude of the sine wave (Vmax in this case)
+    fs:         Sample frequency of the device
+    phase:      (Optional) phase offset at t=0
+    '''
+    # There is an additional + np.pi/2 to make sure that if phase = 0. the inputs start at 0V
+
+    return signal.sawtooth((2 * np.pi * freq[:, np.newaxis] * t) / fs + phase[:, np.newaxis] + np.pi / 2, 0.5) * amplitude[:, np.newaxis]
+
+
+def generate_sinewave(self, freq, t, amplitude, fs, phase=np.zeros(7)):
+    '''
+    Generates a sine wave that can be used for the input data.
+    freq:       Frequencies of the inputs in an one-dimensional array
+    t:          The datapoint(s) index where to generate a sine value (1D array when multiple datapoints are used)
+    amplitude:  Amplitude of the sine wave (Vmax in this case)
+    fs:         Sample frequency of the device
+    phase:      (Optional) phase offset at t=0
+    '''
+
+    return np.sin((2 * np.pi * freq[:, np.newaxis] * t) / fs + phase[:, np.newaxis]) * amplitude[:, np.newaxis]
 
 
 def wave_sampler(configs):
@@ -74,7 +100,7 @@ def wave_sampler(configs):
                                electrodeSetup=configs['electrodeSetup'],
                                gain_info=configs['gain_info'],
                                filename='training_NN_data')
-    end_batch = time.time()
+    end_batch= time.time()
     print('Data collection for part ' + str(i + 1) + ' of ' + str(batches) + ' took ' + str(end_batch - start_batch) + ' sec.')
 
 SaveLib.saveExperiment(configs['configSrc, saveDirectory,
