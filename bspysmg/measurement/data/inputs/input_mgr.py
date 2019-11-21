@@ -44,3 +44,20 @@ def input_generator(points, configs):
         raise NotImplementedError(f"The wave type {configs['wave_type']} is not recognised. Please try again with 'sine' or 'triangle'.")
 
     return wave * configs['amplitude'][:, np.newaxis] + np.outer(configs['offset'], np.ones(points.shape[0]))
+
+
+def ramp_signal(waves, configs):
+    ramp = int(configs['ramp_time'] * configs['sample_frequency'])
+    # Use configs['ramp_time'] second to ramp up to the value where data aqcuisition stopped previous iteration
+    # and configs['ramp_time'] second to ramp down after the batch is done
+    waves_ramped = np.zeros((waves.shape[0], waves.shape[1] + int(configs['sample_frequency'])))
+    for j in range(waves_ramped.shape[0]):
+        waves_ramped[j, 0:ramp] = np.linspace(0, waves[j, 0], ramp)
+        waves_ramped[j, ramp: ramp + waves.shape[1]] = waves[j, :]
+        waves_ramped[j, ramp + waves.shape[1]:] = np.linspace(waves[j, -1], 0, ramp)
+
+    return waves_ramped
+
+
+def ramped_input_generator(points, configs):
+    return ramp_signal(input_generator(points, configs), configs)
