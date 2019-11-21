@@ -1,0 +1,21 @@
+{   
+    "task": "boolean",
+    "inputs": [[-0.7,0.7,-0.7,0.7],[-0.7,-0.7,0.7,0.7]],
+    "algorithm": "gradient_descent",
+    "results_path": "tmp/output/models/nn_test/validation",
+    "experiment_name": "TEST_validation",
+    "checkpoints": false,     
+    "hyperparameters": {
+        "nr_epochs": 2,
+        "batch_size": 4,
+        "learning_rate": 0.03,
+        "save_interval": 500
+    },
+    "processor": {
+        "platform": "simulation",
+        "simulation_type": "neural_network",
+        "network_type": "dnpu",
+        "torch_model_dict": "/home/hruiz/Documents/PROJECTS/DARWIN/Code/packages/brainspy/brainspy-processors/tmp/input/models/nn_test/checkpoint3000_02-07-23h47m.pt",
+        "input_indices": [3,4]
+    }
+}
