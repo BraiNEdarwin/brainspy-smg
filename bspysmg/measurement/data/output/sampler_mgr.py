@@ -1,10 +1,13 @@
-import numpy as np
-import time
-from bspysmg.measurement.data.inputs.input_mgr import ramped_input_generator
-from bspyproc import processor
+def get_sampler(configs):
+    if configs["batch_type"] == "batches":
+        return batch_sampler
+    elif configs["batch_type"] == "single_batch":
+        return sampler
+    else:
+        raise NotImplementedError(f"Batch type {configs["batch_type"]} not recognised!")
 
 
-def wave_sampler(configs):
+def batch_sampler(configs):
     # Initialize output containers
     data = np.zeros((int(configs['sample_time'] * configs['sample_frequency']), 1))
 

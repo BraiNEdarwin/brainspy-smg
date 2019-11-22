@@ -1,8 +1,11 @@
 {
+    "processor":{
+        "setup_type": "cdaq_to_nidaq"
+    },
     "input_data":{
         "wave_type":"sine",
         "input_frequency":{
-            "base_frequency": [2, 3.141592653589793, 5, 7, 13, 17, 19],
+            "base_frequency": [2, 3, 5, 7, 13, 17, 19],
             "wave_electrodes": 7,
             "factor": 0.05
         },

@@ -1,6 +1,6 @@
 from bspyalgo.algorithm_manager import get_algorithm
-from bspysmg.measurement.data.inputs.data_handler import get_training_data
-from bspysmg.measurement.data.outputs.core import test_model
+from bspysmg.model.data.inputs.data_handler import get_training_data
+from bspysmg.model.data.outputs import test_model
 
 # Get GD object with a processor specified in configs
 model_generator = get_algorithm('./configs/training/smg_configs_template.json')
