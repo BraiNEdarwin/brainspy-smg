@@ -1,3 +1,5 @@
+#ramp_points = int(configs['ramp_time'] * configs['sample_frequency'])
+# batch_points= int(configs['sample_time'] * configs['sample_frequency'])
 {
     "processor":{
         "setup_type": "cdaq_to_nidaq"
