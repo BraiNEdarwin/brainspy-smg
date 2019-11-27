@@ -11,9 +11,9 @@ from scipy import signal
 
 def get_input_generator(configs):
     if configs["input_type"] == "complete_array":
-        return generate_complete_array(configs["input_distribution"])
+        return load_configs(configs), generate_complete_array(configs["input_distribution"])
     elif configs["input_type"] == "batch_generator":
-        return get_batch_generator(configs)
+        return load_configs(configs), get_batch_generator(configs)
     else:
         raise NotImplementedError(f'Input generator type {configs["input_type"]} not recognized')
 
@@ -40,22 +40,24 @@ def get_batch_generator(configs):
 
 def complete_sine(configs):
     '''Args:
-        configs: Dictionary containing all the sampling configurations
+        configs: Dictionary containing all the sampling wave configurations
     '''
-    configs = load_configs(configs)
-    all_time_points = np.arange(configs['sampling_time'] * configs['sampling_frequency'])
+    all_time_points = np.arange(configs["batch_points"]) / configs["sampling_frequency"]
     return sine_wave(all_time_points, configs['input_frequency'], configs['phase'], configs['amplitude'], configs['offset'])
 
- def complete_sawtooth(configs):
+
+def complete_sawtooth(configs):
     '''Args:
-        configs: Dictionary containing all the sampling configurations
+    configs: Dictionary containing all the sampling wave configurations
     '''
-    configs = load_configs(configs)
-    all_time_points = np.arange(configs['sampling_time'] * configs['sampling_frequency'])
-    return sawtooth_wave(all_time_points,configs['input_frequency'],configs['phase'],configs['amplitude'],configs['offset'])   
+    all_time_points = np.arange(configs["batch_points"]) / configs["sampling_frequency"]
+    return sawtooth_wave(all_time_points, configs['input_frequency'], configs['phase'], configs['amplitude'], configs['offset'])
+
 
 def input_batch_generator():
+    # make sure last value of input of previous batch matches the first? (double points!?)
     raise NotImplementedError(f'Input batch generator not implemented')
+
 
 def time_batch_generator():
     raise NotImplementedError(f'Time batch generator not implemented')
@@ -63,6 +65,7 @@ def time_batch_generator():
 ###################################
 #         WAVE GENERATORS         #
 ###################################
+
 
 def sine_wave(time_points, frequency, phase, amplitude, offset):
     '''
@@ -75,6 +78,7 @@ def sine_wave(time_points, frequency, phase, amplitude, offset):
         offset:      Offset of the input
     '''
     return amplitude * np.sin(2 * np.pi * input_frequency * time_points + phase) + np.outer(offset, np.ones(len(time_points)))
+
 
 def sawtooth_wave(time_points, frequency, phase, amplitude, offset):
     '''
@@ -89,6 +93,7 @@ def sawtooth_wave(time_points, frequency, phase, amplitude, offset):
     rads = 2 * np.pi * frequency * time_points + phase
     wave = signal.sawtooth(rads + np.pi / 2, width=0.5)
     return amplitude * wave + np.outer(offset, np.ones(len(time_points)))
+
 
 def uniform_random_wave(configs):
     '''
@@ -105,14 +110,17 @@ def uniform_random_wave(configs):
 #  HELPER FUNCTIONS  #
 ######################
 
+
 def load_configs(configs):
-    configs['input_frequency'] = get_frequency(configs['input_frequency'])
+    configs['input_frequency'] = get_frequency(configs)
     configs['phase'] = np.array(configs['phase'])[:, np.newaxis]
     configs['amplitude'] = np.array(configs['amplitude'])[:, np.newaxis]
     configs['offset'] = np.array(configs['offset'])[:, np.newaxis]
+    configs['batch_points'] = configs['batch_time'] * configs['sampling_frequency']
+    configs['ramp_points'] = configs['ramp_time'] * configs['sampling_frequency']
     return configs
 
 
 def get_frequency(configs):
     aux = np.array(configs['input_frequency'])[:, np.newaxis]
-    return np.sqrt(aux[:configs['wave_electrodes']]) * configs['factor']
+    return np.sqrt(aux[:configs['input_electrodes']]) * configs['factor']
