@@ -19,22 +19,6 @@ def get_input_generator(configs):
     else:
         raise NotImplementedError(f"Input wave array type {configs['input_distribution']} not recognized")
 
-
-def complete_sine(configs):
-    '''Args:
-        configs: Dictionary containing all the sampling wave configurations
-    '''
-    all_time_points = np.arange(configs["batch_points"]) / configs["sampling_frequency"]
-    return sine_wave(all_time_points, configs['input_frequency'], configs['phase'], configs['amplitude'], configs['offset'])
-
-
-def complete_sawtooth(configs):
-    '''Args:
-    configs: Dictionary containing all the sampling wave configurations
-    '''
-    all_time_points = np.arange(configs["batch_points"]) / configs["sampling_frequency"]
-    return sawtooth_wave(all_time_points, configs['input_frequency'], configs['phase'], configs['amplitude'], configs['offset'])
-
 ###################################
 #         WAVE GENERATORS         #
 ###################################

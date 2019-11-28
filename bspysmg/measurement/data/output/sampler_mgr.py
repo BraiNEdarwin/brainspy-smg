@@ -1,17 +1,11 @@
 from bspyproc.processors.processor_mgr import get_processor
 from bspysmg.measurement.data.input.input_mgr import get_input_generator
+from bspyalgo.utils.io import create_directory_timestamp as mkdir
+from bspyalgo.utils.io import save_configs
 from more_itertools import grouper
 import numpy as np
 import time
-
-
-def get_sampler(configs):
-    if configs["batch_type"] == "batches":
-        return BatchSampler(configs)
-    elif configs["batch_type"] == "single_batch":
-        return Sampler(configs)
-    else:
-        raise NotImplementedError(f"Batch type {configs['batch_type']} not recognised!")
+import os
 
 
 class Sampler:
@@ -20,21 +14,13 @@ class Sampler:
         self.configs = configs
         # define processor and input generator
         self.processor = get_processor(configs["processor"])
-        self.configs["input_data"], self.generate_inputs = get_input_generator(configs["input_data"])
-        # define internal attributes
-        self.end_batch = int(configs["input_data"]["ramp_points"] + configs["input_data"]["batch_points"])
-        self.nr_points_ramped_signal = int(configs["input_data"]["batch_points"] + 2 * configs["input_data"]["ramp_points"])
-        self.filter_ramp = np.zeros(self.nr_points_ramped_signal, dtype=bool)
-        self.index_start_filter = int(configs["input_data"]["ramp_points"])
-        self.index_finish_filter = int(self.end_batch)
-        self.filter_ramp[self.index_start_filter:self.index_finish_filter] = True
 
     def get_batch(self, input_batch):
         # Ramp input batch (0.5 sec up and down)
         batch_ramped = self.ramp_input_batch(input_batch)
         # Readout output signal
         outputs_ramped = self.processor.get_output(batch_ramped.T)
-        return outputs_ramped[self.filter_ramp]
+        return outputs_ramped[self.filter_ramp] * self.configs['processor']['amplification'] / self.configs['processor']['post_gain']
 
     def ramp_input_batch(self, input_batch):
         # TODO: can we do without ramping up and down to zero?
@@ -48,62 +34,27 @@ class Sampler:
         return input_batch_ramped
 
     def get_data(self):
-        start_batch = time.time()
-        # Generate inputs (without rammping)
-        inputs = self.generate_inputs(self.configs["input_data"])
-        outputs = self.get_batch(inputs)
-        self.save_data(inputs, outputs)
-        end_batch = time.time()
-        print(f'Outputs collection took {str(end_batch - start_batch)} sec.')
-        return inputs, outputs, self.configs
+        # Create a directory and file for saving
+        self.save_data()
+        # Initialize configs
+        total_number_samples, length_batch, input_dict = self.init_configs()
 
-    def save_data(self, inputs, outputs):
-        print(f'Saving in {self.configs["save_directory"]}')
-        # TODO: implement saving as method of sampler: save inputs,outputs AND configs
-    #                        output=outputs * configs['amplification'] / configs['postgain'],
-    #                        freq=configs['freq'],
-    #                        sampleTime=configs['sample_time'],
-    #                        sample_frequency=configs['sample_frequency'],
-    #                        phase=configs['phase'],
-    #                        amplitude=configs['amplitude'],
-    #                        offset=configs['offset'],
-    #                        amplification=configs['amplification'],
-    #                        electrodeSetup=configs['electrode_setup'],
-    #                        gain_info=configs['gain_info'],
-    #                        filename='training_nn_data'
-
-
-class BatchSampler(Sampler):
-
-    def __init__(self, configs):
-        super().__init__(configs)
-
-    def get_data(self):
-        # Initialize data containers
-        input_dict = self.configs["input_data"]
-        total_number_samples = input_dict["number_batches"] * input_dict["sampling_frequency"] * input_dict["batch_time"]
-        length_batch = int(input_dict["sampling_frequency"] * input_dict["batch_time"])
-        size_input = (input_dict["input_electrodes"], total_number_samples)
-        inputs = np.zeros(size_input)
-        size_output = (total_number_samples, input_dict["output_electrodes"])
-        outputs = np.zeros(size_output)
-
+        # Initialize sampling loop
         all_time_points = np.arange(total_number_samples) / input_dict["sampling_frequency"]
         for batch, batch_indices in enumerate(self.batch_generator(total_number_samples, length_batch)):
             start_batch = time.time()
             # Generate inputs (without ramping)
             batch += 1
             time_points = all_time_points[batch_indices]
-            inputs[:, batch_indices] = self.generate_inputs(time_points, input_dict['input_frequency'],
-                                                            input_dict['phase'], input_dict['amplitude'],
-                                                            input_dict['offset'])
+            inputs = self.generate_inputs(time_points, input_dict['input_frequency'],
+                                          input_dict['phase'], input_dict['amplitude'],
+                                          input_dict['offset'])
             # Get outputs (without ramping)
-            outputs[batch_indices, :] = self.get_batch(inputs[:, batch_indices])
-            if batch % 10 == 0:  # Save every 10 batches
-                self.save_data(inputs, outputs)
+            outputs = self.get_batch(inputs)
+            self.save_data(inputs.T, outputs)
             end_batch = time.time()
             print(f'Outputs collection for batch {str(batch)} of {str(input_dict["number_batches"])} took {str(end_batch - start_batch)} sec.')
-        return inputs, outputs, self.configs
+        return self.path_to_data
 
     def batch_generator(self, nr_samples, batch):
         print('Start batching...')
@@ -114,10 +65,66 @@ class BatchSampler(Sampler):
                 indices = [index for index in indices if index is not None]
             yield indices
 
+    def get_header(self, input_nr, output_nr):
+        header = ""
+        for i in range(input_nr):
+            header += f"Input {i}, "
+        for i in range(output_nr):
+            if i < (output_nr - 1):
+                header += f"Output {i}, "
+            else:
+                header += f"Output {i}"
+        return header
+
+    def init_configs(self):
+        input_dict, self.generate_inputs = get_input_generator(self.configs["input_data"])
+        total_number_samples = input_dict["number_batches"] * input_dict["sampling_frequency"] * input_dict["batch_time"]
+        length_batch = int(input_dict["sampling_frequency"] * input_dict["batch_time"])
+        # define internal attributes
+        self.end_batch = int(input_dict["ramp_points"] + input_dict["batch_points"])
+        self.nr_points_ramped_signal = int(input_dict["batch_points"] + 2 * input_dict["ramp_points"])
+        self.filter_ramp = np.zeros(self.nr_points_ramped_signal, dtype=bool)
+        self.filter_ramp[int(input_dict["ramp_points"]):int(self.end_batch)] = True
+        return total_number_samples, length_batch, input_dict
+
+    def save_data(self, *args):
+        if len(args) > 0:
+            with open(self.path_to_data, '+a') as f:
+                data = np.column_stack(args)
+                np.savetxt(f, data)
+        else:
+            print(f'Saving in {self.configs["save_directory"]}')
+            path_to_file = mkdir(self.configs["save_directory"], self.configs["data_name"])
+            self.configs["save_directory"] = path_to_file
+            save_configs(self.configs, os.path.join(path_to_file, 'sampler_configs'))
+            header = self.get_header(self.configs["input_data"]["input_electrodes"],
+                                     self.configs["input_data"]["output_electrodes"])
+            self.path_to_data = path_to_file + "/IO.dat"
+            with open(self.path_to_data, 'wb') as f:
+                np.savetxt(f, [], header=header)
+
+    def load_data(self, path):
+        data = np.loadtxt(path)
+        inputs = data[:, :self.configs["input_data"]["input_electrodes"]]
+        outputs = data[:, -self.configs["input_data"]["output_electrodes"]:]
+        return inputs, outputs, self.configs
+
 
 if __name__ == '__main__':
+
     from bspyalgo.utils.io import load_configs
+    import matplotlib.pyplot as plt
 
     CONFIGS = load_configs('configs/sampling/toy_sampling_configs_template.json')
-    sampler = BatchSampler(CONFIGS)
-    RAW_DATA = sampler.get_data()
+    sampler = Sampler(CONFIGS)
+    path_to_data = sampler.get_data()
+    INPUTS, OUTPUTS, INFO_DICT = sampler.load_data(path_to_data)
+
+    # plt.figure()
+    # plt.subplot(2, 1, 1)
+    # plt.plot(INPUTS)
+    # plt.subplot(2, 1, 2)
+    # plt.plot(OUTPUTS)
+    # plt.show()
+
+    print(list(INFO_DICT['input_data'].keys()))
