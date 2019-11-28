@@ -92,6 +92,7 @@ class Sampler:
             with open(self.path_to_data, '+a') as f:
                 data = np.column_stack(args)
                 np.savetxt(f, data)
+                f.flush()
         else:
             print(f'Saving in {self.configs["save_directory"]}')
             path_to_file = mkdir(self.configs["save_directory"], self.configs["data_name"])
