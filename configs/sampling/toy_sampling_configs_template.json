@@ -6,9 +6,10 @@
         "torch_model_dict": "tmp/input/models/nn_test/checkpoint3000_02-07-23h47m.pt"
     },
     "input_data":{
-        "input_type": "complete_array",
+        "input_type": "batch_generator",
         "input_distribution":"sawtooth",
         "input_electrodes": 7,
+        "output_electrodes": 1,
         "input_frequency": [2, 3, 5, 7, 13, 17, 19],
         "phase": [0, 0, 0, 0, 0, 0, 0],
         "factor": 0.05,
@@ -17,7 +18,7 @@
         "sampling_frequency":500,
         "ramp_time": 0.5,
         "batch_time": 10,
-        "number_batches": 1,
+        "number_batches": 3,
         "amplification": 100,
         "gain_info": "10MV/A",
         "post_gain": 1,    

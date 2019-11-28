@@ -1,5 +1,6 @@
 from bspyproc.processors.processor_mgr import get_processor
 from bspysmg.measurement.data.input.input_mgr import get_input_generator
+from more_itertools import grouper
 import numpy as np
 import time
 
@@ -80,22 +81,38 @@ class BatchSampler(Sampler):
     def get_data(self):
         # Initialize data containers
         input_dict = self.configs["input_data"]
-        size_batch = input_dict["sampling_frequency"] * input_dict["batch_time"]
-        size_input = (input_dict["number_batches"], input_dict["input_electrodes"], size_batch)
+        total_number_samples = input_dict["number_batches"] * input_dict["sampling_frequency"] * input_dict["batch_time"]
+        length_batch = int(input_dict["sampling_frequency"] * input_dict["batch_time"])
+        size_input = (input_dict["input_electrodes"], total_number_samples)
         inputs = np.zeros(size_input)
-        size_output = (input_dict["number_batches"], size_batch, 1)
+        size_output = (total_number_samples, input_dict["output_electrodes"])
         outputs = np.zeros(size_output)
 
-        # Generate inputs (without ramping)
-        for batch in range(input_dict["number_batches"]):
+        all_time_points = np.arange(total_number_samples) / input_dict["sampling_frequency"]
+        for batch, batch_indices in enumerate(self.batch_generator(total_number_samples, length_batch)):
             start_batch = time.time()
-            inputs[batch, :] = self.generate_inputs(input_dict)
-            outputs[batch, :] = self.get_batch(inputs[batch, :])
+            # Generate inputs (without ramping)
+            batch += 1
+            time_points = all_time_points[batch_indices]
+            inputs[:, batch_indices] = self.generate_inputs(time_points, input_dict['input_frequency'],
+                                                            input_dict['phase'], input_dict['amplitude'],
+                                                            input_dict['offset'])
+            # Get outputs (without ramping)
+            outputs[batch_indices, :] = self.get_batch(inputs[:, batch_indices])
             if batch % 10 == 0:  # Save every 10 batches
                 self.save_data(inputs, outputs)
             end_batch = time.time()
-            print('outputs collection for part ' + str(batch + 1) + ' of ' + str(configs["batches"]) + ' took ' + str(end_batch - start_batch) + ' sec.')
+            print(f'Outputs collection for batch {str(batch)} of {str(input_dict["number_batches"])} took {str(end_batch - start_batch)} sec.')
         return inputs, outputs, self.configs
+
+    def batch_generator(self, nr_samples, batch):
+        print('Start batching...')
+        batches = grouper(np.arange(nr_samples), batch)
+        while True:
+            indices = list(next(batches))
+            if None in indices:
+                indices = [index for index in indices if index is not None]
+            yield indices
 
 
 if __name__ == '__main__':
