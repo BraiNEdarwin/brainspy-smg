@@ -3,6 +3,7 @@ from bspysmg.measurement.data.input.input_mgr import get_input_generator
 from bspyalgo.utils.io import create_directory_timestamp as mkdir
 from bspyalgo.utils.io import save_configs
 from more_itertools import grouper
+import matplotlib.pyplot as plt
 import numpy as np
 import time
 import os
@@ -53,6 +54,8 @@ class Sampler:
             outputs = self.get_batch(inputs)
             self.save_data(inputs.T, outputs)
             end_batch = time.time()
+            if batch % 15:
+                self.plot_waves(inputs.T, outputs)
             print(f'Outputs collection for batch {str(batch)} of {str(input_dict["number_batches"])} took {str(end_batch - start_batch)} sec.')
         return self.path_to_data
 
@@ -110,22 +113,32 @@ class Sampler:
         outputs = data[:, -self.configs["input_data"]["output_electrodes"]:]
         return inputs, outputs, self.configs
 
+    def plot_waves(self, inputs, outputs):
+        nr_inputs = self.configs["input_data"]["input_electrodes"]
+        nr_outputs = self.configs["input_data"]["output_electrodes"]
+        legend = self.get_header(nr_inputs, nr_outputs).split(',')
+        plt.figure()
+        plt.suptitle('Data for NN training')
+        plt.subplot(211)
+        plt.plot(inputs)
+        plt.ylabel('inputs (V)')
+        plt.xlabel('Time points (a.u.)')
+        plt.legend(legend[:nr_inputs])
+        plt.subplot(212)
+        plt.plot(outputs)
+        plt.ylabel('Outputs (nA)')
+        plt.legend(legend[-nr_outputs:])
+        plt.xlabel('Time points (a.u.)')
+        plt.savefig(self.configs["save_directory"] + '/example_batch')
+
 
 if __name__ == '__main__':
 
     from bspyalgo.utils.io import load_configs
-    import matplotlib.pyplot as plt
 
     CONFIGS = load_configs('configs/sampling/toy_sampling_configs_template.json')
     sampler = Sampler(CONFIGS)
     path_to_data = sampler.get_data()
     INPUTS, OUTPUTS, INFO_DICT = sampler.load_data(path_to_data)
-
-    # plt.figure()
-    # plt.subplot(2, 1, 1)
-    # plt.plot(INPUTS)
-    # plt.subplot(2, 1, 2)
-    # plt.plot(OUTPUTS)
-    # plt.show()
 
     print(list(INFO_DICT['input_data'].keys()))
