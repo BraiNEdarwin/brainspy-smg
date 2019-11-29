@@ -1,128 +1,89 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Sep 28 09:51:58 2018
-DataHandlers contains functions to pre-process and load the data needed for the neural net training:
-    1. DataLoader(data_dir, file_name, **kwargs)
-    2. GetData(dir_file, syst = 'cuda')
-    3. PrepData(main_dir, list_dirs, threshold = [-np.inf,np.inf])
+Created on Fri Nov 29 09:18 2019
 @author: hruiz
 """
+from bspyalgo.utils.io import load_configs
 import sys
 import os
 import datetime
 import numpy as np
-import torch
 import matplotlib.pyplot as plt
 import math
 import pdb
 
 
-def loader(data_path, index):
-    print('Loading data from: \n', data_path)
-    meta = {}
-    data_dic = {}
-    with np.load(data_path) as data:
-        print('with keys: \n', list(data.keys()))
-        assert any('output' in s for s in list(data.keys())), 'Keyvalue \'output(s)\' is missing! Make sure you included the outputs in the data.'
-        for key in data:
-            if key in 'outputs':
-                data_dic['outputs'] = data[key]
-                meta['nr_raw_samples'] = len(data_dic['outputs'])
-            elif key in 'inputs':
-                data_dic['inputs'] = data[key]
-            else:
-                meta[key] = data[key]
-
-        ### Check if inputs available, otherwise generate them ###
-        if 'inputs' not in list(data_dic.keys()):
-            if index:
-                print('Inputs are represented with their index, so lightNNet must be used.')
-                data_dic['inputs'] = np.arange(0, data_dic['outputs'].shape[0])[:, np.newaxis]
-            else:
-                print('Input generated as sine waves!')
-                data_dic['inputs'] = generate_inpsines(meta)
-
-    data_dic['meta'] = meta
-    print('Data loaded with keys: \n', list(data_dic.keys()))
-    print('meta key is dict with keys:\n', list(data_dic['meta'].keys()))
-    return data_dic
+def data_loader(data_directory):
+    config_path = os.path.join(data_directory, 'sampler_configs.json')
+    configs = load_configs(config_path)
+    data_path = os.path.join(data_directory, 'IO.dat')
+    data = np.loadtxt(data_path)
+    inputs = data[:, :configs["input_data"]["input_electrodes"]]
+    outputs = data[:, -configs["input_data"]["output_electrodes"]:]
+    return inputs, outputs, configs
 
 
-def generate_inpsines(info):
-    nr_raw_samples = info['nr_raw_samples']
-    indices = np.arange(nr_raw_samples)[:, np.newaxis]
-    freq = info['freq']
-    amplitude = info['amplitude']
-    offset = info['offset']
-    fs = info['fs']
-    phase = info['phase']
-    sine_waves = amplitude * np.sin((2 * np.pi * indices * freq + phase) / fs) + offset  # Tel mark phase should be outside the brackets?
-
-    return sine_waves
-
-# %% 1. STEP: Clean data for further analysis
-
-
-def PrepData(main_dir, data_filename='training_NN_data.npz',
-             list_dirs=[], threshold=[-np.inf, np.inf], index=False, plot=False):
-    '''Pre-process data, cleans clipping, generates input arrays if non existent (e.g. when sine-sampling
-    was involved) and merges data sets if needed. The data arrays are merged into a single array and
-    cropped given the thresholds.
+def post_process(data_directory, threshold=[-np.inf, np.inf], **kwargs):
+    '''Postprocess data, cleans clipping, and merges data sets if needed. The data arrays are merged
+    into a single array and cropped given the thresholds. The function also plots and saves the histogram of the data
     Arguments:
-        - a string with path to main directory
-    kwdargs:
-        - data_filename: the name of the .npz file containing the data. It is assumend that this file 
-            contains at least the key 'outputs'. Besides the keys 'outputs' and 'inputs', all other keys are 
-            bundled into a dictionary called meta. If the key 'inputs' is non-existent, it generates the
-            inputs assuming sine waves and using the information in meta. The data_filename is also used 
-            to name the file in which the pre-processed data is saved; it assumes that the use of the data is specified
-            in the first word of the file name and words are separated by underscore, e.g. training_data or test_data.
-        - list_dirs: A list of strings indicating directories with training_NN_data.npz containing 'data'. 
-        - threshold: A lower and upper threshold to crop data; default is [-np.inf,np.inf]
-        - plot: if set to True, it plots the first 1000 samples of the inputs and outputs
+        - a string with path to the directory with the data: it is assumed there is a
+        sampler_configs.json and a IO.dat file.
+        - threshold (kwarg): A lower and upper threshold to crop data; default is [-np.inf,np.inf]
+    Optiponal kwargs:
+        - list_data: A list of strings indicating directories with training_NN_data.npz containing 'data'.
 
     NOTE:
-
-        -The data is saved in main_dir+'/data4nn/ to a .npz file with keyes: inputs, outputs,
-        data_path and meta; the meta key has a dictionary as value containing metadata of the 
-        sampling procedure, i.e sine, sawtooth, grid, random.
-        -The inputs are on ALL electrodes in Volts and the output in nA.
+        - The data is saved in path_to_data to a .npz file with keyes: inputs, outputs and info_dict,
+        which has a dictionary with the configs of the sampling procedure.
+        - The inputs are on ALL electrodes in Volts and the output in nA.
         - Data does not undergo any transformation, this is left to the user.
-        - Data structure of output and input are arrays of Nxd, where N is the number of voltage 
-        configurations probed and d is the number of samples for each configuration or the input dimension.
+        - Data structure of output and input are arrays of NxD, where N is the number of samples and
+        D is the dimension.
     '''
-    ### Load full data ###
-    if list_dirs:  # Merge data if list_dir is not empty
-        raw_data = {}
-        out_list = []
-        inp_list = []
-        meta_list = []
-        datapth_list = []
-        for dir_file in list_dirs:
-            _databuff = loader(main_dir + dir_file + data_filename, index)
-            out_list.append(_databuff['outputs'])
-            meta_list.append(_databuff['meta'])
-            datapth_list.append(_databuff['data_path'])
-            inp_list.append(_databuff['inputs'])
-        # Generate numpy arrays out of the lists
-        raw_data['outputs'] = np.concatenate(tuple(out_list))
-        raw_data['inputs'] = np.concatenate(tuple(inp_list))
-        raw_data['meta'] = meta_list
-        raw_data['data_path'] = datapth_list
-    else:
-        raw_data = loader(main_dir + data_filename, index)
-        for key in raw_data['meta'].keys():
-            if 'file' in key:
-                raw_data['data_path'] = raw_data['meta'][key]
+    # Load full data
+    if not list(kwargs.keys()):
+        inputs, outputs, configs = data_loader(data_directory)
+    else:  # Merge data if list_data is in kwargs
+        if 'list_data' in kwargs.keys():
+            inputs, outputs, configs = data_merger(data_directory, kwargs['list_data'])
+        else:
+            assert False, f'{list(kwargs.keys())} not recognized! kwargs must be list_data'
 
-    ### Crop data ###
-    nr_raw_samples = raw_data['meta']['nr_raw_samples']
-    try:
-        mean_output = np.mean(raw_data['outputs'], axis=1)
-    except:
-        mean_output = raw_data['outputs']
+    # Get reference batches
+    reference_inputs = inputs[:2 * configs['input_data']['batch_points']]
+    reference_outputs = outputs[:2 * configs['input_data']['batch_points']]
+    save_npz(data_directory, 'reference_signal', reference_inputs, reference_outputs, configs)
+    # Plot histogram save
+    output_hist(outputs, data_directory, bins=500)
+    # Clean data
+    inputs, outputs = prepare_data(inputs, outputs, threshold)
+    # save data
+    save_npz(data_directory, 'training_data', inputs, outputs, configs)
 
+
+def save_npz(data_directory, file_name, inputs, outputs, configs):
+    save_to = os.path.join(data_directory, file_name)
+    print(f'Data saved to \n {save_to}')
+    np.savez(save_to, inputs=inputs, outputs=outputs, info=configs)
+
+
+def output_hist(outputs, data_directory, bins=500):
+    plt.figure()
+    plt.suptitle('Output Histogram')
+    plt.hist(outputs)
+    plt.ylabel('Counts')
+    plt.xlabel('outputs (nA)')
+    plt.savefig(data_directory + '/output_distribution')
+
+
+def prepare_data(inputs, outputs, threshold):
+
+    nr_raw_samples = len(outputs)
+    print('Number of raw samples: ', nr_raw_samples)
+    mean_output = np.mean(outputs, axis=1)
+    # Get cropping mask
     if type(threshold) is list:
         cropping_mask = (mean_output < threshold[1]) * (mean_output > threshold[0])
     elif type(threshold) is float:
@@ -130,94 +91,33 @@ def PrepData(main_dir, data_filename='training_NN_data.npz',
     else:
         assert False, "Threshold not recognized! Must be list with lower and upper bound or float."
 
-    outputs = raw_data['outputs'][cropping_mask]
-    inputs = raw_data['inputs'][cropping_mask, :]
-    print('Number of raw samples: ', nr_raw_samples)
+    outputs = outputs[cropping_mask]
+    inputs = inputs[cropping_mask, :]
     print('% of points cropped: ', (1 - len(outputs) / nr_raw_samples) * 100)
 
-    if plot:
-        plt.figure()
-        plt.suptitle('Data for NN training')
-        plt.subplot(211)
-        plt.plot(inputs[:1000])
-        plt.ylabel('inputs')
-        plt.subplot(212)
-        plt.plot(outputs[:1000])
-        plt.ylabel('outputs')
-        plt.show()
 
-    # save with timestamp
-    now = datetime.datetime.now()
-    dirName = main_dir + 'data4nn/'
-    try:
-        # Create target Directory
-        os.mkdir(dirName)
-        print("Directory ", dirName, " Created ")
-    except FileExistsError:
-        print("Directory ", dirName, " already exists")
+# TODO:
 
-    dirName += now.strftime("%d_%m_%Y") + '/'
-    try:
-        os.mkdir(dirName)
-    except FileExistsError:
-        print("Directory ", dirName, " already exists")
-    target_file = data_filename.split('_')[0]
-    save_to = dirName + f'data_for_{target_file}'
-    print(f'Cleaned data saved to \n {save_to}.npz')
-
-    np.savez(save_to, inputs=inputs, outputs=outputs,
-             meta=raw_data['meta'], data_path=raw_data['data_path'])
-
-# %% STEP 2: Load Data, prepare for NN and return as list with information dict
+def data_merger(list_dirs):
+    NotImplementedError('Merging of data from a list of data directories not implemented!')
+    # raw_data = {}
+    # out_list = []
+    # inp_list = []
+    # meta_list = []
+    # datapth_list = []
+    # for dir_file in list_dirs:
+    #     _databuff = data_loader(main_dir + dir_file)
+    #     out_list.append(_databuff['outputs'])
+    #     meta_list.append(_databuff['meta'])
+    #     datapth_list.append(_databuff['data_path'])
+    #     inp_list.append(_databuff['inputs'])
+    # # Generate numpy arrays out of the lists
+    # raw_data['outputs'] = np.concatenate(tuple(out_list))
+    # raw_data['inputs'] = np.concatenate(tuple(inp_list))
+    # raw_data['meta'] = meta_list
+    # raw_data['data_path'] = datapth_list
 
 
-# %% EXTRA: Just load data and return as torch.tensor
-
-
-def GetData(dir_file, device='cuda'):
-    '''Get data from dir_file. Returns the inputs as torch.Tensor and targets/outputs as numpy-arrays. 
-    dtype of inputs is defined with kwarg syst. Default is 'cuda'.
-    NOTES:
-        -The data must be in a .npz file with keys 'inputs' & 'outputs' and NxD-structure.
-        -This function assumes that data is cleaned; to clean the data use PrepData.
-    '''
-
-    targets = np.load(dir_file)['outputs']
-    inputs = np.load(dir_file)['inputs']
-
-    if device is 'cuda':
-        print('Inputs dtype defined for CUDA')
-        dtype = torch.cuda.FloatTensor
-
-    else:
-        print('Inputs dtype defined for CPU')
-        dtype = torch.FloatTensor
-
-    inputs = torch.from_numpy(inputs).type(dtype)
-
-    return inputs, targets
-
-
-# %%
-####################################################################################################
-####################################### MAIN #######################################################
-####################################################################################################
 if __name__ == '__main__':
-    main_dir = r'/home/hruiz/Documents/PROJECTS/DARWIN/Data_Darwin/Devices/Marks_Data/April_2019/train set/'
-#    r'/home/hruiz/Documents/PROJECTS/DARWIN/Data_Darwin/Devices/Marks_Data/April_2019/random_test_set/'
-
-    if sys.argv[1] == '-dl':
-        if len(sys.argv) > 2:
-            data_dir = sys.argv[2]
-        else:
-            dir_data = 'data4nn/16_04_2019/'
-            data_dir = main_dir + dir_data
-        file_name = 'data_for_training.npz'
-        print('Loading data...')
-        data = DataLoader(data_dir, file_name, steps=3)
-        meta = data[-1]
-        print(f'Data has meta-info {list(meta.keys())}')
-
-    elif sys.argv[1] == '-pd':
-        print('Cleaning and preparing data...')
-        PrepData(main_dir, data_filename='test_NN_data.npz', threshold=[-39.1, 36.3])
+    data_directory = "tmp\\data\\TEST\\toy_data_2019_11_28_162803\\IO.dat"
+    post_process(data_directory)
