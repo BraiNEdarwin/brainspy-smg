@@ -20,8 +20,7 @@ def get_training_data(configs):
     inputs, outputs, info_dictionary = load_data(path, steps)
     assert len(outputs) == len(inputs), 'Inputs and Outpus have NOT the same length'
     nr_samples = len(outputs)
-    pc = nr_samples / info_dictionary['nr_raw_samples']
-    print(f'Nr. of samples is {nr_samples}; {math.ceil(pc*100)}% of raw data')
+
     # Shuffle data
     shuffler = np.random.permutation(len(outputs))
     inputs = inputs[shuffler]

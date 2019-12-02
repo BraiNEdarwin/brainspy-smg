@@ -24,18 +24,18 @@ def data_loader(data_directory):
     return inputs, outputs, configs
 
 
-def post_process(data_directory, threshold=[-np.inf, np.inf], **kwargs):
+def post_process(data_directory, clipping_value=[-np.inf, np.inf], **kwargs):
     '''Postprocess data, cleans clipping, and merges data sets if needed. The data arrays are merged
-    into a single array and cropped given the thresholds. The function also plots and saves the histogram of the data
+    into a single array and cropped given the clipping_values. The function also plots and saves the histogram of the data
     Arguments:
         - a string with path to the directory with the data: it is assumed there is a
         sampler_configs.json and a IO.dat file.
-        - threshold (kwarg): A lower and upper threshold to crop data; default is [-np.inf,np.inf]
+        - clipping_value (kwarg): A lower and upper clipping_value to crop data; default is [-np.inf,np.inf]
     Optiponal kwargs:
         - list_data: A list of strings indicating directories with training_NN_data.npz containing 'data'.
 
     NOTE:
-        - The data is saved in path_to_data to a .npz file with keyes: inputs, outputs and info_dict,
+        - The data is saved in path_to_data to a .npz file with keyes: inputs, outputs and info,
         which has a dictionary with the configs of the sampling procedure.
         - The inputs are on ALL electrodes in Volts and the output in nA.
         - Data does not undergo any transformation, this is left to the user.
@@ -51,16 +51,27 @@ def post_process(data_directory, threshold=[-np.inf, np.inf], **kwargs):
         else:
             assert False, f'{list(kwargs.keys())} not recognized! kwargs must be list_data'
 
+    batch_length = configs['input_data']['batch_time'] * configs['input_data']['sampling_frequency']
+    nr_raw_samples = len(outputs)
+    print('Number of raw samples: ', nr_raw_samples)
+    assert nr_raw_samples == configs['input_data']['number_batches'] * batch_length, f'Data size mismatch!'
+    output_scales = [np.min(outputs), np.max(outputs)]
+    print(f'Output scales: [Min., Max.] = {output_scales}')
+    input_scales = list(zip(np.min(inputs, axis=0), np.max(inputs, axis=0)))
+    print(f'Input scales: {input_scales}')
     # Get reference batches
-    reference_inputs = inputs[:2 * configs['input_data']['batch_points']]
-    reference_outputs = outputs[:2 * configs['input_data']['batch_points']]
-    save_npz(data_directory, 'reference_signal', reference_inputs, reference_outputs, configs)
-    # Plot histogram save
-    output_hist(outputs, data_directory, bins=500)
+    save_npz(data_directory, 'reference_batch',
+             inputs[-2 * batch_length:], outputs[-2 * batch_length:], configs)
+    # Plot samples histogram and save
+    output_hist(outputs[::33], data_directory, bins=500)
     # Clean data
-    inputs, outputs = prepare_data(inputs, outputs, threshold)
+    configs['clipping_value'] = clipping_value
+    inputs, outputs = prepare_data(inputs, outputs, clipping_value)
+    print('% of points cropped: ', (1 - len(outputs) / nr_raw_samples) * 100)
     # save data
     save_npz(data_directory, 'training_data', inputs, outputs, configs)
+
+    return inputs, outputs, configs
 
 
 def save_npz(data_directory, file_name, inputs, outputs, configs):
@@ -69,34 +80,34 @@ def save_npz(data_directory, file_name, inputs, outputs, configs):
     np.savez(save_to, inputs=inputs, outputs=outputs, info=configs)
 
 
-def output_hist(outputs, data_directory, bins=500):
+def output_hist(outputs, data_directory, bins=100):
     plt.figure()
     plt.suptitle('Output Histogram')
-    plt.hist(outputs)
+    plt.hist(outputs, bins)
     plt.ylabel('Counts')
     plt.xlabel('outputs (nA)')
     plt.savefig(data_directory + '/output_distribution')
 
 
-def prepare_data(inputs, outputs, threshold):
+def prepare_data(inputs, outputs, clipping_value):
 
-    nr_raw_samples = len(outputs)
-    print('Number of raw samples: ', nr_raw_samples)
     mean_output = np.mean(outputs, axis=1)
     # Get cropping mask
-    if type(threshold) is list:
-        cropping_mask = (mean_output < threshold[1]) * (mean_output > threshold[0])
-    elif type(threshold) is float:
-        cropping_mask = np.abs(mean_output) < threshold
+    if type(clipping_value) is list:
+        cropping_mask = (mean_output < clipping_value[1]) * (mean_output > clipping_value[0])
+    elif type(clipping_value) is float:
+        cropping_mask = np.abs(mean_output) < clipping_value
     else:
-        assert False, "Threshold not recognized! Must be list with lower and upper bound or float."
+        TypeError(f"Clipping value not recognized! Must be list with
+                  lower and upper bound or float, was {type(clipping_value)}")
 
     outputs = outputs[cropping_mask]
     inputs = inputs[cropping_mask, :]
-    print('% of points cropped: ', (1 - len(outputs) / nr_raw_samples) * 100)
+    return inputs, outputs
 
-
+############################################################################
 # TODO:
+
 
 def data_merger(list_dirs):
     NotImplementedError('Merging of data from a list of data directories not implemented!')
@@ -119,5 +130,6 @@ def data_merger(list_dirs):
 
 
 if __name__ == '__main__':
-    data_directory = "tmp\\data\\TEST\\toy_data_2019_11_28_162803\\IO.dat"
-    post_process(data_directory)
+    data_directory = "tmp\\data\\TEST\\toy_data_2019_11_28_162803"
+    inputs, outputs, info = post_process(data_directory, clipping_value=300.)
+    output_hist(outputs, data_directory, bins=100)

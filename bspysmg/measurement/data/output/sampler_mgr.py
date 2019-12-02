@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+Script to sample a device using waves
+@author: HC Ruiz, M. Boon
+"""
 from bspyproc.processors.processor_mgr import get_processor
 from bspysmg.measurement.data.input.input_mgr import get_input_generator
 from bspyalgo.utils.io import create_directory_timestamp as mkdir

@@ -7,7 +7,7 @@ model_generator = get_algorithm('./configs/training/smg_configs_template.json')
 
 # Get training and validation data
 INPUTS, TARGETS, INPUTS_VAL, TARGETS_VAL, INFO = get_training_data(model_generator.configs["data"])
-
+assert False, "Need to scale down the data!!"
 # # Train the model
 # TODO: implement the  dict entry of the model's location and make sure it is saved and all relations between data, models and configs
 DATA = model_generator.optimize(INPUTS, TARGETS, validation_data=(INPUTS_VAL, TARGETS_VAL))

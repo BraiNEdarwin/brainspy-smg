@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Dec 17 16:51:29 2018
-Script to sample a device using waves
-@author: HC Ruiz
+@author: HC Ruiz, U. Alegre
 """
 
 import numpy as np
