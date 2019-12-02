@@ -98,8 +98,7 @@ def prepare_data(inputs, outputs, clipping_value):
     elif type(clipping_value) is float:
         cropping_mask = np.abs(mean_output) < clipping_value
     else:
-        TypeError(f"Clipping value not recognized! Must be list with
-                  lower and upper bound or float, was {type(clipping_value)}")
+        TypeError(f"Clipping value not recognized! Must be list with lower and upper bound or float, was {type(clipping_value)}")
 
     outputs = outputs[cropping_mask]
     inputs = inputs[cropping_mask, :]
@@ -131,5 +130,5 @@ def data_merger(list_dirs):
 
 if __name__ == '__main__':
     data_directory = "tmp\\data\\TEST\\toy_data_2019_11_28_162803"
-    inputs, outputs, info = post_process(data_directory, clipping_value=300.)
+    inputs, outputs, info = post_process(data_directory, clipping_value=[-400., 300])
     output_hist(outputs, data_directory, bins=100)
