@@ -59,9 +59,10 @@ class Sampler:
             outputs = self.get_batch(inputs)
             self.save_data(inputs.T, outputs)
             end_batch = time.time()
-            if batch % 15:
+            if (batch % 1)==0:
                 self.plot_waves(inputs.T, outputs)
             print(f'Outputs collection for batch {str(batch)} of {str(input_dict["number_batches"])} took {str(end_batch - start_batch)} sec.')
+        self.close_processor()
         return self.path_to_data
 
     def batch_generator(self, nr_samples, batch):
@@ -136,14 +137,24 @@ class Sampler:
         plt.xlabel('Time points (a.u.)')
         plt.savefig(self.configs["save_directory"] + '/example_batch')
 
+    def close_processor(self):
+        """
+        Experiments in hardware require that the connection with the drivers is closed.
+        This method helps closing this connection when necessary.
+        """
+        try:
+            self.processor.close_tasks()
+            print('Instrument task closed')
+        except AttributeError:
+            print('There is no closing function for the current processor configuration. Skipping.')
+
 
 if __name__ == '__main__':
 
     from bspyalgo.utils.io import load_configs
 
-    CONFIGS = load_configs('configs/sampling/toy_sampling_configs_template.json')
+    CONFIGS = load_configs('configs/sampling/sampling_configs_template.json')
     sampler = Sampler(CONFIGS)
     path_to_data = sampler.get_data()
-    INPUTS, OUTPUTS, INFO_DICT = sampler.load_data(path_to_data)
 
-    print(list(INFO_DICT['input_data'].keys()))
+    # INPUTS, OUTPUTS, INFO_DICT = sampler.load_data(path_to_data)
