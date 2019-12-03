@@ -26,7 +26,7 @@ class Sampler:
         batch_ramped = self.ramp_input_batch(input_batch)
         # Readout output signal
         outputs_ramped = self.processor.get_output(batch_ramped.T)
-        return outputs_ramped[self.filter_ramp] * self.configs['processor']['amplification'] / self.configs['processor']['post_gain']
+        return outputs_ramped[self.filter_ramp]
 
     def ramp_input_batch(self, input_batch):
         # TODO: can we do without ramping up and down to zero?
@@ -85,7 +85,7 @@ class Sampler:
         return header
 
     def init_configs(self):
-        input_dict, self.generate_inputs = get_input_generator(self.configs["input_data"])
+        input_dict, self.generate_inputs = get_input_generator(self.configs)
         total_number_samples = input_dict["number_batches"] * input_dict["sampling_frequency"] * input_dict["batch_time"]
         length_batch = int(input_dict["sampling_frequency"] * input_dict["batch_time"])
         # define internal attributes

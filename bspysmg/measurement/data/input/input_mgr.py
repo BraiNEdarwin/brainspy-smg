@@ -9,11 +9,11 @@ from scipy import signal
 
 
 def get_input_generator(configs):
-    if configs["input_distribution"] == "sine":
+    if configs["input_data"]["input_distribution"] == "sine":
         return load_configs(configs), sine_wave
-    elif configs["input_distribution"] == "sawtooth":
+    elif configs["input_data"]["input_distribution"] == "sawtooth":
         return load_configs(configs), sawtooth_wave
-    elif configs["input_distribution"] == "uniform_random":
+    elif configs["input_data"]["input_distribution"] == "uniform_random":
         raise NotImplementedError(f'Uniform random wave generator not available')
     else:
         raise NotImplementedError(f"Input wave array type {configs['input_distribution']} not recognized")
@@ -67,7 +67,9 @@ def uniform_random_wave(configs):
 ######################
 
 
-def load_configs(configs):
+def load_configs(config_dict):
+    configs = config_dict["input_data"]
+    configs['sampling_frequency'] = config_dict["processor"]['sampling_frequency']
     configs['input_frequency'] = get_frequency(configs)
     configs['phase'] = np.array(configs['phase'])[:, np.newaxis]
     configs['amplitude'] = np.array(configs['amplitude'])[:, np.newaxis]
