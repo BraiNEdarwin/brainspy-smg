@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Script to sample a device using waves
-@author: HC Ruiz, M. Boon
+@author: HC Ruiz
 """
 from bspyproc.processors.processor_mgr import get_processor
 from bspysmg.measurement.data.input.input_mgr import get_input_generator
@@ -29,6 +29,9 @@ class Sampler:
         return outputs_ramped[self.filter_ramp]
 
     def ramp_input_batch(self, input_batch):
+        '''Ramps the input up and down for ech batch
+        @author: M. Boon
+        '''
         # TODO: can we do without ramping up and down to zero?
         dimensions = self.configs["input_data"]["input_electrodes"]
         ramp = int(self.configs["input_data"]["ramp_points"])
@@ -59,8 +62,8 @@ class Sampler:
             outputs = self.get_batch(inputs)
             self.save_data(inputs.T, outputs)
             end_batch = time.time()
-            if (batch % 1)==0:
-                self.plot_waves(inputs.T, outputs)
+            if (batch % 1) == 0:
+                self.plot_waves(inputs.T, outputs, batch)
             print(f'Outputs collection for batch {str(batch)} of {str(input_dict["number_batches"])} took {str(end_batch - start_batch)} sec.')
         self.close_processor()
         return self.path_to_data
@@ -119,15 +122,15 @@ class Sampler:
         outputs = data[:, -self.configs["input_data"]["output_electrodes"]:]
         return inputs, outputs, self.configs
 
-    def plot_waves(self, inputs, outputs):
+    def plot_waves(self, inputs, outputs, batch):
         nr_inputs = self.configs["input_data"]["input_electrodes"]
         nr_outputs = self.configs["input_data"]["output_electrodes"]
         legend = self.get_header(nr_inputs, nr_outputs).split(',')
         plt.figure()
-        plt.suptitle('Data for NN training')
+        plt.suptitle(f'Data for NN training in batch {batch}')
         plt.subplot(211)
         plt.plot(inputs)
-        plt.ylabel('inputs (V)')
+        plt.ylabel('Inputs (V)')
         plt.xlabel('Time points (a.u.)')
         plt.legend(legend[:nr_inputs])
         plt.subplot(212)
@@ -135,6 +138,7 @@ class Sampler:
         plt.ylabel('Outputs (nA)')
         plt.legend(legend[-nr_outputs:])
         plt.xlabel('Time points (a.u.)')
+        plt.tight_layout()
         plt.savefig(self.configs["save_directory"] + '/example_batch')
 
     def close_processor(self):
@@ -149,12 +153,30 @@ class Sampler:
             print('There is no closing function for the current processor configuration. Skipping.')
 
 
+class Repeater(Sampler):
+
+    def __init__(self, configs):
+        super().__init__(configs)
+
+    def batch_generator(self, nr_samples, batch):
+        print('Repeating the experiment...')
+        count = 1
+        while nr_samples > count * batch:
+            indices = list(range(batch))
+            if None in indices:
+                indices = [index for index in indices if index is not None]
+            yield indices
+            count += 1
+
+
 if __name__ == '__main__':
 
     from bspyalgo.utils.io import load_configs
 
-    CONFIGS = load_configs('configs/sampling/sampling_configs_template.json')
-    sampler = Sampler(CONFIGS)
+    # CONFIGS = load_configs('configs/sampling/sampling_configs_template.json')
+    # sampler = Sampler(CONFIGS)
+    CONFIGS = load_configs('configs/sampling/toy_sampling_configs_template.json')
+    sampler = Repeater(CONFIGS)
     path_to_data = sampler.get_data()
 
     # INPUTS, OUTPUTS, INFO_DICT = sampler.load_data(path_to_data)
