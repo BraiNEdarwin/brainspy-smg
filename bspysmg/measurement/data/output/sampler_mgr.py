@@ -140,6 +140,7 @@ class Sampler:
         plt.xlabel('Time points (a.u.)')
         plt.tight_layout()
         plt.savefig(self.configs["save_directory"] + '/example_batch')
+        plt.close()
 
     def close_processor(self):
         """
@@ -160,7 +161,7 @@ class Repeater(Sampler):
 
     def batch_generator(self, nr_samples, batch):
         print('Repeating the experiment...')
-        count = 1
+        count = 0
         while nr_samples > count * batch:
             indices = list(range(batch))
             if None in indices:
@@ -172,11 +173,17 @@ class Repeater(Sampler):
 if __name__ == '__main__':
 
     from bspyalgo.utils.io import load_configs
+    import matplotlib.pyplot as plt
 
-    # CONFIGS = load_configs('configs/sampling/sampling_configs_template.json')
+    CONFIGS = load_configs('configs/sampling/sampling_configs_template.json')
     # sampler = Sampler(CONFIGS)
-    CONFIGS = load_configs('configs/sampling/toy_sampling_configs_template.json')
+    # CONFIGS = load_configs('configs/sampling/toy_sampling_configs_template.json')
     sampler = Repeater(CONFIGS)
     path_to_data = sampler.get_data()
 
-    # INPUTS, OUTPUTS, INFO_DICT = sampler.load_data(path_to_data)
+    INPUTS, OUTPUTS, INFO_DICT = sampler.load_data(path_to_data)
+
+    OUTPUTS = OUTPUTS.reshape((-1,INFO_DICT['input_data']["batch_points"])).T
+    plt.figure()
+    plt.plot(OUTPUTS)
+    plt.show()
