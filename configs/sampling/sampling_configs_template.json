@@ -1,10 +1,10 @@
-{   "save_directory": "tmp/data/TEST/",
-    "data_name": "test_sampler_data",
+{   "save_directory": "tmp/data/results/",
+    "data_name": "repeated_long_batches",
     "processor":{
         "platform" : "hardware",
         "setup_type": "cdaq_to_nidaq",
         "amplification": 100,
-        "sampling_frequency":100,
+        "sampling_frequency":50,
         "gain_info": "10MV/A",
         "post_gain": 1,    
         "electrode_setup": [["ao5","ao3","ao1","ao0","ao2","ao4","ao6","out"],
@@ -15,7 +15,7 @@
         },
         "input_channels" : [0,1,2,3,4,5,6],
         "output_channels" : [0],
-        "shape" : 5100
+        "shape" : 90050
     },
     "input_data":{
         "input_distribution":"sawtooth",
@@ -27,8 +27,8 @@
         "amplitude": [0.9, 0.9, 0.9, 0.9, 0.9, 0.5, 0.5],
         "offset": [-0.3,-0.3,-0.3,-0.3,-0.3,-0.2,-0.2],
         "ramp_time": 0.5,
-        "batch_time": 50,
-        "number_batches": 1
+        "batch_time": 1800,
+        "number_batches": 28
     }
 
 }
