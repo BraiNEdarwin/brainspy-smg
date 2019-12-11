@@ -109,7 +109,7 @@ class Sampler:
             print(f'Saving in {self.configs["save_directory"]}')
             path_to_file = mkdir(self.configs["save_directory"], self.configs["data_name"])
             self.configs["save_directory"] = path_to_file
-            save_configs(self.configs, os.path.join(path_to_file, 'sampler_configs'))
+            save_configs(self.configs, os.path.join(path_to_file, 'sampler_configs.json'))
             header = self.get_header(self.configs["input_data"]["input_electrodes"],
                                      self.configs["input_data"]["output_electrodes"])
             self.path_to_data = path_to_file + "/IO.dat"
@@ -176,14 +176,16 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     CONFIGS = load_configs('configs/sampling/sampling_configs_template.json')
-    # sampler = Sampler(CONFIGS)
+    sampler = Sampler(CONFIGS)
+
     # CONFIGS = load_configs('configs/sampling/toy_sampling_configs_template.json')
-    sampler = Repeater(CONFIGS)
+    # sampler = Repeater(CONFIGS)
+
     path_to_data = sampler.get_data()
 
     INPUTS, OUTPUTS, INFO_DICT = sampler.load_data(path_to_data)
 
-    OUTPUTS = OUTPUTS.reshape((-1,INFO_DICT['input_data']["batch_points"])).T
+    # OUTPUTS = OUTPUTS.reshape((-1,INFO_DICT['input_data']["batch_points"])).T
     plt.figure()
-    plt.plot(OUTPUTS)
+    plt.hist(OUTPUTS,500)
     plt.show()
