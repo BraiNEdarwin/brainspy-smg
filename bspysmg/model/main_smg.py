@@ -1,3 +1,5 @@
+import numpy as np
+import matplotlib.pyplot as plt
 from bspyalgo.algorithm_manager import get_algorithm
 from bspysmg.model.data.inputs.data_handler import get_training_data
 from bspysmg.model.data.outputs import test_model
@@ -6,19 +8,18 @@ from bspysmg.model.data.outputs import test_model
 model_generator = get_algorithm('./configs/training/smg_configs_template.json')
 
 # Get training and validation data
-INPUTS, TARGETS, INPUTS_VAL, TARGETS_VAL, INFO = get_training_data(model_generator.configs["data"])
-assert False, "Need to scale down the data!! Here or in get_training_data?"
-# # Train the model
-# TODO: implement the  dict entry of the model's location and make sure it is saved and all relations between data, models and configs
-DATA = model_generator.optimize(INPUTS, TARGETS, validation_data=(INPUTS_VAL, TARGETS_VAL))
+INPUTS, TARGETS, INPUTS_VAL, TARGETS_VAL, INFO = get_training_data(model_generator.configs)
+# Train the model
+DATA = model_generator.optimize(INPUTS, TARGETS, validation_data=(INPUTS_VAL, TARGETS_VAL), data_info=INFO)
+LOSS = DATA.results['performance_history'] * (model_generator.processor.get_amplification_value()**2)
 
+plt.figure()
+plt.plot(LOSS)
+plt.title(f'Training profile')
+plt.legend(['training', 'validation'])
+plt.savefig(model_generator.dir_path + '/training_profile')
+
+np.savez(model_generator.dir_path + '/training_profile.npz', LOSS=LOSS)
 # Test NN model with unseen test data
-# TODO: remove when saving path is same as model path
-model_generator.configs['path_to_model'] = r"/home/hruiz/Documents/PROJECTS/DARWIN/Code/packages/brainspy/brainspy-processors/tmp/input/models/nn_test/checkpoint3000_02-07-23h47m.pt"
-TEST_ERROR = test_model.get_error(model_generator.configs['path_to_model'],
-                                  model_generator.configs["data"]['test_data_path'],
-                                  steps=3)
-
-# Predict Control Voltages
-# TODO: implement
-CONTROL_VOLTAGES = test_model.get_control_voltages(model_generator.configs["validation_task"])
+TEST_ERROR = test_model.get_error(model_generator.dir_path + '/trained_network.pt',
+                                  model_generator.configs["data"]['test_data_path'])

@@ -51,7 +51,7 @@ def post_process(data_directory, clipping_value=[-np.inf, np.inf], **kwargs):
         else:
             assert False, f'{list(kwargs.keys())} not recognized! kwargs must be list_data'
 
-    batch_length = configs['input_data']['batch_time'] * configs['input_data']['sampling_frequency']
+    batch_length = configs['input_data']['batch_time'] * configs['processor']['sampling_frequency']
     nr_raw_samples = len(outputs)
     print('Number of raw samples: ', nr_raw_samples)
     assert nr_raw_samples == configs['input_data']['number_batches'] * batch_length, f'Data size mismatch!'
@@ -129,6 +129,6 @@ def data_merger(list_dirs):
 
 
 if __name__ == '__main__':
-    data_directory = "tmp\\data\\TEST\\toy_data_2019_11_28_162803"
-    inputs, outputs, info = post_process(data_directory, clipping_value=[-400., 300])
+    data_directory = "/home/hruiz/Documents/PROJECTS/DARWIN/Data_Darwin/Devices/training_1080batches_50s_50Hz_2019_12_05_172238"
+    inputs, outputs, info = post_process(data_directory)
     output_hist(outputs, data_directory, bins=100)

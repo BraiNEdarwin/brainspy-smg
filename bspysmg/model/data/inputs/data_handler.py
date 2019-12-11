@@ -1,6 +1,6 @@
 
 import numpy as np
-import math
+import os
 from bspyproc.utils.pytorch import TorchUtils
 
 
@@ -13,9 +13,9 @@ def get_training_data(configs):
     The inputs follow the convention that the first dimension is over CV configs and the second index is
     over input dimension, i.e. number of electrodes.
     '''
-    path = configs['training_data_path']
-    validation_size = configs['validation_size']
-    steps = configs['steps']
+    path = os.path.join(configs["results_path"], configs["data"]['training_data_path'])
+    validation_size = configs["data"]['validation_size']
+    steps = configs["data"]['steps']
 
     inputs, outputs, info_dictionary = load_data(path, steps)
     assert len(outputs) == len(inputs), 'Inputs and Outpus have NOT the same length'
@@ -24,7 +24,8 @@ def get_training_data(configs):
     # Shuffle data
     shuffler = np.random.permutation(len(outputs))
     inputs = inputs[shuffler]
-    outputs = outputs[shuffler]
+    # Shuffle and SCALE the output to have unit range
+    outputs = outputs[shuffler] / info_dictionary['processor']['amplification']
 
     # Partition into training and validation sets ###
     n_val = int(nr_samples * validation_size)
@@ -54,7 +55,7 @@ def load_data(path, steps):
     print('Data loading from: \n' + path)
     with np.load(path, allow_pickle=True) as data:  # why was allow_pickle not required before? Do we need this?
         # TODO: change in data generation the key meta to info_dictionary
-        info_dictionary = data['meta'].tolist()
+        info_dictionary = data['info'].tolist()
         print(f'Metadata :\n {info_dictionary.keys()}')
         # Create from numpy arrays torch.tensors and send them to device
         inputs = TorchUtils.get_tensor_from_numpy(data['inputs'][::steps])  # shape: Nx#electrodes
