@@ -33,7 +33,7 @@ def sine_wave(time_points, frequency, phase, amplitude, offset):
         phase:       Phase offset of sine wave 
         offset:      Offset of the input
     '''
-    return amplitude * np.sin(2 * np.pi * input_frequency * time_points + phase) + np.outer(offset, np.ones(len(time_points)))
+    return amplitude * np.sin(2 * np.pi * frequency * time_points + phase) + np.outer(offset, np.ones(len(time_points)))
 
 
 def sawtooth_wave(time_points, frequency, phase, amplitude, offset):
