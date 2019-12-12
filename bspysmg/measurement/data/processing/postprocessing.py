@@ -63,13 +63,13 @@ def post_process(data_directory, clipping_value=[-np.inf, np.inf], **kwargs):
     save_npz(data_directory, 'reference_batch',
              inputs[-2 * batch_length:], outputs[-2 * batch_length:], configs)
     # Plot samples histogram and save
-    output_hist(outputs[::33], data_directory, bins=500)
+    output_hist(outputs[::3], data_directory, bins=500)
     # Clean data
     configs['clipping_value'] = clipping_value
     inputs, outputs = prepare_data(inputs, outputs, clipping_value)
     print('% of points cropped: ', (1 - len(outputs) / nr_raw_samples) * 100)
     # save data
-    save_npz(data_directory, 'training_data', inputs, outputs, configs)
+    save_npz(data_directory, 'postprocessed_data', inputs, outputs, configs)
 
     return inputs, outputs, configs
 
@@ -129,6 +129,6 @@ def data_merger(list_dirs):
 
 
 if __name__ == '__main__':
-    data_directory = "/home/hruiz/Documents/PROJECTS/DARWIN/Data_Darwin/Devices/training_1080batches_50s_50Hz_2019_12_05_172238"
+    data_directory = "/home/hruiz/Documents/PROJECTS/DARWIN/Data_Darwin/Devices/BRAINSPY_DATA/training_3456batches_50s_50Hz_2019_12_06_171400"
     inputs, outputs, info = post_process(data_directory)
     output_hist(outputs, data_directory, bins=100)
