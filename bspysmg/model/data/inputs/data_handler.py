@@ -13,7 +13,7 @@ def get_training_data(configs):
     The inputs follow the convention that the first dimension is over CV configs and the second index is
     over input dimension, i.e. number of electrodes.
     '''
-    path = os.path.join(configs["results_path"], configs["data"]['training_data_path'])
+    path = os.path.join(configs["results_base_dir"], configs["data"]['training_data_path'])
     validation_size = configs["data"]['validation_size']
     steps = configs["data"]['steps']
 
