@@ -37,7 +37,7 @@ create_directory(results_dir)
 
 train_targets = TorchUtils.get_numpy_from_tensor(TARGETS[:len(INPUTS_VAL)])
 train_output = data.results['best_output_training']
-plot_all(train_targets, train_output, results_dir, name='VALIDATION')
+plot_all(train_targets, train_output, results_dir, name='TRAINING')
 
 val_targets = TorchUtils.get_numpy_from_tensor(TARGETS_VAL)
 val_output = data.results['best_output']
