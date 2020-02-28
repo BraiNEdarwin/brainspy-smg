@@ -6,7 +6,7 @@ from bspysmg.model.data.inputs.data_handler import get_training_data
 from bspysmg.model.data.outputs import test_model
 from bspyalgo.utils.io import load_configs
 from bspyproc.utils.pytorch import TorchUtils
-from bspysmg.model.data.plots.model_results_plotter import plot_error_hist, plot_error_vs_output
+from bspysmg.model.data.plots.model_results_plotter import plot_all
 from bspyalgo.utils.io import save, create_directory
 
 TorchUtils.force_cpu = True
@@ -25,7 +25,7 @@ main_folder = 'training_data'
 
 # # # # Get GD object with a processor specified in configs
 model_generator = get_algorithm(configs, is_main=True)
-# model_generator.save_smg_configs_dict()
+model_generator.save_smg_configs_dict()
 
 # # Get training and validation data
 INPUTS, TARGETS, INPUTS_VAL, TARGETS_VAL, INFO = get_training_data(model_generator.configs)
@@ -37,17 +37,11 @@ create_directory(results_dir)
 
 train_targets = TorchUtils.get_numpy_from_tensor(TARGETS[:len(INPUTS_VAL)])
 train_output = data.results['best_output_training']
-train_error = train_output - train_targets
-train_mse = np.mean(train_error ** 2)
-plot_error_vs_output(train_targets, train_error, results_dir, name='TRAINING_test_error_vs_output')
-plot_error_hist(train_targets, train_output, train_error, train_mse, results_dir, name='TRAINING_test_error')
+plot_all(train_targets, train_output, results_dir, name='TRAINING')
 
-val_targets = TorchUtils.get_numpy_from_tensor(TARGETS_VAL[:])
+val_targets = TorchUtils.get_numpy_from_tensor(TARGETS_VAL)
 val_output = data.results['best_output']
-val_error = val_output - val_targets
-val_mse = np.mean(val_error ** 2)
-plot_error_vs_output(val_targets, val_error, results_dir, name='VALIDATION_test_error_vs_output')
-plot_error_hist(val_targets, val_output, val_error, val_mse, results_dir, name='VALIDATION_test_error')
+plot_all(val_targets, val_output, results_dir, name='VALIDATION')
 
 training_profile = data.results['performance_history'] * (model_generator.processor.get_amplification_value()**2)
 
@@ -57,7 +51,7 @@ plt.title(f'Training profile')
 plt.legend(['training', 'validation'])
 plt.savefig(os.path.join(results_dir, 'training_profile'))
 
-save('numpy', os.path.join(results_dir, 'training_summary.npz'), training_profile=training_profile, train_outputs=train_output, train_targets=train_targets, validation_outputs=val_output, validation_targets=val_targets)
+save('numpy', os.path.join(results_dir, 'training_summary.npz'), train_outputs=train_output, train_targets=train_targets, validation_outputs=val_output, validation_targets=val_targets)
 # Test NN model with unseen test data
 
 #TorchUtils.force_cpu = True
