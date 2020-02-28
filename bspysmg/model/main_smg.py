@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from bspyalgo.algorithm_manager import get_algorithm
@@ -5,6 +6,8 @@ from bspysmg.model.data.inputs.data_handler import get_training_data
 from bspysmg.model.data.outputs import test_model
 from bspyalgo.utils.io import load_configs
 from bspyproc.utils.pytorch import TorchUtils
+from bspysmg.model.data.plots.model_results_plotter import plot_error_hist, plot_error_vs_output
+from bspyalgo.utils.io import save, create_directory
 
 TorchUtils.force_cpu = True
 
@@ -18,23 +21,43 @@ else:
 seed = TorchUtils.init_seed(seed, deterministic=True)
 configs['seed'] = seed
 
+main_folder = 'training_data'
+
 # # # # Get GD object with a processor specified in configs
 model_generator = get_algorithm(configs, is_main=True)
-model_generator.save_smg_configs_dict()
+# model_generator.save_smg_configs_dict()
 
-# Get training and validation data
+# # Get training and validation data
 INPUTS, TARGETS, INPUTS_VAL, TARGETS_VAL, INFO = get_training_data(model_generator.configs)
 # Train the model
-DATA = model_generator.optimize(INPUTS, TARGETS, validation_data=(INPUTS_VAL, TARGETS_VAL), data_info=INFO)
-LOSS = DATA.results['performance_history'] * (model_generator.processor.get_amplification_value()**2)
+data = model_generator.optimize(INPUTS, TARGETS, validation_data=(INPUTS_VAL, TARGETS_VAL), data_info=INFO)
+
+results_dir = os.path.join(model_generator.base_dir, main_folder)
+create_directory(results_dir)
+
+train_targets = TorchUtils.get_numpy_from_tensor(TARGETS[:len(INPUTS_VAL)])
+train_output = data.results['best_output_training']
+train_error = train_output - train_targets
+train_mse = np.mean(train_error ** 2)
+plot_error_vs_output(train_targets, train_error, results_dir, name='TRAINING_test_error_vs_output')
+plot_error_hist(train_targets, train_output, train_error, train_mse, results_dir, name='TRAINING_test_error')
+
+val_targets = TorchUtils.get_numpy_from_tensor(TARGETS_VAL[:])
+val_output = data.results['best_output']
+val_error = val_output - val_targets
+val_mse = np.mean(val_error ** 2)
+plot_error_vs_output(val_targets, val_error, results_dir, name='VALIDATION_test_error_vs_output')
+plot_error_hist(val_targets, val_output, val_error, val_mse, results_dir, name='VALIDATION_test_error')
+
+training_profile = data.results['performance_history'] * (model_generator.processor.get_amplification_value()**2)
 
 plt.figure()
-plt.plot(LOSS)
+plt.plot(training_profile)
 plt.title(f'Training profile')
 plt.legend(['training', 'validation'])
-plt.savefig(configs['results_base_dir'] + '/training_profile')
+plt.savefig(os.path.join(results_dir, 'training_profile'))
 
-np.savez(configs['results_base_dir'] + '/summary.npz', LOSS=LOSS)
+save('numpy', os.path.join(results_dir, 'training_summary.npz'), training_profile=training_profile, train_outputs=train_output, train_targets=train_targets, validation_outputs=val_output, validation_targets=val_targets)
 # Test NN model with unseen test data
 
 #TorchUtils.force_cpu = True
@@ -42,7 +65,5 @@ np.savez(configs['results_base_dir'] + '/summary.npz', LOSS=LOSS)
 # TEST_ERROR = test_model.get_error(model_generator.dir_path + '/trained_network.pt',
 #                                   model_generator.configs["data"]['test_data_path'])
 
-TEST_ERROR = test_model.get_error('tmp/output/model2020/1ep_1e-4lr_128mb_2020_02_13_180627/trained_network.pt',
-                                  model_generator.configs["data"]['test_data_path'])
-
-model_generator.save_model_mse(TEST_ERROR)
+test_model.get_error('tmp/output/model-02-2020/1ep_1e-4lr_128mb_2020_02_27_154800/reproducibility/model.pt',
+                     model_generator.configs["data"]['test_data_path'], batch_size=128)
