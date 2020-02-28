@@ -34,3 +34,10 @@ def plot_error_vs_output(targets, error, save_dir, name='test_error_vs_output'):
     fig_loc = os.path.join(save_dir, name)
     plt.savefig(fig_loc, dpi=300)
     plt.close()
+
+
+def plot_all(targets, outputs, results_dir, name=''):
+    error = outputs - targets
+    val_mse = np.mean(error ** 2)
+    plot_error_vs_output(targets, error, results_dir, name=name + '_test_error_vs_output')
+    plot_error_hist(targets, outputs, error, val_mse, results_dir, name=name + '_test_error')

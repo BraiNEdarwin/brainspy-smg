@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import torch
 import os
 from bspyalgo.utils.io import save, create_directory
-from bspysmg.model.data.plots.model_results_plotter import plot_error_hist, plot_error_vs_output
+from bspysmg.model.data.plots.model_results_plotter import plot_all
 
 
 def load_data(path, steps):
@@ -50,12 +50,11 @@ def get_error(model_path, test_data_path, steps=1, batch_size=2700000, model_nam
 
     mse = np.mean(error**2)
     print(f'MSE on Test Set of trained NN model: {mse}')
-    dir_path, model_name = os.path.split(model_path)
-    model_name = os.path.splitext(model_name)[0]
-    model.info['data_info']['mse'] = mse.item()
+    # dir_path, model_name = os.path.split(model_path)
+    # model_name = os.path.splitext(model_name)[0]
+    # model.info['data_info']['mse'] = mse.item()
 
     path = create_directory(os.path.join(get_main_path(model_path), results_dir))
-    save('numpy', os.path.join(path, 'error.npz'), error=error, prediction=prediction, targets=TARGETS_TEST)
-    save('torch', os.path.join(path, model_name + '.pt'), timestamp=False, data=model)
-    plot_error_vs_output(TARGETS_TEST, error, path, name='TEST_test_error_vs_output')
-    plot_error_hist(TARGETS_TEST, prediction, error, mse, path, name='TEST_test_error')
+    save('numpy', os.path.join(path, 'error.npz'), error=error, prediction=prediction, targets=TARGETS_TEST, test_mse=mse)
+    # save('torch', os.path.join(path, model_name + '.pt'), timestamp=False, data=model)
+    plot_all(TARGETS_TEST, prediction, path, name='TEST')
