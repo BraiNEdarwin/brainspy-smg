@@ -1,0 +1,8 @@
+{
+    "path_to_sampler_configs":"configs/sampling/toy_sampling_configs_template.json",
+    "path_to_reference_data": "tmp/input/consistency_check",
+    "reference_batch_name":"reference_batch.npz",
+    "repetitions": 5
+
+
+}
