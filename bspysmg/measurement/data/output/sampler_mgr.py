@@ -3,6 +3,7 @@
 Script to sample a device using waves
 @author: HC Ruiz
 """
+from __future__ import generator_stop
 from bspyproc.processors.processor_mgr import get_processor
 from bspysmg.measurement.data.input.input_mgr import get_input_generator
 from bspyalgo.utils.io import create_directory_timestamp as mkdir
@@ -46,11 +47,11 @@ class Sampler:
         # Create a directory and file for saving
         self.save_data()
         # Initialize configs
-        total_number_samples, length_batch, input_dict = self.init_configs()
+        total_number_samples, batch_size, input_dict = self.init_configs()
 
         # Initialize sampling loop
         all_time_points = np.arange(total_number_samples) / input_dict["sampling_frequency"]
-        for batch, batch_indices in enumerate(self.batch_generator(total_number_samples, length_batch)):
+        for batch, batch_indices in enumerate(self.batch_generator(total_number_samples, batch_size)):
             start_batch = time.time()
             # Generate inputs (without ramping)
             batch += 1
@@ -72,10 +73,13 @@ class Sampler:
         print('Start batching...')
         batches = grouper(np.arange(nr_samples), batch)
         while True:
-            indices = list(next(batches))
-            if None in indices:
-                indices = [index for index in indices if index is not None]
-            yield indices
+            try:
+                indices = list(next(batches))
+                if None in indices:
+                    indices = [index for index in indices if index is not None]
+                yield indices
+            except StopIteration:
+                return
 
     def get_header(self, input_nr, output_nr):
         header = ""
@@ -91,13 +95,13 @@ class Sampler:
     def init_configs(self):
         input_dict, self.generate_inputs = get_input_generator(self.configs)
         total_number_samples = input_dict["number_batches"] * input_dict["sampling_frequency"] * input_dict["batch_time"]
-        length_batch = int(input_dict["sampling_frequency"] * input_dict["batch_time"])
+        batch_size = int(input_dict["sampling_frequency"] * input_dict["batch_time"])
         # define internal attributes
         self.end_batch = int(input_dict["ramp_points"] + input_dict["batch_points"])
         self.nr_points_ramped_signal = int(input_dict["batch_points"] + 2 * input_dict["ramp_points"])
         self.filter_ramp = np.zeros(self.nr_points_ramped_signal, dtype=bool)
         self.filter_ramp[int(input_dict["ramp_points"]):int(self.end_batch)] = True
-        return total_number_samples, length_batch, input_dict
+        return total_number_samples, batch_size, input_dict
 
     def save_data(self, *args):
         if len(args) > 0:
@@ -177,7 +181,8 @@ if __name__ == '__main__':
 
     CONFIGS = load_configs('configs/sampling/sampling_configs_template.json')
     sampler = Sampler(CONFIGS)
-
+    # CONFIGS = load_configs('configs/sampling/toy_sampling_configs_template.json')
+    # sampler = Sampler(CONFIGS)
     # CONFIGS = load_configs('configs/sampling/toy_sampling_configs_template.json')
     # sampler = Repeater(CONFIGS)
 
@@ -187,5 +192,5 @@ if __name__ == '__main__':
 
     # OUTPUTS = OUTPUTS.reshape((-1,INFO_DICT['input_data']["batch_points"])).T
     plt.figure()
-    plt.hist(OUTPUTS,500)
+    plt.hist(OUTPUTS, 500)
     plt.show()
