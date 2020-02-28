@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 import os
-from bspyalgo.utils.io import save
+from bspyalgo.utils.io import save, create_directory
 
 
 def load_data(path, steps):
@@ -22,33 +22,42 @@ def load_data(path, steps):
     return inputs, outputs, info_dictionary
 
 
-def get_error(model_path, test_data_path, steps=1, batch_size=2700000):
+def get_main_path(model_path):
+    path = model_path.split('/')
+    del path[len(path) - 1]
+    if 'reproducibility' in path:
+        del path[len(path) - 1]
+    return os.path.join(*path)
 
+
+def get_error(model_path, test_data_path, steps=1, batch_size=2700000, model_name='trained_network_with_mse'):
+    results_dir = 'final_model'
     with torch.no_grad():
         model = TorchModel({'torch_model_dict': model_path})
         INPUTS_TEST, TARGETS_TEST, INFO_DICT = load_data(test_data_path, steps)
-        error = TorchUtils.format_tensor(torch.Tensor(INPUTS_TEST))
+        error = np.zeros_like(INPUTS_TEST)
+        prediction = np.zeros_like(TARGETS_TEST)
     i_start = 0
     i_end = batch_size
+    threshold = (INPUTS_TEST.shape[0] - batch_size)
     while i_end < INPUTS_TEST.shape[0]:
-        prediction = model.get_output(INPUTS_TEST[i_start:i_end])
-        error[i_start:i_end] = (TorchUtils.format_tensor(torch.Tensor(prediction)) - TARGETS_TEST[i_start:i_end])
+        prediction[i_start:i_end] = model.get_output(INPUTS_TEST[i_start:i_end])
+        error[i_start:i_end] = prediction[i_start:i_end] - TARGETS_TEST[i_start:i_end]
         i_start += batch_size
         i_end += batch_size
+        if i_end > threshold and i_end < INPUTS_TEST.shape[0]:
+            i_end = INPUTS_TEST.shape[0]
 
-    np.savez(model_path + '/error.npz', error=error, prediction=prediction, targets=TARGETS_TEST)
-
-    MSE = torch.mean(error**2)
+    MSE = np.mean(error**2)
     print(f'MSE on Test Set of trained NN model: {MSE}')
     dir_path, model_name = os.path.split(model_path)
     model_name = os.path.splitext(model_name)[0]
 
-    model.info['data_info']['mse'] = TorchUtils.get_numpy_from_tensor(MSE).item()
+    model.info['data_info']['mse'] = MSE.item()
 
-    path = model_path.split('/')
-    del path[len(path) - 1]
-
-    save('torch', path, 'trained_network_with_mse.pt', timestamp=False, data=model)
+    path = create_directory(os.path.join(get_main_path(model_path), results_dir))
+    save('numpy', os.path.join(path, 'error.npz'), error=error, prediction=prediction, targets=TARGETS_TEST)
+    save('torch', os.path.join(path, model_name + '.pt'), timestamp=False, data=model)
 
     # PLOT PREDICTED VS TRUE VALUES and ERROR HIST
     plt.figure()
