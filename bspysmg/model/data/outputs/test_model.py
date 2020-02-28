@@ -1,12 +1,12 @@
 from bspyalgo.algorithm_manager import get_algorithm
 # from bspysmg.model.data.inputs.data_handler import load_data
-from bspyproc.utils.pytorch import TorchUtils
 from bspyproc.processors.simulation.network import TorchModel
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
 import os
 from bspyalgo.utils.io import save, create_directory
+from bspysmg.model.data.plots.model_results_plotter import plot_error_hist, plot_error_vs_output
 
 
 def load_data(path, steps):
@@ -57,38 +57,5 @@ def get_error(model_path, test_data_path, steps=1, batch_size=2700000, model_nam
     path = create_directory(os.path.join(get_main_path(model_path), results_dir))
     save('numpy', os.path.join(path, 'error.npz'), error=error, prediction=prediction, targets=TARGETS_TEST)
     save('torch', os.path.join(path, model_name + '.pt'), timestamp=False, data=model)
-    plot_error_vs_output(TARGETS_TEST, error, path)
-    plot_error_hist(TARGETS_TEST, prediction, error, mse, path)
-
-
-def plot_error_hist(targets, prediction, error, mse, save_dir):
-    plt.figure()
-    plt.subplot(1, 2, 1)
-    plt.plot(targets, prediction, '.')
-    plt.xlabel('True Output')
-    plt.ylabel('Predicted Output')
-    targets_and_prediction_array = np.concatenate((targets, prediction))
-    min_out = np.min(targets_and_prediction_array)
-    max_out = np.max(targets_and_prediction_array)
-    plt.plot(np.linspace(min_out, max_out), np.linspace(min_out, max_out), 'k')
-    plt.title(f'Predicted vs True values:\n MSE {mse}')
-    plt.subplot(1, 2, 2)
-    plt.hist(np.reshape(error, error.size), 500)
-    x_lim = 0.25 * np.max([np.abs(error.min()), error.max()])
-    plt.xlim([-x_lim, x_lim])
-    plt.title('Scaled error histogram')
-    fig_loc = os.path.join(save_dir, 'test_error')
-    plt.savefig(fig_loc, dpi=300)
-    plt.close()
-
-
-def plot_error_vs_output(targets, error, save_dir):
-    plt.figure()
-    plt.plot(targets, error, '.')
-    plt.plot(np.linspace(targets.min(), targets.max(), len(error)), np.zeros_like(error))
-    plt.title('Error vs Output')
-    plt.xlabel('Output')
-    plt.ylabel('Error')
-    fig_loc = os.path.join(save_dir, 'test_error_vs_output')
-    plt.savefig(fig_loc, dpi=300)
-    plt.close()
+    plot_error_vs_output(TARGETS_TEST, error, path, name='TEST_test_error_vs_output')
+    plot_error_hist(TARGETS_TEST, prediction, error, mse, path, name='TEST_test_error')
