@@ -1,12 +1,10 @@
-from bspyalgo.algorithm_manager import get_algorithm
-# from bspysmg.model.data.inputs.data_handler import load_data
-from bspyproc.processors.simulation.network import TorchModel
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
 import os
 from bspyalgo.utils.io import save, create_directory
 from bspysmg.model.data.plots.model_results_plotter import plot_all
+from bspyproc.utils.pytorch import TorchUtils
 
 
 def load_data(path, steps):
@@ -30,31 +28,33 @@ def get_main_path(model_path):
     return os.path.join(*path)
 
 
-def get_error(model_path, test_data_path, steps=1, batch_size=2700000, model_name='trained_network_with_mse'):
-    results_dir = 'final_model'
+def get_previous_path(test_data_path):
+    path = test_data_path.split('/')
+    return path[-2]
+
+
+def get_error(model, model_data_path, test_data_path, steps=1, batch_size=2700000, model_name='trained_network_with_mse'):
     with torch.no_grad():
-        model = TorchModel({'torch_model_dict': model_path})
-        INPUTS_TEST, TARGETS_TEST, INFO_DICT = load_data(test_data_path, steps)
-        error = np.zeros_like(TARGETS_TEST)
-        prediction = np.zeros_like(TARGETS_TEST)
+        inputs, targets, info = load_data(test_data_path, steps)
+        amplification = np.array(info['processor']['amplification'])
+        error = np.zeros_like(targets)
+        prediction = np.zeros_like(targets)
+        #inputs = TorchUtils.get_tensor_from_numpy(inputs)
+        # targets = TorchUtils.get_tensor_from_numpy(targets)
+
     i_start = 0
     i_end = batch_size
-    threshold = (INPUTS_TEST.shape[0] - batch_size)
-    while i_end < INPUTS_TEST.shape[0]:
-        prediction[i_start:i_end] = model.get_output(INPUTS_TEST[i_start:i_end])
-        error[i_start:i_end] = prediction[i_start:i_end] - TARGETS_TEST[i_start:i_end]
+    threshold = (inputs.shape[0] - batch_size)
+    while i_end < inputs.shape[0]:
+        prediction[i_start:i_end] = TorchUtils.get_numpy_from_tensor(model(TorchUtils.get_tensor_from_numpy(inputs[i_start:i_end]))) * amplification
+        error[i_start:i_end] = prediction[i_start:i_end] - targets[i_start:i_end]
         i_start += batch_size
         i_end += batch_size
-        if i_end > threshold and i_end < INPUTS_TEST.shape[0]:
-            i_end = INPUTS_TEST.shape[0]
+        if i_end > threshold and i_end < inputs.shape[0]:
+            i_end = inputs.shape[0]
 
-    mse = np.mean(error**2)
-    print(f'MSE on Test Set of trained NN model: {mse}')
-    # dir_path, model_name = os.path.split(model_path)
-    # model_name = os.path.splitext(model_name)[0]
-    # model.info['data_info']['mse'] = mse.item()
+    path = create_directory(os.path.join(get_main_path(model_data_path), get_previous_path(test_data_path)))
+    mse = plot_all(targets, prediction, path, name='TEST')
+    # save('numpy', os.path.join(path, 'error.npz'), error=TorchUtils.get_numpy_from_tensor(error), prediction=TorchUtils.get_numpy_from_tensor(prediction), targets=TorchUtils.get_numpy_from_tensor(targets), test_mse=TorchUtils.get_numpy_from_tensor(mse))
 
-    path = create_directory(os.path.join(get_main_path(model_path), results_dir))
-    save('numpy', os.path.join(path, 'error.npz'), error=error, prediction=prediction, targets=TARGETS_TEST, test_mse=mse)
-    # save('torch', os.path.join(path, model_name + '.pt'), timestamp=False, data=model)
-    plot_all(TARGETS_TEST, prediction, path, name='TEST')
+    return mse
