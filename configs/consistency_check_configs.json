@@ -1,0 +1,9 @@
+{
+    "path_to_sampler_configs":"D:/Hans/training_batches5100_50s_50H_zero_phase_2020_02_27_084001/sampler_configs.json",
+    "path_to_reference_data": "D:/Hans/training_batches5100_50s_50H_zero_phase_2020_02_27_084001/",
+    "reference_batch_name":"reference_batch.npz",
+    "data_name":"postprocessed_data.npz",
+    "repetitions": 100
+
+
+}

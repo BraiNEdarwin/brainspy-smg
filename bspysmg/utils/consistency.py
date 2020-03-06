@@ -1,94 +1,112 @@
 import os
 import time
-import torch
 import numpy as np
+import matplotlib.pyplot as plt
 from bspyalgo.utils.io import load_configs
-from bspyproc.processors.processor_mgr import get_processor
 from bspysmg.measurement.data.output.sampler_mgr import Sampler
 
 
 class ConsistencyChecker(Sampler):
 
     def __init__(self, configs):
-        super().__init__(configs)
-        self.init_configs()
-        self.path_to_file = self.configs['path_to_file']
-        self.hw_processor = self.processor
-        self.model_processor = get_processor(self.get_configs(configs['processor_model']))
-        self.total_batch_number = 2
+        super().__init__(load_configs(configs['path_to_sampler_configs']))
+        _, batch_size, _ = self.init_configs()
+        self.configs_checker = configs
+        path_to_file = os.path.join(self.configs_checker['path_to_reference_data'], self.configs_checker['reference_batch_name'])
+        with np.load(path_to_file) as data:
+            self.reference_outputs = data['outputs']
+            self.reference_inputs = data['inputs'].T
+        path_to_file = os.path.join(self.configs_checker['path_to_reference_data'], self.configs_checker['data_name'])
+        with np.load(path_to_file) as data:
+            self.pre_reference_outputs = data['outputs'][-90000:]
+            self.pre_reference_inputs = data['inputs'][-90000:].T
+        self.nr_samples = len(self.reference_outputs)
+        assert self.nr_samples % batch_size == 0, f"Batch length {batch_size} is not a multiple of the reference signal length {self.nr_samples}; possible data missmatch!"
+        self.configs_checker['batch_size'] = batch_size
 
-    def get_configs(self, model_path):
-        configs = {}
-        configs["platform"] = "simulation"
-        configs["architecture"] = "single_device"
-        configs["simulation_type"] = "neural_network"
-        configs["network_type"] = "nn_model"
-        configs["torch_model_dict"] = model_path
-        return configs
+        self.results_filename = os.path.join(self.configs_checker['path_to_reference_data'], 'consistency_results.npz')
 
-    def get_data(self, reference_batch, repetition_no=1, use_model=False, results_filename='consistency_results'):
-        if use_model:
-            self.processor = self.model_processor
-        else:
-            self.processor = self.hw_processor
+    def get_data(self):
 
-        results_filename = os.path.join(self.path_to_file, results_filename)
-
-        batch = 0
-        batch_size = int(len(reference_batch['inputs']) / self.total_batch_number)
-
-        start = 0
-        current_batch = int(batch_size)
-
-        iteration_no = int(len(reference_batch['inputs']) / batch_size)
-
-        results = np.zeros(shape=(repetition_no, reference_batch['outputs'].shape[0]))
-        error_results = np.zeros(shape=(repetition_no))
-        # model_result = np.zeros(shape=(repetition_no, reference_batch['output_data'].shape[0], reference_batch['output_data'].shape[1]))
+        results = np.zeros((self.configs_checker['repetitions'],) + self.reference_outputs.shape)
+        deviations = np.zeros(self.configs_checker['repetitions'])
+        correlation = np.zeros(self.configs_checker['repetitions'])
+        deviation_chargeup = []
+        for batch, batch_indices in enumerate(self.batch_generator(len(self.pre_reference_outputs), self.configs_checker['batch_size'])):
+            # Generate inputs (without ramping)
+            inputs = self.pre_reference_inputs[:, batch_indices]
+            # Get outputs (without ramping)
+            outputs = self.get_batch(inputs)
+            presignal_deviations = np.sqrt(np.mean((outputs - self.pre_reference_outputs[batch_indices])**2))
+            deviation_chargeup.append(presignal_deviations)
+            print(f'Charging up: Deviation of batch {batch+1} from pre-reference signal {presignal_deviations}')
 
         # Initialize sampling loop
-        for i in range(repetition_no):
-            for j in range(iteration_no):
-                start_batch = time.time()
+        for trial in range(self.configs_checker['repetitions']):
+            start_trial = time.time()
+            for batch, batch_indices in enumerate(self.batch_generator(self.nr_samples, self.configs_checker['batch_size'])):
 
                 # Generate inputs (without ramping)
-                batch += 1
-                input_data = reference_batch['inputs'][start:current_batch].T
-
+                inputs = self.reference_inputs[:, batch_indices]
                 # Get outputs (without ramping)
-                results[i][start:current_batch] = self.get_batch(input_data)[:, 0]
-                end_batch = time.time()
-                start += batch_size
-                current_batch += batch_size
-                print(f'Outputs collection for batch {str(batch)} of {self.total_batch_number} took {str(end_batch - start_batch)} sec.')
-            error = reference_batch['outputs'] - results[i]
-            error_results[i] = np.mean(error ** 2)
-
+                outputs = self.get_batch(inputs)
+                results[trial, batch_indices] = outputs
+                # if (batch % 1) == 0:
+                #     self.plot_waves(inputs.T, outputs, batch)
+            end_trial = time.time()
+            deviations[trial] = np.sqrt(np.mean((results[trial] - self.reference_outputs)**2))
+            correlation[trial] = np.corrcoef(results[trial].T,self.reference_outputs.T)[0,1]
+            print(f'Consistency check {trial+1}/{self.configs_checker["repetitions"]} took {end_trial - start_trial :.2f} sec. with {batch+1} batches')
+            print(f"Corr: {correlation[trial]:.2f} ; Deviation: {deviations[trial]:.2f}")
         self.close_processor()
-        np.savez(results_filename, results=results, error=error_results)
-        print(f'Data saved in {results_filename}.npz')
-        return results, error_results
+
+        np.savez(self.results_filename, results=results, deviations=deviations,correlation=correlation)
+        print(f'Data saved in { self.results_filename}')
+        return results, deviations, correlation,deviation_chargeup
 
 
-def consistency_check(data_path, repetition_no=100, reference_batch_name='reference_batch.npz', hardware_configs_name='sampler_configs.json', model_name='trained_network.pt'):
+def consistency_check(configs_path):
 
-    reference_batch_path = os.path.join(data_path, reference_batch_name)
-    hw_processor_configs_path = os.path.join(data_path, hardware_configs_name)
-    model_path = os.path.join(data_path, model_name)
-
-    reference_batch = np.load(reference_batch_path)
-    assert len(reference_batch['inputs']) == len(reference_batch['outputs'])
-
-    configs = load_configs(hw_processor_configs_path)
-    configs['path_to_file'] = data_path
-    configs['processor_model'] = model_path
-
+    configs = load_configs(configs_path)
     sampler = ConsistencyChecker(configs)
 
-    hw_results = sampler.get_data(reference_batch, repetition_no=repetition_no)
-    model_results = sampler.get_data(reference_batch, repetition_no=1, use_model=True)
+    outputs, deviations, correlation, deviation_chargeup = sampler.get_data()
+
+    mean_output = np.mean(outputs, axis=0)
+    std_output = np.std(outputs, axis=0)
+    
+    plt.figure()
+    plt.plot(mean_output, 'k', label='mean over repetitions')
+    plt.plot(mean_output + std_output, ':k')
+    plt.plot(mean_output - std_output, ':k', label='stdev over repetitions')
+    plt.plot(sampler.reference_outputs, 'r', label='reference signal')
+    plt.title(f'Consistency over {sampler.configs_checker["repetitions"]} trials with same input')
+    plt.legend()
+    plt.savefig(os.path.join(configs["path_to_reference_data"] ,'consistency_check'))
+
+    plt.figure()
+    plt.plot(mean_output-sampler.reference_outputs,"b",label="mean - reference")
+    plt.plot(std_output,":k",label="stdev over repetitions")
+    plt.plot(-std_output,":k")
+    plt.title("Difference Mean Signal and Reference Signal")
+    plt.legend()
+    plt.savefig(os.path.join(configs["path_to_reference_data"] ,'diff_mean-ref'))
+
+    plt.figure()
+    plt.hist(deviations)
+    plt.title("Deviations of Reference Signal")
+    plt.savefig(os.path.join(configs["path_to_reference_data"] ,'hist_deviations'))
+
+    plt.figure()
+    plt.plot(deviation_chargeup)
+    plt.title("DEVIATIONS WHILE CHARGING UP")
+    plt.savefig(os.path.join(configs["path_to_reference_data"] ,'deviations_while_charging_up'))
+
+    plt.show()
+    print("DONE!")
 
 
 if __name__ == '__main__':
 
-    consistency_check('tmp/input/model_afterny')
+    consistency_check('configs/consistency_check_configs.json')
+    

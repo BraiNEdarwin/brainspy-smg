@@ -143,7 +143,7 @@ class Sampler:
         plt.legend(legend[-nr_outputs:])
         plt.xlabel('Time points (a.u.)')
         plt.tight_layout()
-        plt.savefig(self.configs["save_directory"] + '/example_batch')
+        plt.savefig(os.path.join(self.configs["save_directory"] ,'example_batch'))
         plt.close()
 
     def close_processor(self):
