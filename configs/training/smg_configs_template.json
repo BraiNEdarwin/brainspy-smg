@@ -1,13 +1,13 @@
 {
-"results_base_dir": "/home/hruiz/Documents/PROJECTS/DARWIN/Data_Darwin/Devices/BRAINSPY_DATA/training_3456batches_50s_50Hz_2019_12_06_171400",
-"experiment_name": "TEST_100ep_10-4lr_mb128",
+"results_base_dir": "/home/hruiz/Documents/PROJECTS/DARWIN/Data_Darwin/Devices/BRAINSPY_DATA/BRAINS/Brains_2020_03_06_182728",
+"experiment_name": "TEST_BRAINSMODEL_100ep_10-4lr_mb128",
 "algorithm": "gradient_descent",
 "hyperparameters": {
     "nr_epochs": 100,
     "batch_size": 128,
     "optimizer":"adam",
     "learning_rate": 0.0001,
-    "stop_threshold": 0.0000000000000005,
+    "stop_threshold": 0.000005,
     "save_interval": 10
     },
 "processor": {
@@ -22,13 +22,13 @@
         }
     },
 "checkpoints": {
-    "use_checkpoints": false,
+    "use_checkpoints": true,
     "save_dir": "training_checkpoints",
-    "save_interval": 1000
+    "save_interval": 20
     },
 "data": {
     "training_data_path": "postprocessed_data.npz",
-    "test_data_path": "/home/hruiz/Documents/PROJECTS/DARWIN/Data_Darwin/Devices/BRAINSPY_DATA/training_1080batches_50s_50Hz_NonZeroPhase_2019_12_10_164417/postprocessed_data.npz",
+    "test_data_path": "/home/hruiz/Documents/PROJECTS/DARWIN/Data_Darwin/Devices/BRAINSPY_DATA//postprocessed_data.npz",
     "validation_size": 0.1, 
     "steps": 3
     }
