@@ -129,6 +129,6 @@ def data_merger(list_dirs):
 
 
 if __name__ == '__main__':
-    data_directory = "/home/hruiz/Documents/PROJECTS/DARWIN/Data_Darwin/Devices/BRAINSPY_DATA/training_3456batches_50s_50Hz_2019_12_06_171400"
-    inputs, outputs, info = post_process(data_directory)
-    output_hist(outputs, data_directory, bins=100)
+    data_directory = "/home/hruiz/Documents/PROJECTS/DARWIN/Data_Darwin/Devices/BRAINSPY_DATA/BRAINS/combined_testdata_phase123"
+    inputs, outputs, info = post_process(data_directory, clipping_value=[-110, 110])
+    output_hist(outputs, data_directory, bins=500)
