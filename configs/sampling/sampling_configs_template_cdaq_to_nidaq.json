@@ -2,7 +2,9 @@
     "data_name": "repeated_long_batches",
     "processor":{
         "platform" : "hardware",
-        "setup_type": "cdaq_to_nidaq",
+        "processor_type": "cdaq_to_nidaq",
+        "input_instrument" : "dev1",
+        "output_instrument" :"cDAQ1Mod1",
         "amplification": 100,
         "sampling_frequency":50,
         "gain_info": "10MV/A",

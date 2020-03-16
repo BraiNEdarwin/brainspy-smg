@@ -1,0 +1,39 @@
+{   "save_directory": "tmp/data/training/TEST",
+    "data_name": "Brains_testing",
+    "processor":{
+        "platform" : "hardware",
+        "processor_type": "cdaq_to_cdaq",
+        "input_instrument": "cDAQ1Mod1",
+        "output_instrument": "cDAQ1Mod3",
+        "trigger_source": "cDAQ1/segment1",
+        "amplification": 28.5,
+        "sampling_frequency":50,
+        "gain_info": "28.5MV/Afor1",
+        "post_gain": 1,    
+        "electrode_setup": [["ao14","ao8","ao9","ao15","ao13","ao11","ao10","out"],
+                            [14, 8, 15, 11, 10, 13, 9],
+                            [0,1,2,3,4,5,6]],
+        "driver": {
+            "driver_type": "local"
+        },
+        "input_channels" : [14, 8, 9, 15, 13, 11, 10],
+        "output_channels" : [1],
+        "input_indices": [0,1,2,3,4,5,6],
+        "input_electrode_no": 7,
+        "shape" : 2550
+    },
+    "input_data":{
+        "input_distribution":"sawtooth",
+        "input_electrodes": 7,
+        "output_electrodes": 1,
+        "input_frequency": [2, 3, 5, 7, 13, 17, 19],
+        "phase": [-0.57, 0.25, -1.54, 2.17, 0.08, 0.15, -0.65],
+        "factor": 0.05,
+        "amplitude": [0.85,0.85,0.85,0.75,0.65, 0.1,0.15],
+        "offset": [-0.35,-0.35,-0.35,-0.25,-0.35,0.0,0.0],
+        "ramp_time": 0.5,
+        "batch_time": 50,
+        "number_batches": 2
+    }
+
+}

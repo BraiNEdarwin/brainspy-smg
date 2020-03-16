@@ -129,8 +129,8 @@ def data_merger(list_dirs):
 
 
 if __name__ == '__main__':
-data_directory = "/home/hruiz/Documents/PROJECTS/DARWIN/Data_Darwin/Devices/BRAINSPY_DATA/BRAINS/combined_testdata_phase123"
-# The post_process function should have a clipping value which is in an amplified scale.
-# E.g., for an amplitude of 100
-inputs, outputs, info = post_process(data_directory)  # , clipping_value=[-345, 345])
-output_hist(outputs, data_directory, bins=500)
+    data_directory = "/home/hruiz/Documents/PROJECTS/DARWIN/Data_Darwin/Devices/BRAINSPY_DATA/BRAINS/combined_testdata_phase123"
+    # The post_process function should have a clipping value which is in an amplified scale.
+    # E.g., for an amplitude of 100
+    inputs, outputs, info = post_process(data_directory)  # , clipping_value=[-345, 345])
+    output_hist(outputs, data_directory, bins=500)

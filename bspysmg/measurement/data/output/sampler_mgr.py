@@ -18,6 +18,7 @@ import os
 class Sampler:
 
     def __init__(self, configs):
+        configs["processor"]['waveform'] = {'slope_lengths': configs["input_data"]['ramp_time'] * configs["processor"]['sampling_frequency']}  # add this because needed in setup_mgr.py of processors
         self.configs = configs
         # define processor and input generator
         self.processor = get_processor(configs["processor"])
@@ -67,7 +68,7 @@ class Sampler:
                 self.plot_waves(inputs.T, outputs, batch)
             print(f'Outputs collection for batch {str(batch)} of {str(input_dict["number_batches"])} took {str(end_batch - start_batch)} sec.')
         self.close_processor()
-        return self.path_to_data
+        return self.configs["save_directory"]
 
     def batch_generator(self, nr_samples, batch):
         print('Start batching...')
@@ -105,7 +106,7 @@ class Sampler:
 
     def save_data(self, *args):
         if len(args) > 0:
-            with open(self.path_to_data, '+a') as f:
+            with open(self.path_to_iodata, '+a') as f:
                 data = np.column_stack(args)
                 np.savetxt(f, data)
                 f.flush()
@@ -116,8 +117,8 @@ class Sampler:
             save_configs(self.configs, os.path.join(path_to_file, 'sampler_configs.json'))
             header = self.get_header(self.configs["input_data"]["input_electrodes"],
                                      self.configs["input_data"]["output_electrodes"])
-            self.path_to_data = path_to_file + "/IO.dat"
-            with open(self.path_to_data, 'wb') as f:
+            self.path_to_iodata = path_to_file + "/IO.dat"
+            with open(self.path_to_iodata, 'wb') as f:
                 np.savetxt(f, [], header=header)
 
     def load_data(self, path):
@@ -143,7 +144,7 @@ class Sampler:
         plt.legend(legend[-nr_outputs:])
         plt.xlabel('Time points (a.u.)')
         plt.tight_layout()
-        plt.savefig(os.path.join(self.configs["save_directory"] ,'example_batch'))
+        plt.savefig(os.path.join(self.configs["save_directory"], 'example_batch'))
         plt.close()
 
     def close_processor(self):
