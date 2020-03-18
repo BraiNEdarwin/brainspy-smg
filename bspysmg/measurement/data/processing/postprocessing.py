@@ -59,9 +59,14 @@ def post_process(data_directory, clipping_value=[-np.inf, np.inf], **kwargs):
     print(f'Output scales: [Min., Max.] = {output_scales}')
     input_scales = list(zip(np.min(inputs, axis=0), np.max(inputs, axis=0)))
     print(f'Input scales: {input_scales}')
+    # Get charging signals
+    charging_batches = int(60 * 30 / configs['input_data']['batch_time'])  # ca. 30 min charging signal
+    save_npz(data_directory, 'charging_signal',
+             inputs[-charging_batches * batch_length:], outputs[-charging_batches * batch_length:], configs)
     # Get reference batches
+    refs_batches = int(600 / configs['input_data']['batch_time'])  # ca. 600s reference signal
     save_npz(data_directory, 'reference_batch',
-             inputs[-2 * batch_length:], outputs[-2 * batch_length:], configs)
+             inputs[-refs_batches * batch_length:], outputs[-refs_batches * batch_length:], configs)
     # Plot samples histogram and save
     output_hist(outputs[::3], data_directory, bins=500)
     # Clean data
@@ -129,8 +134,9 @@ def data_merger(list_dirs):
 
 
 if __name__ == '__main__':
-    data_directory = "/home/hruiz/Documents/PROJECTS/DARWIN/Data_Darwin/Devices/BRAINSPY_DATA/BRAINS/combined_testdata_phase123"
+    data_directory = "C:/Users/NE-admin/Documents/Brainspy/brainspy-smg/tmp/data/training/Brains_2020_03_14_203243"
     # The post_process function should have a clipping value which is in an amplified scale.
     # E.g., for an amplitude of 100
-    inputs, outputs, info = post_process(data_directory)  # , clipping_value=[-345, 345])
+    inputs, outputs, info = post_process(data_directory, clipping_value=[-110, 110])
     output_hist(outputs, data_directory, bins=500)
+    plt.show()
