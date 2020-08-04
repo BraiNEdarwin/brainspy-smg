@@ -39,7 +39,7 @@ def train_surrogate_model(configs, model, criterion, optimizer, logger=None, mai
         # Default training evaluation 1000 values
         postprocess(dataloaders[0].dataset[dataloaders[0].sampler.indices][:1000], model, amplification, criterion, results_dir, label='TRAINING')
     if len(dataloaders[2]) > 0:
-        postprocess(dataloaders[2].dataset[dataloaders[2].sampler.indices], model, amplification, criterion, cresults_dir, label='TEST')
+        postprocess(dataloaders[2].dataset[dataloaders[2].sampler.indices], model, amplification, criterion, results_dir, label='TEST')
     # train_targets = amplification * TorchUtils.get_numpy_from_tensor(TARGETS[data.results['target_indices']][:len(INPUTS_VAL)])
     # train_output = amplification * data.results['best_output_training']
     # plot_all(train_targets, train_output, results_dir, name='TRAINING')
