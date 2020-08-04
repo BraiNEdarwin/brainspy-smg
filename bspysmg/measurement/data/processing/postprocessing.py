@@ -68,7 +68,7 @@ def post_process(data_directory, clipping_value=[-np.inf, np.inf], **kwargs):
     save_npz(data_directory, 'reference_batch',
              inputs[-refs_batches * batch_length:], outputs[-refs_batches * batch_length:], configs)
     # Plot samples histogram and save
-    output_hist(outputs[::3], data_directory, bins=500)
+    output_hist(outputs[::3], data_directory, bins=1000)
     # Clean data
     configs['clipping_value'] = clipping_value
     inputs, outputs = prepare_data(inputs, outputs, clipping_value)
@@ -85,13 +85,16 @@ def save_npz(data_directory, file_name, inputs, outputs, configs):
     np.savez(save_to, inputs=inputs, outputs=outputs, info=configs)
 
 
-def output_hist(outputs, data_directory, bins=100):
+def output_hist(outputs, data_directory, bins=100, show=False):
     plt.figure()
-    plt.suptitle('Output Histogram')
-    plt.hist(outputs, bins)
+    plt.title('Output Histogram')
+    plt.hist(outputs, bins=bins)
     plt.ylabel('Counts')
     plt.xlabel('outputs (nA)')
+    if show:
+        plt.show()
     plt.savefig(data_directory + '/output_distribution')
+    plt.close()
 
 
 def prepare_data(inputs, outputs, clipping_value):
@@ -134,9 +137,15 @@ def data_merger(list_dirs):
 
 
 if __name__ == '__main__':
-    data_directory = "C:/Users/NE-admin/Documents/Brainspy/brainspy-smg/tmp/data/training/Brains_2020_03_14_203243"
+    import matplotlib
+    # matplotlib.use('TkAgg')
+    main_dir = "tmp/output/model_nips"
     # The post_process function should have a clipping value which is in an amplified scale.
-    # E.g., for an amplitude of 100
-    inputs, outputs, info = post_process(data_directory, clipping_value=[-110, 110])
-    output_hist(outputs, data_directory, bins=500)
-    plt.show()
+    # E.g., for an amplitude of 100 -> 345.5
+    dirs = list([name for name in os.listdir(main_dir) if os.path.isdir(
+        os.path.join(main_dir, name)) and not name.startswith('.')])
+
+    assert len(dirs) > 0
+    for i in range(len(dirs)):
+        inputs, outputs, info = post_process(os.path.join(main_dir, dirs[i]), clipping_value=[-347, 347])
+        output_hist(outputs, os.path.join(main_dir, dirs[i]), bins=1000, show=True)
