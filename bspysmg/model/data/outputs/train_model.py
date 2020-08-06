@@ -2,7 +2,7 @@ import os
 import torch
 import matplotlib.pyplot as plt
 # from bspyalgo.algorithm_manager import get_algorithm
-from bspysmg.model.data.inputs.data_handler import get_training_data
+#from bspysmg.model.data.inputs.data_handler import get_training_data
 from bspyproc.utils.pytorch import TorchUtils
 from bspysmg.model.data.plots.model_results_plotter import plot_all
 from bspyalgo.utils.io import create_directory
@@ -25,7 +25,7 @@ def train_surrogate_model(configs, model, criterion, optimizer, logger=None, mai
     # INPUTS, TARGETS, INPUTS_VAL, TARGETS_VAL, INFO = get_training_data(configs)
     dataset = ModelDataset(configs)
     amplification = dataset.info_dict['processor']['amplification']
-    dataloaders, _ = split(dataset, configs['hyperparameters']['batch_size'], num_workers=configs['hyperparameters']['worker_no'], split_percentages=configs['hyperparameters']['split_percentages'])
+    dataloaders = split(dataset, configs['hyperparameters']['batch_size'], num_workers=configs['hyperparameters']['worker_no'], split_percentages=configs['hyperparameters']['split_percentages'])
 
     # Train the model
     model, performances = train(model, (dataloaders[0], dataloaders[1]), configs['hyperparameters']['epochs'], criterion, optimizer, logger=logger, save_dir=results_dir)
@@ -71,17 +71,3 @@ def postprocess(dataset, model, amplification, criterion, results_dir, label):
     train_targets = amplification * TorchUtils.get_numpy_from_tensor(targets)
     train_output = amplification * TorchUtils.get_numpy_from_tensor(predictions)
     plot_all(train_targets, train_output, results_dir, name=label)
-
-
-if __name__ == "__main__":
-    from bspyproc.processors.simulation.network import NeuralNetworkModel
-    from bspyalgo.utils.io import load_configs
-
-    configs = load_configs('configs/training/smg_configs_template.json')
-
-    model = NeuralNetworkModel(configs['processor'])
-    optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=configs['hyperparameters']['learning_rate'])
-    criterion = torch.nn.MSELoss()
-    train_surrogate_model(configs, model, criterion, optimizer)
-
-    #print(f'Model saved in {model_generator.path_to_model}')
