@@ -1,8 +1,9 @@
 
 import os
 import numpy as np
-from torch.utils.data import Dataset
-from bspyproc.utils.pytorch import TorchUtils
+from torch.utils.data import Dataset, DataLoader, random_split
+
+from brainspy.utils.pytorch import TorchUtils
 
 
 class ModelDataset(Dataset):
@@ -31,3 +32,21 @@ class ModelDataset(Dataset):
             print(f'Shape of outputs: {outputs.shape}; shape of inputs: {inputs.shape}')
 
         return inputs, outputs, info_dictionary
+
+
+def load_data(configs):
+    # Load dataset
+    dataset = ModelDataset(configs)
+    amplification = dataset.info_dict['processor']['amplification']
+
+    # Split dataset
+    split_percentages = [int(len(dataset) * configs['hyperparameters']['split_percentages'][0]), int(len(dataset) * configs['hyperparameters']['split_percentages'][1]), int(len(dataset) * configs['hyperparameters']['split_percentages'][2])]
+    if len(dataset) != sum(split_percentages):
+        split_percentages[0] += 1
+    datasets = random_split(dataset, split_percentages)
+
+    # Create dataloaders
+    # If length of the dataset is not divisible by the batch_size, it will drop the last batch.
+    dataloaders = [DataLoader(dataset=datasets[i], batch_size=configs['hyperparameters']['batch_size'], num_workers=configs['hyperparameters']['worker_no'], shuffle=True) for i in range(len(datasets))]
+
+    return dataloaders, amplification

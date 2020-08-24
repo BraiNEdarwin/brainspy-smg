@@ -6,8 +6,8 @@ Script to sample a device using waves
 from __future__ import generator_stop
 from bspyproc.processors.processor_mgr import get_processor
 from bspysmg.measurement.data.input.input_mgr import get_input_generator
-from bspyalgo.utils.io import create_directory_timestamp as mkdir
-from bspyalgo.utils.io import save_configs
+from brainspy.utils.io import create_directory_timestamp as mkdir
+from brainspy.utils.io import save_configs
 from more_itertools import grouper
 import matplotlib.pyplot as plt
 import numpy as np
@@ -177,7 +177,7 @@ class Repeater(Sampler):
 
 if __name__ == '__main__':
 
-    from bspyalgo.utils.io import load_configs
+    from brainspy.utils.io import load_configs
     import matplotlib.pyplot as plt
 
     CONFIGS = load_configs('configs/sampling/sampling_configs_template.json')

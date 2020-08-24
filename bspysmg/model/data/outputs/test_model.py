@@ -1,10 +1,14 @@
-import numpy as np
-import torch
+
+
 import os
-from bspyalgo.utils.io import create_directory
+import torch
+import numpy as np
+
+from brainspy.utils.io import create_directory
+from brainspy.utils.pytorch import TorchUtils
+from brainspy.processors.simulation.surrogate import SurrogateModel
+
 from bspysmg.model.data.plots.model_results_plotter import plot_all
-from bspyproc.utils.pytorch import TorchUtils
-from bspyproc.processors.simulation.surrogate import SurrogateModel
 
 
 def load_data(path, steps):

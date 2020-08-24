@@ -1,6 +1,6 @@
 
 import matplotlib.pyplot as plt
-from bspyalgo.utils.io import load_configs
+from brainspy.utils.io import load_configs
 from bspysmg.measurement.data.output.sampler_mgr import Sampler
 from bspysmg.measurement.data.processing.postprocessing import post_process
 
