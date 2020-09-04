@@ -2,6 +2,6 @@ name: bspysmg
 dependencies:
    - python=3.6
    - pip
+   - scipy
    - pip:
-     - git+https://github.com/BraiNEdarwin/brainspy-instruments.git
-     - git+https://github.com/BraiNEdarwin/brainspy-algorithms.git
+     - more_itertools

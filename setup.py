@@ -8,6 +8,5 @@ setup(name='brainspy-smg',
       author_email='u.alegre@utwente.nl',
       license='GPL-3.0',
       packages=find_packages(),
-      install_requires=[],
-      python_requires='~=3.6',
+      install_requires=['scipy','more_itertools'],
       zip_safe=False)
