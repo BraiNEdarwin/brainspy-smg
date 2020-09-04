@@ -69,7 +69,7 @@ def uniform_random_wave(configs):
 
 def load_configs(config_dict):
     configs = config_dict["input_data"]
-    configs['sampling_frequency'] = config_dict["processor"]['sampling_frequency']
+    configs['sampling_frequency'] = config_dict["processor"]["driver"]['sampling_frequency']
     configs['input_frequency'] = get_frequency(configs)
     configs['phase'] = np.array(configs['phase'])[:, np.newaxis]
     configs['amplitude'] = np.array(configs['amplitude'])[:, np.newaxis]

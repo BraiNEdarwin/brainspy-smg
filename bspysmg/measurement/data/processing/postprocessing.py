@@ -4,7 +4,7 @@
 Created on Fri Nov 29 09:18 2019
 @author: hruiz
 """
-from bspyalgo.utils.io import load_configs
+from brainspy.utils.io import load_configs
 import sys
 import os
 import datetime
@@ -51,7 +51,7 @@ def post_process(data_directory, clipping_value=[-np.inf, np.inf], **kwargs):
         else:
             assert False, f'{list(kwargs.keys())} not recognized! kwargs must be list_data'
 
-    batch_length = configs['input_data']['batch_time'] * configs['processor']['sampling_frequency']
+    batch_length = configs['input_data']['batch_time'] * configs['processor']["driver"]['sampling_frequency']
     nr_raw_samples = len(outputs)
     print('Number of raw samples: ', nr_raw_samples)
     assert nr_raw_samples == configs['input_data']['number_batches'] * batch_length, f'Data size mismatch!'
