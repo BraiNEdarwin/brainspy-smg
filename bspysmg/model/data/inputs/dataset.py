@@ -9,9 +9,9 @@ from brainspy.utils.pytorch import TorchUtils
 class ModelDataset(Dataset):
 
     def __init__(self, configs):
-        path = os.path.join(configs["results_base_dir"], configs["data"]['training_data_path'])
+        path = os.path.join(configs["results_base_dir"], configs["data"]['postprocessed_data_path'])
         self.inputs, targets, self.info_dict = self.load_data(path, configs["data"]['steps'])
-        self.targets = targets / self.info_dict['processor']['amplification']
+        self.targets = targets / self.info_dict['processor']['driver']['amplification']
         assert len(self.inputs) == len(self.targets), 'Inputs and Outpus have NOT the same length'
 
     def __len__(self):
@@ -37,7 +37,7 @@ class ModelDataset(Dataset):
 def load_data(configs):
     # Load dataset
     dataset = ModelDataset(configs)
-    amplification = dataset.info_dict['processor']['amplification']
+    amplification = dataset.info_dict['processor']['driver']['amplification']
 
     # Split dataset
     split_percentages = [int(len(dataset) * configs['hyperparameters']['split_percentages'][0]), int(len(dataset) * configs['hyperparameters']['split_percentages'][1]), int(len(dataset) * configs['hyperparameters']['split_percentages'][2])]
