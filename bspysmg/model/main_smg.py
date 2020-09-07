@@ -7,7 +7,7 @@ from bspysmg.model.data.outputs.train_model import train_surrogate_model
 
 #TorchUtils.force_cpu = True
 
-CONFIGS = load_configs('configs/training/smg_configs_template.json')
+CONFIGS = load_configs('configs/training/smg_configs_template.yaml')
 
 MODEL = NeuralNetworkModel(CONFIGS['processor'])
 OPTIMIZER = torch.optim.Adam(filter(lambda p: p.requires_grad, MODEL.parameters()),
