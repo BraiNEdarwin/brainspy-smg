@@ -50,7 +50,8 @@ def train_surrogate_model(configs, model, criterion, optimizer, logger=None, mai
     training_profile = [TorchUtils.get_numpy_from_tensor(performances['performance_history'][i]) * (amplification ** 2) for i in range(len(performances['performance_history']))]
 
     plt.figure()
-    plt.plot(training_profile)
+    for i in range(len(training_profile)):
+        plt.plot(training_profile[i])
     plt.title(f'Training profile')
     plt.legend(['training', 'validation'])
     plt.savefig(os.path.join(results_dir, 'training_profile'))
