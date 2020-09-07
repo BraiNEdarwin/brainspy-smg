@@ -1,0 +1,36 @@
+results_base_dir: tmp/output/new_test_model
+experiment_name: test_model
+algorithm: gradient_descent
+hyperparameters:
+  epochs: 80
+  batch_size: 512
+  optimizer: adam
+  learning_rate: 0.00025
+  stop_threshold: 1.0e-06
+  save_interval: 10
+  worker_no: 0
+  split_percentages:
+  - 0.8
+  - 0.1
+  - 0.1
+processor:
+  architecture: single_device
+  platform: simulation
+  processor_type: nn
+  torch_model_dict:
+    hidden_sizes:
+    - 90
+    - 90
+    - 90
+    - 90
+    - 90
+    D_in: 7
+    D_out: 1
+    activation: relu
+checkpoints:
+  use_checkpoints: true
+  save_dir: training_checkpoints
+  save_interval: 20
+data:
+  postprocessed_data_path: "tmp/data/training/Brains_testing_2020_09_04_182557/postprocessed_data.npz"
+  steps: 3
