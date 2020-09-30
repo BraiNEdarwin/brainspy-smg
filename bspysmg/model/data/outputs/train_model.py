@@ -24,21 +24,21 @@ def train_surrogate_model(configs, model, criterion, optimizer, logger=None, mai
     # Get training and validation data
     # INPUTS, TARGETS, INPUTS_VAL, TARGETS_VAL, INFO = get_training_data(configs)
 
-    dataloaders, amplification = load_data(configs)
+    dataloaders, amplification, info_dict = load_data(configs)
 
     model, performances = train(model, (dataloaders[0], dataloaders[1]), criterion, optimizer, configs['hyperparameters'], logger=logger, save_dir=results_dir)
     # model_generator = get_algorithm(configs, is_main=True)
     # data = model_generator.optimize(INPUTS, TARGETS, validation_data=(INPUTS_VAL, TARGETS_VAL), data_info=INFO)
 
-    postprocess(dataloaders[0].dataset, model, amplification, results_dir, label='TRAINING')
+    postprocess(dataloaders[0], model, amplification, results_dir, label='TRAINING')
 
     if len(dataloaders[1]) > 0:
-        postprocess(dataloaders[1].dataset, model, amplification, results_dir, label='VALIDATION')
-    else:
-        # Default training evaluation 1000 values
-        postprocess(dataloaders[0].dataset[:1000], model, amplification, results_dir, label='VALIDATION')
+        postprocess(dataloaders[1], model, amplification, results_dir, label='VALIDATION')
+    # else:
+    #     # Default training evaluation 1000 values
+    #     postprocess(dataloaders[0].dataset[:1000], model, amplification, results_dir, label='VALIDATION')
     if len(dataloaders[2]) > 0:
-        postprocess(dataloaders[2].dataset, model, amplification, results_dir, label='TEST')
+        postprocess(dataloaders[2], model, amplification, results_dir, label='TEST')
     # train_targets = amplification * TorchUtils.get_numpy_from_tensor(TARGETS[data.results['target_indices']][:len(INPUTS_VAL)])
     # train_output = amplification * data.results['best_output_training']
     # plot_all(train_targets, train_output, results_dir, name='TRAINING')
@@ -56,26 +56,41 @@ def train_surrogate_model(configs, model, criterion, optimizer, logger=None, mai
     plt.legend(['training', 'validation'])
     plt.savefig(os.path.join(results_dir, 'training_profile'))
 
+    # Save the model according to the SMG standard
+    state_dict = model.state_dict()
+    state_dict['info'] = {}
+    state_dict['info']['data_info'] = info_dict
+    state_dict['info']['smg_configs'] = configs
+    torch.save(state_dict, os.path.join(results_dir, "model.pt"))
+
     # model_generator.path_to_model = os.path.join(model_generator.base_dir, 'reproducibility', 'model.pt')
     print('Model saved in :' + results_dir)
     # return model_generator
 
 
-def postprocess(dataset, model, amplification, results_dir, label):
+def postprocess(dataloader, model, amplification, results_dir, label):
     print(f'Postprocessing {label} data ... ')
-    #predictions = TorchUtils.format_tensor(torch.zeros(len(dataloader), dataloader.batch_size))
-    #targets_log = TorchUtils.format_tensor(torch.zeros(len(dataloader), dataloader.batch_size))
-    #i = 0
+    predictions = TorchUtils.format_tensor(torch.zeros(len(dataloader), dataloader.batch_size))
+    targets_log = TorchUtils.format_tensor(torch.zeros(len(dataloader), dataloader.batch_size))
+    i = 0
     with torch.no_grad():
         model.eval()
-        # for inputs, targets in dataloader:
-        #    targets_log[i] = targets.squeeze()
-        #    predictions[i] = model(inputs).squeeze()
-        #    i += 1
-        inputs, targets = dataset[:]
-        predictions = model(inputs)
+        for inputs, targets in dataloader:
+            if inputs.device != TorchUtils.get_accelerator_type():
+                inputs = inputs.to(device=TorchUtils.get_accelerator_type())
+            if targets.device != TorchUtils.get_accelerator_type():
+                targets = targets.to(device=TorchUtils.get_accelerator_type())
+            targets_log[i] = targets.squeeze()
+            predictions[i] = model(inputs).squeeze()
+            i += 1
+        #inputs, targets = dataset[:]
+        # inputs = inputs.to(device=TorchUtils.get_accelerator_type())
+        # targets = targets.to(device=TorchUtils.get_accelerator_type())
+        # predictions = model(inputs)
 
     # train_targets = amplification * TorchUtils.get_numpy_from_tensor(targets_log)
-    train_targets = amplification * TorchUtils.get_numpy_from_tensor(targets)
+    targets_log = targets_log.view(targets_log.shape[0] * targets_log.shape[1])
+    predictions = predictions.view(predictions.shape[0] * predictions.shape[1])
+    train_targets = amplification * TorchUtils.get_numpy_from_tensor(targets_log)
     train_output = amplification * TorchUtils.get_numpy_from_tensor(predictions)
     plot_all(train_targets, train_output, results_dir, name=label)
