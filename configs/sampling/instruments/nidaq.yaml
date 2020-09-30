@@ -1,0 +1,5 @@
+activation_instrument: dev1
+activation_channels: [0,1,2,3,4,5,6] # Channels through which voltages will be sent for activating the device (with both data inputs and control voltages)
+readout_instrument: cDAQ1Mod1
+readout_channels: [0] # Channels for reading the output current values
+# No trigger required for the NiDAQ setup

@@ -4,7 +4,7 @@ Script to sample a device using waves
 @author: HC Ruiz
 """
 from __future__ import generator_stop
-from brainspy.processors.hardware.drivers.driver_mgr import get_driver
+from brainspy.utils.manager import get_driver
 from bspysmg.measurement.data.input.input_mgr import get_input_generator
 from brainspy.utils.io import create_directory_timestamp as mkdir
 from brainspy.utils.io import save_configs
@@ -20,7 +20,8 @@ class Sampler:
     def __init__(self, configs):
         configs["processor"]["data"]['waveform'] = {'slope_length': configs["input_data"]['ramp_time'] * configs["processor"]["driver"]['sampling_frequency']}  # add this because needed in setup_mgr.py of processors        self.configs = configs
         # define processor and input generator
-        self.processor = get_processor(configs["processor"])
+        self.processor = get_driver(configs["processor"])
+        self.configs = configs
 
     def get_batch(self, input_batch):
         # Ramp input batch (0.5 sec up and down)

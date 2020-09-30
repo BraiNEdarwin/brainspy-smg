@@ -1,0 +1,37 @@
+{
+"results_path": "tmp/output/model_test",
+"experiment_name": "TEST_100ep_10-4lr_mb128",
+"algorithm": "gradient_descent",
+"hyperparameters": {
+    "nr_epochs": 250,
+    "batch_size": 128,
+    "learning_rate": 0.0003,
+    "stop_threshold": 0.000005,
+    "save_interval":10,
+    "worker_no": 0,
+    "split_percentages": [0.8,0.1,0.1]
+    },
+"processor": {
+    "architecture":"single_device",
+    "platform": "simulation",
+    "simulation_type": "neural_network",
+    "network_type": "nn_model",
+    "torch_model_dict": {
+        "hidden_sizes": [90,90,90,90,90],
+        "D_in": 7,
+        "D_out": 1,
+        "activation": "relu"
+        }
+    },
+"checkpoints": {
+    "use_checkpoints": false,
+    "save_dir": "training_checkpoints",
+    "save_interval": 100
+    },
+"data": {
+    "training_data_path": "training_data.npz",
+    "test_data_path": "tmp/output/model_nips/test_data.npz",
+    "validation_size": 0.1, 
+    "steps": 3
+    }
+}

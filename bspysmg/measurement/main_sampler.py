@@ -4,7 +4,7 @@ from brainspy.utils.io import load_configs
 from bspysmg.measurement.data.output.sampler_mgr import Sampler
 from bspysmg.measurement.data.processing.postprocessing import post_process
 
-CONFIGS = load_configs('configs/sampling/sampling_configs_template_cdaq_to_cdaq.json')
+CONFIGS = load_configs('configs/sampling/sampling_configs_template_cdaq_to_cdaq.yaml')
 sampler = Sampler(CONFIGS)
 path_to_data = sampler.get_data()
 
