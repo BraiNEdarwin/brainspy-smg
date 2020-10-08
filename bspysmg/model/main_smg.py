@@ -1,5 +1,5 @@
 import torch
-from brainspy.processors.simulation.network import NeuralNetworkModel
+from brainspy.processors.simulation.model import NeuralNetworkModel
 from brainspy.utils.io import load_configs
 from brainspy.utils.pytorch import TorchUtils
 

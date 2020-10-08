@@ -9,6 +9,7 @@ hyperparameters:
   stop_threshold: 1.0e-06
   save_interval: 10
   worker_no: 0
+  pin_memory: True
   split_percentages:
   - 0.8
   - 0.1
