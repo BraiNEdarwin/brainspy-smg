@@ -15,9 +15,3 @@ if __name__ == "__main__":
 
     file_names = ['/home/unai/Documents/3-programming/brains-py/smg/tmp/data/training/Brains_testing_2020_09_04_182557/postprocessed_data.npz', '/home/unai/Documents/3-programming/brains-py/smg/tmp/data/training/Brains_testing_2020_09_11_093200/postprocessed_data.npz']
     merge_postprocessed_data(file_names)
-
-
-
-
-
-

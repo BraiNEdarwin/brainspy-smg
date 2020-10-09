@@ -29,16 +29,11 @@ def train_surrogate_model(configs, model, criterion, optimizer, logger=None, mai
     model, performances = train(model, (dataloaders[0], dataloaders[1]), criterion, optimizer, configs['hyperparameters'], logger=logger, save_dir=results_dir)
     # model_generator = get_algorithm(configs, is_main=True)
     # data = model_generator.optimize(INPUTS, TARGETS, validation_data=(INPUTS_VAL, TARGETS_VAL), data_info=INFO)
+    labels = ['TRAINING','VALIDATION','TEST']
+    for i in range(len(dataloaders)):
+        if dataloaders[i] is not None:
+            postprocess(dataloaders[i], model, amplification, results_dir, label=labels[i])
 
-    postprocess(dataloaders[0], model, amplification, results_dir, label='TRAINING')
-
-    if len(dataloaders[1]) > 0:
-        postprocess(dataloaders[1], model, amplification, results_dir, label='VALIDATION')
-    # else:
-    #     # Default training evaluation 1000 values
-    #     postprocess(dataloaders[0].dataset[:1000], model, amplification, results_dir, label='VALIDATION')
-    if len(dataloaders[2]) > 0:
-        postprocess(dataloaders[2], model, amplification, results_dir, label='TEST')
     # train_targets = amplification * TorchUtils.get_numpy_from_tensor(TARGETS[data.results['target_indices']][:len(INPUTS_VAL)])
     # train_output = amplification * data.results['best_output_training']
     # plot_all(train_targets, train_output, results_dir, name='TRAINING')
