@@ -108,4 +108,4 @@ def consistency_check(configs_path):
 
 if __name__ == '__main__':
 
-    consistency_check('configs/consistency_check_configs.json')
+    consistency_check('configs/consistency_check_configs.yaml')

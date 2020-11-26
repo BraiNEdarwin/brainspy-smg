@@ -1,9 +1,0 @@
-{
-    "path_to_sampler_configs":"C:/Users/NE-admin/Documents/Brainspy/brainspy-smg/tmp/data/training/Brains_2020_03_14_203243/sampler_configs.json",
-    "path_to_reference_data": "C:/Users/NE-admin/Documents/Brainspy/brainspy-smg/tmp/data/training/Brains_2020_03_14_203243/",
-    "reference_batch_name":"reference_batch.npz",
-    "data_name":"charging_signal.npz",
-    "repetitions": 1
-
-
-}
