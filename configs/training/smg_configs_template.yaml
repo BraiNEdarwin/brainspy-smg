@@ -3,17 +3,10 @@ experiment_name: test_model
 algorithm: gradient_descent
 hyperparameters:
   epochs: 80
-  batch_size: 512
   optimizer: adam
-  learning_rate: 0.00025
+  learning_rate: 2.4e-04
   stop_threshold: 1.0e-06
   save_interval: 10
-  worker_no: 0
-  pin_memory: True
-  split_percentages:
-  - 0.8
-  - 0.1
-  - 0.1
 processor:
   architecture: single_device
   platform: simulation
@@ -33,5 +26,12 @@ checkpoints:
   save_dir: training_checkpoints
   save_interval: 20
 data:
-  postprocessed_data_path: "tmp/data/training/Brains_testing_2020_09_04_182557/postprocessed_data.npz"
+  postprocessed_data_path: "tmp/postprocessed_data.npz"
   steps: 3
+  batch_size: 512
+  worker_no: 0
+  pin_memory: True
+  split_percentages:
+  - 0.8 # Training data
+  - 0.1 # Dev/validation data
+  - 0.1 # Test data

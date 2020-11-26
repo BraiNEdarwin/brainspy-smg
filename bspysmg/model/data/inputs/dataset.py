@@ -43,7 +43,7 @@ def load_data(configs):
 
     
     # Split dataset
-    split_length = [ int(len(dataset) * configs['hyperparameters']['split_percentages'][i]) for i in range(len(configs['hyperparameters']['split_percentages']))]
+    split_length = [ int(len(dataset) * configs['data']['split_percentages'][i]) for i in range(len(configs['data']['split_percentages']))]
     remainder = len(dataset) - sum(split_length)
     split_length[0] += remainder # Split length is a list of integers. The remainder of values is added to the training set.
 
@@ -59,7 +59,7 @@ def load_data(configs):
     dataloaders = []
     for i in range(len(datasets)):
         if len(datasets[i]) != 0:
-            dataloaders.append(DataLoader(dataset=datasets[i], batch_size=configs['hyperparameters']['batch_size'], num_workers=configs['hyperparameters']['worker_no'], pin_memory=configs['hyperparameters']['pin_memory'], drop_last=True, shuffle=True))
+            dataloaders.append(DataLoader(dataset=datasets[i], batch_size=configs['data']['batch_size'], num_workers=configs['data']['worker_no'], pin_memory=configs['data']['pin_memory'], drop_last=True, shuffle=True))
         else:
             dataloaders.append(None)
     return dataloaders, amplification, dataset.info_dict
