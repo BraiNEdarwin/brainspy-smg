@@ -1,5 +1,6 @@
 import os
 import torch
+import numpy as np
 import matplotlib.pyplot as plt
 # from brainspy.algorithm_manager import get_algorithm
 # from bspysmg.model.data.inputs.data_handler import get_training_data
@@ -30,9 +31,10 @@ def train_surrogate_model(configs, model, criterion, optimizer, logger=None, mai
     # model_generator = get_algorithm(configs, is_main=True)
     # data = model_generator.optimize(INPUTS, TARGETS, validation_data=(INPUTS_VAL, TARGETS_VAL), data_info=INFO)
     labels = ['TRAINING','VALIDATION','TEST']
+    mse = {}
     for i in range(len(dataloaders)):
-        if dataloaders[i] is not None:
-            postprocess(dataloaders[i], model, amplification, results_dir, label=labels[i])
+        if dataloaders[i] is not None and len(dataloaders[i]) > 0:
+            mse[labels[i]] = postprocess(dataloaders[i], model, amplification, results_dir, label=labels[i])
 
     # train_targets = amplification * TorchUtils.get_numpy_from_tensor(TARGETS[data.results['target_indices']][:len(INPUTS_VAL)])
     # train_output = amplification * data.results['best_output_training']
@@ -42,7 +44,7 @@ def train_surrogate_model(configs, model, criterion, optimizer, logger=None, mai
     # val_output = amplification * data.results['best_output']
     # plot_all(val_targets, val_output, results_dir, name='VALIDATION')
 
-    training_profile = [TorchUtils.get_numpy_from_tensor(performances['performance_history'][i]) * (amplification ** 2) for i in range(len(performances['performance_history']))]
+    training_profile = [TorchUtils.get_numpy_from_tensor(performances['performance_history'][i]) * (np.mean(np.array(amplification)) ** 2) for i in range(len(performances['performance_history']))]
 
     plt.figure()
     for i in range(len(training_profile)):
@@ -56,6 +58,7 @@ def train_surrogate_model(configs, model, criterion, optimizer, logger=None, mai
     state_dict['info'] = {}
     state_dict['info']['data_info'] = info_dict
     state_dict['info']['smg_configs'] = configs
+    state_dict['info']['smg_mse'] = mse
     torch.save(state_dict, os.path.join(results_dir, "model.pt"))
 
     # model_generator.path_to_model = os.path.join(model_generator.base_dir, 'reproducibility', 'model.pt')
@@ -65,9 +68,9 @@ def train_surrogate_model(configs, model, criterion, optimizer, logger=None, mai
 
 def postprocess(dataloader, model, amplification, results_dir, label):
     print(f'Postprocessing {label} data ... ')
-    predictions = TorchUtils.format_tensor(torch.zeros(len(dataloader), dataloader.batch_size))
-    targets_log = TorchUtils.format_tensor(torch.zeros(len(dataloader), dataloader.batch_size))
-    i = 0
+    predictions = [] #TorchUtils.format_tensor(torch.zeros(len(dataloader), dataloader.batch_size))
+    targets_log = [] #TorchUtils.format_tensor(torch.zeros(len(dataloader), dataloader.batch_size))
+    #i = 0
     with torch.no_grad():
         model.eval()
         for inputs, targets in dataloader:
@@ -75,17 +78,25 @@ def postprocess(dataloader, model, amplification, results_dir, label):
                 inputs = inputs.to(device=TorchUtils.get_accelerator_type())
             if targets.device != TorchUtils.get_accelerator_type():
                 targets = targets.to(device=TorchUtils.get_accelerator_type())
-            targets_log[i] = targets.squeeze()
-            predictions[i] = model(inputs).squeeze()
-            i += 1
+            targets_log.append(targets)
+            predictions.append(model(inputs))
+        #    i += 1
         #inputs, targets = dataset[:]
         # inputs = inputs.to(device=TorchUtils.get_accelerator_type())
         # targets = targets.to(device=TorchUtils.get_accelerator_type())
         # predictions = model(inputs)
 
     # train_targets = amplification * TorchUtils.get_numpy_from_tensor(targets_log)
-    targets_log = targets_log.view(targets_log.shape[0] * targets_log.shape[1])
-    predictions = predictions.view(predictions.shape[0] * predictions.shape[1])
+    predictions = torch.stack(predictions)
+    targets_log = torch.stack(targets_log)
+    assert predictions.shape == targets_log.shape, "Shape of Predictions and Targets do not match"
+    if targets_log.shape[-1] == 1:
+        targets_log = targets_log.view(targets_log.shape[0] * targets_log.shape[1])
+        predictions = predictions.view(predictions.shape[0] * predictions.shape[1])
+    else:
+        targets_log = targets_log.view(targets_log.shape[0] * targets_log.shape[1], targets_log.shape[-1])
+        predictions = predictions.view(predictions.shape[0] * predictions.shape[1], predictions.shape[-1])
+    
     train_targets = amplification * TorchUtils.get_numpy_from_tensor(targets_log)
     train_output = amplification * TorchUtils.get_numpy_from_tensor(predictions)
-    plot_all(train_targets, train_output, results_dir, name=label)
+    return plot_all(train_targets, train_output, results_dir, name=label)

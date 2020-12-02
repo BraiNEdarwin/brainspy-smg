@@ -1,0 +1,38 @@
+results_base_dir: tmp/output/multiple_outputs
+experiment_name: test_model
+algorithm: gradient_descent
+hyperparameters:
+  epochs: 2
+  optimizer: adam
+  learning_rate: 2.4e-04
+  stop_threshold: 1.0e-06
+  save_interval: 10
+processor:
+  architecture: single_device
+  platform: simulation
+  processor_type: nn
+  torch_model_dict:
+    hidden_sizes:
+    - 90
+    - 90
+    - 90
+    - 90
+    - 90
+    D_in: 4
+    D_out: 8
+    activation: relu
+checkpoints:
+  use_checkpoints: true
+  save_dir: training_checkpoints
+  save_interval: 20
+data:
+  postprocessed_data_path: "/home/unai/Documents/3-Programming/bspy/smg/tmp/multiple_outputs/postprocessed_multiple_amplification.npz"
+  #/home/unai/Documents/3-Programming/bspy/smg/tmp/Brains_testing_2020_10_30_112831/npz_clipping_value_110/postprocessed_data.npz"
+  steps: 3
+  batch_size: 512
+  worker_no: 0
+  pin_memory: True
+  split_percentages:
+  - 0.8 # Training data
+  - 0.1 # Dev/validation data
+  - 0.1 # Test data
