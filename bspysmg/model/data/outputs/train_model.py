@@ -35,6 +35,7 @@ def generate_surrogate_model(
     custom_optimizer=Adam,
     main_folder="training_data",
 ):
+    print(configs)
     # Initialise seed and create data directories
     init_seed(configs)
     results_dir = create_directory_timestamp(configs["results_base_dir"], main_folder)
@@ -44,7 +45,7 @@ def generate_surrogate_model(
     dataloaders, amplification, info_dict = load_data(configs)
 
     # Initilialise model
-    model = custom_model(configs["processor"]["torch_model_dict"])
+    model = custom_model(configs["model_architecture"])
     model.set_info_dict(info_dict)
     model = TorchUtils.format_model(model)
 
