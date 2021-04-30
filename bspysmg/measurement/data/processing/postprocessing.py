@@ -47,26 +47,34 @@ def post_process(data_directory, clipping_value=[-np.inf, np.inf], **kwargs):
         inputs, outputs, configs = data_loader(data_directory)
     else:  # Merge data if list_data is in kwargs
         if 'list_data' in kwargs.keys():
-            inputs, outputs, configs = data_merger(data_directory, kwargs['list_data'])
+            inputs, outputs, configs = data_merger(data_directory,
+                                                   kwargs['list_data'])
         else:
             assert False, f'{list(kwargs.keys())} not recognized! kwargs must be list_data'
 
-    batch_length = configs['input_data']['batch_time'] * configs['processor']["driver"]['sampling_frequency']
+    batch_length = configs['input_data']['batch_time'] * configs["driver"][
+        'sampling_frequency']
     nr_raw_samples = len(outputs)
     print('Number of raw samples: ', nr_raw_samples)
-    assert nr_raw_samples == configs['input_data']['number_batches'] * batch_length, f'Data size mismatch!'
+    assert nr_raw_samples == configs['input_data'][
+        'number_batches'] * batch_length, f'Data size mismatch!'
     output_scales = [np.min(outputs), np.max(outputs)]
     print(f'Output scales: [Min., Max.] = {output_scales}')
     input_scales = list(zip(np.min(inputs, axis=0), np.max(inputs, axis=0)))
     print(f'Input scales: {input_scales}')
     # Get charging signals
-    charging_batches = int(60 * 30 / configs['input_data']['batch_time'])  # ca. 30 min charging signal
+    charging_batches = int(
+        60 * 30 /
+        configs['input_data']['batch_time'])  # ca. 30 min charging signal
     save_npz(data_directory, 'charging_signal',
-             inputs[-charging_batches * batch_length:], outputs[-charging_batches * batch_length:], configs)
+             inputs[-charging_batches * batch_length:],
+             outputs[-charging_batches * batch_length:], configs)
     # Get reference batches
-    refs_batches = int(600 / configs['input_data']['batch_time'])  # ca. 600s reference signal
+    refs_batches = int(
+        600 / configs['input_data']['batch_time'])  # ca. 600s reference signal
     save_npz(data_directory, 'reference_batch',
-             inputs[-refs_batches * batch_length:], outputs[-refs_batches * batch_length:], configs)
+             inputs[-refs_batches * batch_length:],
+             outputs[-refs_batches * batch_length:], configs)
     # Plot samples histogram and save
     output_hist(outputs[::3], data_directory, bins=1000)
     # Clean data
@@ -102,22 +110,27 @@ def prepare_data(inputs, outputs, clipping_value):
     mean_output = np.mean(outputs, axis=1)
     # Get cropping mask
     if type(clipping_value) is list:
-        cropping_mask = (mean_output < clipping_value[1]) * (mean_output > clipping_value[0])
+        cropping_mask = (mean_output < clipping_value[1]) * (mean_output >
+                                                             clipping_value[0])
     elif type(clipping_value) is float:
         cropping_mask = np.abs(mean_output) < clipping_value
     else:
-        TypeError(f"Clipping value not recognized! Must be list with lower and upper bound or float, was {type(clipping_value)}")
+        TypeError(
+            f"Clipping value not recognized! Must be list with lower and upper bound or float, was {type(clipping_value)}"
+        )
 
     outputs = outputs[cropping_mask]
     inputs = inputs[cropping_mask, :]
     return inputs, outputs
+
 
 ############################################################################
 # TODO:
 
 
 def data_merger(list_dirs):
-    NotImplementedError('Merging of data from a list of data directories not implemented!')
+    NotImplementedError(
+        'Merging of data from a list of data directories not implemented!')
     # raw_data = {}
     # out_list = []
     # inp_list = []
@@ -142,10 +155,17 @@ if __name__ == '__main__':
     main_dir = "tmp/output/model_nips"
     # The post_process function should have a clipping value which is in an amplified scale.
     # E.g., for an amplitude of 100 -> 345.5
-    dirs = list([name for name in os.listdir(main_dir) if os.path.isdir(
-        os.path.join(main_dir, name)) and not name.startswith('.')])
+    dirs = list([
+        name for name in os.listdir(main_dir)
+        if os.path.isdir(os.path.join(main_dir, name))
+        and not name.startswith('.')
+    ])
 
     assert len(dirs) > 0
     for i in range(len(dirs)):
-        inputs, outputs, info = post_process(os.path.join(main_dir, dirs[i]), clipping_value=[-347, 347])
-        output_hist(outputs, os.path.join(main_dir, dirs[i]), bins=1000, show=True)
+        inputs, outputs, info = post_process(os.path.join(main_dir, dirs[i]),
+                                             clipping_value=[-347, 347])
+        output_hist(outputs,
+                    os.path.join(main_dir, dirs[i]),
+                    bins=1000,
+                    show=True)
