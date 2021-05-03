@@ -14,9 +14,13 @@ def get_input_generator(configs):
     elif configs["input_data"]["input_distribution"] == "sawtooth":
         return load_configs(configs), sawtooth_wave
     elif configs["input_data"]["input_distribution"] == "uniform_random":
-        raise NotImplementedError(f'Uniform random wave generator not available')
+        raise NotImplementedError(
+            f'Uniform random wave generator not available')
     else:
-        raise NotImplementedError(f"Input wave array type {configs['input_distribution']} not recognized")
+        raise NotImplementedError(
+            f"Input wave array type {configs['input_distribution']} not recognized"
+        )
+
 
 ###################################
 #         WAVE GENERATORS         #
@@ -33,7 +37,9 @@ def sine_wave(time_points, frequency, phase, amplitude, offset):
         phase:       Phase offset of sine wave 
         offset:      Offset of the input
     '''
-    return amplitude * np.sin(2 * np.pi * frequency * time_points + phase) + np.outer(offset, np.ones(len(time_points)))
+    return amplitude * np.sin(2 * np.pi * frequency * time_points +
+                              phase) + np.outer(offset,
+                                                np.ones(len(time_points)))
 
 
 def sawtooth_wave(time_points, frequency, phase, amplitude, offset):
@@ -62,6 +68,7 @@ def uniform_random_wave(configs):
     '''
     raise NotImplementedError('Uniform random waveform not implemented')
 
+
 ######################
 #  HELPER FUNCTIONS  #
 ######################
@@ -69,13 +76,15 @@ def uniform_random_wave(configs):
 
 def load_configs(config_dict):
     configs = config_dict["input_data"]
-    configs['sampling_frequency'] = config_dict["processor"]["driver"]['sampling_frequency']
+    configs['sampling_frequency'] = config_dict["driver"]['sampling_frequency']
     configs['input_frequency'] = get_frequency(configs)
     configs['phase'] = np.array(configs['phase'])[:, np.newaxis]
     configs['amplitude'] = np.array(configs['amplitude'])[:, np.newaxis]
     configs['offset'] = np.array(configs['offset'])[:, np.newaxis]
-    configs['batch_points'] = configs['batch_time'] * configs['sampling_frequency']
-    configs['ramp_points'] = configs['ramp_time'] * configs['sampling_frequency']
+    configs[
+        'batch_points'] = configs['batch_time'] * configs['sampling_frequency']
+    configs[
+        'ramp_points'] = configs['ramp_time'] * configs['sampling_frequency']
     return configs
 
 

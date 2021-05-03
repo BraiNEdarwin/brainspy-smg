@@ -15,8 +15,8 @@ def data_loader(data_directory):
     print("\nLoading file: " + data_path)
     print("This may take some time. Please wait.\n")
     data = np.loadtxt(data_path)
-    inputs = data[:, : configs["input_data"]["input_electrodes"]]
-    outputs = data[:, -configs["input_data"]["output_electrodes"] :]
+    inputs = data[:, :configs["input_data"]["input_electrodes"]]
+    outputs = data[:, -configs["input_data"]["output_electrodes"]:]
     return inputs, outputs, configs
 
 
