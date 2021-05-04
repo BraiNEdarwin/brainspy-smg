@@ -42,7 +42,10 @@ def get_error(model_data_path, test_data_path, steps=1, batch_size=2048):
     inputs, targets, info = load_data(test_data_path, steps)
     error = np.zeros_like(targets)
     prediction = np.zeros_like(targets)
-    model = SurrogateModel({"model_architecture": model_data_path})
+    model_data = torch.load(model_data_path)
+    model = SurrogateModel(
+        model_data["info"]["model_structure"], model_data["model_state_dict"]
+    )
     with torch.no_grad():
         i_start = 0
         i_end = batch_size

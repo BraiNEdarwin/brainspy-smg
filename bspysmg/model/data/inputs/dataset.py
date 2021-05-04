@@ -1,4 +1,3 @@
-import os
 import numpy as np
 from torch.utils.data import Dataset, DataLoader, random_split
 
@@ -7,10 +6,12 @@ from brainspy.utils.pytorch import TorchUtils
 
 class ModelDataset(Dataset):
     def __init__(self, configs):
-        self.inputs, targets, self.info_dict = self.load_data(configs["data"])
-        self.targets = targets / self.info_dict["processor"]["driver"]["amplification"]
-        self.inputs = TorchUtils.get_tensor_from_numpy(self.inputs).cpu()
-        self.targets = TorchUtils.get_tensor_from_numpy(self.targets).cpu()
+        self.inputs, targets, self.sampling_configs = self.load_data(configs["data"])
+        self.targets = (
+            targets / self.sampling_configs["driver"]["amplification"]
+        )
+        self.inputs = TorchUtils.format(self.inputs)
+        self.targets = TorchUtils.format(self.targets)
         assert len(self.inputs) == len(
             self.targets
         ), "Inputs and Outpus have NOT the same length"
@@ -27,8 +28,8 @@ class ModelDataset(Dataset):
             configs["postprocessed_data_path"], allow_pickle=True
         ) as data:  # why was allow_pickle not required before? Do we need this?
             # TODO: change in data generation the key meta to info_dictionary
-            info_dictionary = data["info"].tolist()
-            print(f"Metadata :\n {info_dictionary.keys()}")
+            sampling_configs = data["info"].tolist()
+            print(f"Sampling config keys :\n {sampling_configs.keys()}")
             # Create from numpy arrays torch.tensors and send them to device
             inputs = data["inputs"][
                 :: configs["steps"]
@@ -38,16 +39,29 @@ class ModelDataset(Dataset):
             ]  # TorchUtils.get_tensor_from_numpy(data['outputs'][::configs['steps']])  # Outputs need dim Nx1
             print(f"Shape of outputs: {outputs.shape}; shape of inputs: {inputs.shape}")
 
-        return inputs, outputs, info_dictionary
+        return inputs, outputs, sampling_configs
+
+
+def get_info_dict(training_configs, sampling_configs):
+    info_dict = {}
+    info_dict["model_structure"] = training_configs["model_structure"].copy()
+    info_dict["electrode_info"] = sampling_configs["electrode_info"].copy()
+    del training_configs["model_structure"]
+    info_dict["training_configs"] = training_configs.copy()
+    del sampling_configs["electrode_info"]
+    info_dict["sampling_configs"] = sampling_configs.copy()
+    return info_dict
 
 
 def load_data(configs):
-    info_dict = {}
-    info_dict["smg_configs"] = configs
+
     # Load dataset
     dataset = ModelDataset(configs)
-    info_dict["data_info"] = dataset.info_dict
-    amplification = info_dict["data_info"]["processor"]["driver"]["amplification"]
+    info_dict = get_info_dict(configs, dataset.sampling_configs)
+
+    amplification = info_dict["sampling_configs"]["driver"][
+        "amplification"
+    ]
 
     # Split dataset
     split_length = [

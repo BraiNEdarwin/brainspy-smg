@@ -35,7 +35,6 @@ def generate_surrogate_model(
     custom_optimizer=Adam,
     main_folder="training_data",
 ):
-    print(configs)
     # Initialise seed and create data directories
     init_seed(configs)
     results_dir = create_directory_timestamp(configs["results_base_dir"], main_folder)
@@ -45,19 +44,21 @@ def generate_surrogate_model(
     dataloaders, amplification, info_dict = load_data(configs)
 
     # Initilialise model
-    model = custom_model(configs["model_architecture"])
-    model.set_info_dict(info_dict)
-    model = TorchUtils.format_model(model)
+    model = custom_model(info_dict["model_structure"])
+    # model.set_info_dict(info_dict)
+    model = TorchUtils.format(model)
 
     # Initialise optimiser
     optimizer = custom_optimizer(
         filter(lambda p: p.requires_grad, model.parameters()),
         lr=configs["hyperparameters"]["learning_rate"],
+        betas=(0.9, 0.75),
     )
 
     # Whole training loop
     model, performances = train_loop(
         model,
+        info_dict,
         (dataloaders[0], dataloaders[1]),
         criterion,
         optimizer,
@@ -92,9 +93,7 @@ def generate_surrogate_model(
     if test_loss is None:
         plt.title("Training profile")
     else:
-        plt.title(
-            "Training profile (Amplified)/n Amplified Test loss: %.8f" % test_loss
-        )
+        plt.title("Training profile /n Test loss : %.8f (nA)" % test_loss)
     if not performances[1] == []:
         plt.legend(["training", "validation"])
     plt.savefig(os.path.join(results_dir, "training_profile"))
@@ -104,6 +103,7 @@ def generate_surrogate_model(
 
 def train_loop(
     model,
+    info_dict,
     dataloaders,
     criterion,
     optimizer,
@@ -122,15 +122,17 @@ def train_loop(
     for epoch in range(epochs):
         print("\nEpoch: " + str(epoch))
         model, running_loss = default_train_step(
-            model, dataloaders[0], criterion, optimizer, amplification
+            model, dataloaders[0], criterion, optimizer
         )
+        running_loss *= amplification
         train_losses.append(running_loss)
-        description = "Amplified training loss: {:.8f} \n".format(train_losses[-1])
+        description = "training loss: {:.8f} (nA)\n".format(train_losses[-1])
 
         if dataloaders[1] is not None and len(dataloaders[1]) > 0:
-            val_loss = default_val_step(model, dataloaders[1], criterion, amplification)
+            val_loss = default_val_step(model, dataloaders[1], criterion)
+            val_loss *= amplification
             val_losses.append(val_loss)
-            description += "Amplified validation loss: {:.8f} \n".format(val_losses[-1])
+            description += "validation loss: {:.8f} (nA)\n".format(val_losses[-1])
             # Save only when peak val performance is reached
             if (
                 save_dir is not None
@@ -139,17 +141,18 @@ def train_loop(
             ):
                 min_val_loss = val_losses[-1]
                 description += "Model saved in: " + save_dir
-                torch.save(model, os.path.join(save_dir, "model.pt"))
+                # torch.save(model, os.path.join(save_dir, "model.pt"))
                 torch.save(
                     {
                         "epoch": epoch,
-                        "state_dict": model.state_dict(),
+                        "model_state_dict": model.state_dict(),
+                        "info": info_dict,
                         "optimizer_state_dict": optimizer.state_dict(),
                         "train_losses": train_losses,
                         "val_losses": val_losses,
                         "min_val_loss": min_val_loss,
                     },
-                    os.path.join(save_dir, "training_data.pickle"),
+                    os.path.join(save_dir, "training_data.pt"),
                 )
 
         print(description)
@@ -158,7 +161,7 @@ def train_loop(
     # TODO: Add a save instruction and a stopping criteria
     # if stopping_criteria(train_losses, val_losses):
     #     break
-    print("Finished training model. ")
+    print("\nFinished training model. ")
     print("Model saved in: " + save_dir)
     if (
         save_dir is not None
@@ -166,15 +169,27 @@ def train_loop(
         and dataloaders[1] is not None
         and len(dataloaders[1]) > 0
     ):
-        model = torch.load(os.path.join(save_dir, "model.pt"))
-        print("Amplified validation loss: " + str(min_val_loss))
+        training_data = torch.load(os.path.join(save_dir, "training_data.pt"))
+        model.load_state_dict(training_data["model_state_dict"])
+        print("Min validation loss: {:.8f} (nA)\n".format(min_val_loss))
     else:
-        torch.save(model, os.path.join(save_dir, "model.pt"))
+        torch.save(
+            {
+                "epoch": epoch,
+                "model_state_dict": model.state_dict(),
+                "info": info_dict,
+                "optimizer_state_dict": optimizer.state_dict(),
+                "train_losses": train_losses,
+                "val_losses": val_losses,
+                "min_val_loss": min_val_loss,
+            },
+            os.path.join(save_dir, "training_data.pt"),
+        )
 
     return model, [train_losses, val_losses]
 
 
-def default_train_step(model, dataloader, criterion, optimizer, amplification):
+def default_train_step(model, dataloader, criterion, optimizer):
     running_loss = 0
     model.train()
     for inputs, targets in tqdm(dataloader):
@@ -184,12 +199,12 @@ def default_train_step(model, dataloader, criterion, optimizer, amplification):
         loss = criterion(predictions, targets)
         loss.backward()
         optimizer.step()
-        running_loss += amplification * loss.item() * inputs.shape[0]
+        running_loss += loss.item() * inputs.shape[0]
     running_loss /= len(dataloader.dataset)
     return model, running_loss
 
 
-def default_val_step(model, dataloader, criterion, amplification):
+def default_val_step(model, dataloader, criterion):
     with torch.no_grad():
         val_loss = 0
         model.eval()
@@ -197,7 +212,7 @@ def default_val_step(model, dataloader, criterion, amplification):
             inputs, targets = to_device(inputs, targets)
             predictions = model(inputs)
             loss = criterion(predictions, targets)
-            val_loss += amplification * loss.item() * inputs.shape[0]
+            val_loss += loss.item() * inputs.shape[0]
         val_loss /= len(dataloader.dataset)
     return val_loss
 
@@ -220,15 +235,15 @@ def postprocess(dataloader, model, criterion, amplification, results_dir, label)
     running_loss /= len(dataloader.dataset)
     print(str(criterion) + ": " + str(running_loss))
 
-    all_targets = TorchUtils.get_numpy_from_tensor(torch.cat(all_targets))
-    all_predictions = TorchUtils.get_numpy_from_tensor(torch.cat(all_predictions))
+    all_targets = TorchUtils.format(torch.cat(all_targets))
+    all_predictions = TorchUtils.format(torch.cat(all_predictions))
 
     plot_all(all_targets, all_predictions, results_dir, name=label)
 
 
 def to_device(inputs, targets):
-    if inputs.device != TorchUtils.get_accelerator_type():
-        inputs = inputs.to(device=TorchUtils.get_accelerator_type())
-    if targets.device != TorchUtils.get_accelerator_type():
-        targets = targets.to(device=TorchUtils.get_accelerator_type())
+    if inputs.device != TorchUtils.get_device():
+        inputs = inputs.to(device=TorchUtils.get_device())
+    if targets.device != TorchUtils.get_device():
+        targets = targets.to(device=TorchUtils.get_device())
     return (inputs, targets)

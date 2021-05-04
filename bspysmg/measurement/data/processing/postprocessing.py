@@ -56,7 +56,7 @@ def post_process(data_directory, clipping_value="default", **kwargs):
             ), f"{list(kwargs.keys())} not recognized! kwargs must be list_data"
     batch_length = (
         configs["input_data"]["batch_time"]
-        * configs["processor"]["driver"]["sampling_frequency"]
+        * configs["driver"]["sampling_frequency"]
     )
     nr_raw_samples = len(outputs)
     print("Number of raw samples: ", nr_raw_samples)
@@ -94,13 +94,15 @@ def post_process(data_directory, clipping_value="default", **kwargs):
     output_hist(outputs[::3], data_directory, bins=1000)
 
     # Clean data
-    configs["model_effects"] = get_model_effects(configs, clipping_value)
-    if configs["model_effects"]["clipping_value"] is not None:
+    configs["electrode_info"] = get_electrode_info(configs, clipping_value)
+    if configs["electrode_info"]["output_electrodes"]["clipping_value"] is not None:
         inputs, outputs = clip_data(
-            inputs, outputs, configs["model_effects"]["clipping_value"]
+            inputs,
+            outputs,
+            configs["electrode_info"]["output_electrodes"]["clipping_value"],
         )
         print("% of points cropped: ", (1 - len(outputs) / nr_raw_samples) * 100)
-
+        print("\n")
     # save data
     save_npz(data_directory, "postprocessed_data", inputs, outputs, configs)
 
@@ -113,32 +115,71 @@ def save_npz(data_directory, file_name, inputs, outputs, configs):
     np.savez(save_to, inputs=inputs, outputs=outputs, info=configs)
 
 
-def get_model_effects(configs, clipping_value):
-    effects = {}
+def get_electrode_info(configs, clipping_value):
+    electrode_info = {}
+    electrode_info["electrode_no"] = (
+        configs["input_data"]["input_electrodes"]
+        + configs["input_data"]["output_electrodes"]
+    )
+    electrode_info["activation_electrodes"] = {}
+    electrode_info["activation_electrodes"]["electrode_no"] = configs["input_data"][
+        "input_electrodes"
+    ]
+    electrode_info["activation_electrodes"]["voltage_ranges"] = get_voltage_ranges(
+        configs
+    )
+    electrode_info["output_electrodes"] = {}
+    electrode_info["output_electrodes"]["electrode_no"] = configs["input_data"][
+        "output_electrodes"
+    ]
+    electrode_info["output_electrodes"]["amplification"] = configs[
+        "driver"
+    ]["amplification"]
+    if clipping_value == "default":
+        electrode_info["output_electrodes"]["clipping_value"] = (
+            electrode_info["output_electrodes"]["amplification"] * np.array([-4, 4])
+        ).tolist()
+    else:
+        electrode_info["output_electrodes"]["clipping_value"] = clipping_value
+
+    print_electrode_info(electrode_info)
+    return electrode_info
+
+
+def get_voltage_ranges(configs):
     offset = np.array(configs["input_data"]["offset"])
     amplitude = np.array(configs["input_data"]["amplitude"])
     min_voltage = (offset - amplitude)[:, np.newaxis]
     max_voltage = (offset + amplitude)[:, np.newaxis]
-    effects["voltage_ranges"] = np.concatenate((min_voltage, max_voltage), axis=1)
-    effects["amplification"] = configs["processor"]["driver"]["amplification"]
-    if clipping_value == "default":
-        effects["clipping_value"] = (
-            effects["amplification"] * np.array([-4, 4])
-        ).tolist()
-    else:
-        effects["clipping_value"] = clipping_value
-    print_model_effects(effects)
-    return effects
+    return np.concatenate((min_voltage, max_voltage), axis=1)
 
 
-def print_model_effects(configs):
+def print_electrode_info(configs):
     print(
-        "\nThe following effects from the setup are gathered. Please check if they are correct: "
+        f"\nThe following data is inferred from the input data. Please check if it is correct. "
     )
-    print("Amplification correction factor: " + str(configs["amplification"]))
-    print("Clipping value: " + str(configs["clipping_value"]))
-    print("Lower bound of voltage ranges: " + str(configs["voltage_ranges"][:, 0]))
-    print("Upper bound of voltage ranges: " + str(configs["voltage_ranges"][:, 1]))
+    print(
+        f"Data is gathered from a device with {configs['electrode_no']} electrodes, from which: "
+    )
+    print(
+        f"There are {configs['activation_electrodes']['electrode_no']} activation electrodes: "
+    )
+    print(
+        "\t * Lower bound of voltage ranges: "
+        + str(configs["activation_electrodes"]["voltage_ranges"][:, 0])
+    )
+    print(
+        "\t * Upper bound of voltage ranges: "
+        + str(configs["activation_electrodes"]["voltage_ranges"][:, 1])
+    )
+    print(
+        f"There are {configs['output_electrodes']['electrode_no']} output electrodes: "
+    )
+    print("\t * Clipping value: " + str(configs["output_electrodes"]["clipping_value"]))
+    print(
+        "\t * Amplification correction value: "
+        + str(configs["output_electrodes"]["amplification"])
+    )
 
 
 def output_hist(outputs, data_directory, bins=100, show=False):
@@ -204,7 +245,7 @@ if __name__ == "__main__":
     import matplotlib
 
     # matplotlib.use('TkAgg')
-    main_dir = "tmp/data/training/TEST/Brains_testing_2021_02_15_134514"
+    main_dir = "/home/unai/Documents/3-Programming/bspy/smg/tmp/data/training/TEST/17-02-2021/"
 
     # dirs = list(
     #     [
