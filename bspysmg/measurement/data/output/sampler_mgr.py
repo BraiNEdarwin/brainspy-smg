@@ -17,15 +17,21 @@ import os
 
 class Sampler:
     def __init__(self, configs):
-        # configs["processor"]["data"]['waveform'] = {
-        #     'slope_length':
-        #     configs["input_data"]['ramp_time'] *
-        #     configs["driver"]['sampling_frequency']
-        # }  # add this because needed in setup_mgr.py of processors        self.configs = configs
-        # define processor and input generator
-
         self.processor = get_driver(configs["driver"])
         self.configs = configs
+        if 'amplitude' not in self.configs[
+                'input_data'] and 'offset' not in self.configs['input_data']:
+            self.config_offset_and_amplitude()
+
+    def config_offset_and_amplitude(self):
+        voltage_ranges = np.array(self.configs['driver']['instruments_setup']
+                                  ['activation_voltage_ranges'])
+        amplitude = (voltage_ranges[:, 1] - voltage_ranges[:, 0]) / 2
+        offset = (voltage_ranges[:, 0] + voltage_ranges[:, 1]) / 2
+        self.configs['input_data']['amplitude'] = amplitude
+        self.configs['input_data']['offset'] = offset
+        print(f"Amplitude: {str(amplitude)}")
+        print(f"Offset: {str(offset)}")
 
     def get_batch(self, input_batch):
         # Ramp input batch (0.5 sec up and down)
