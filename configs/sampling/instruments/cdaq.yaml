@@ -2,7 +2,7 @@ multiple_devices: False
 trigger_source: cDAQ1/segment1
 activation_instrument: cDAQ1Mod3
 activation_channels: [0,2,5,3,4,6,1]
-activation_voltage_ranges:  [[-0.7,0.3],[-1.2,0.7],[-1.2,0.7],[-1.2,0.7],[-1.2,0.7],[-1.2,0.7],[-0.7,0.3]]
+activation_voltage_ranges: [[-0.55,0.325],[-0.95,0.55],[-1,0.6],[-1,0.6],[-1,0.6],[-0.95,0.55],[-0.55,0.325]]
 activation_channel_mask: [1,1,1,1,1,1,1]
 readout_instrument: cDAQ1Mod4
 readout_channels: [4] #ai4

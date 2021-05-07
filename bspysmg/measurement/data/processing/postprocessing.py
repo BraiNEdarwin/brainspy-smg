@@ -21,7 +21,6 @@ def data_loader(data_directory):
 
 
 def post_process(data_directory, clipping_value="default", **kwargs):
-
     """Postprocess data, cleans clipping, and merges data sets if needed. The data arrays are merged
     into a single array and cropped given the clipping_values. The function also plots and saves the histogram of the data
     Arguments:
@@ -49,20 +48,18 @@ def post_process(data_directory, clipping_value="default", **kwargs):
         inputs, outputs, configs = data_loader(data_directory)
     else:  # Merge data if list_data is in kwargs
         if "list_data" in kwargs.keys():
-            inputs, outputs, configs = data_merger(data_directory, kwargs["list_data"])
+            inputs, outputs, configs = data_merger(data_directory,
+                                                   kwargs["list_data"])
         else:
             assert (
                 False
             ), f"{list(kwargs.keys())} not recognized! kwargs must be list_data"
-    batch_length = (
-        configs["input_data"]["batch_time"]
-        * configs["driver"]["sampling_frequency"]
-    )
+    batch_length = (configs["input_data"]["batch_time"] *
+                    configs["driver"]["sampling_frequency"])
     nr_raw_samples = len(outputs)
     print("Number of raw samples: ", nr_raw_samples)
-    assert (
-        nr_raw_samples == configs["input_data"]["number_batches"] * batch_length
-    ), f"Data size mismatch!"
+    assert (nr_raw_samples == configs["input_data"]["number_batches"] *
+            batch_length), f"Data size mismatch!"
     output_scales = [np.min(outputs), np.max(outputs)]
     print(f"Output scales: [Min., Max.] = {output_scales}")
     # input_scales = list(zip(np.min(inputs, axis=0), np.max(inputs, axis=0)))
@@ -70,38 +67,39 @@ def post_process(data_directory, clipping_value="default", **kwargs):
     print(f"Upper bound input scales: {np.max(inputs,axis=0)}\n")
     # Get charging signals
     charging_batches = int(
-        60 * 30 / configs["input_data"]["batch_time"]
-    )  # ca. 30 min charging signal
+        60 * 30 /
+        configs["input_data"]["batch_time"])  # ca. 30 min charging signal
     save_npz(
         data_directory,
         "charging_signal",
-        inputs[-charging_batches * batch_length :],
-        outputs[-charging_batches * batch_length :],
+        inputs[-charging_batches * batch_length:],
+        outputs[-charging_batches * batch_length:],
         configs,
     )
     # Get reference batches
     refs_batches = int(
-        600 / configs["input_data"]["batch_time"]
-    )  # ca. 600s reference signal
+        600 / configs["input_data"]["batch_time"])  # ca. 600s reference signal
     save_npz(
         data_directory,
         "reference_batch",
-        inputs[-refs_batches * batch_length :],
-        outputs[-refs_batches * batch_length :],
+        inputs[-refs_batches * batch_length:],
+        outputs[-refs_batches * batch_length:],
         configs,
     )
     # Plot samples histogram and save
-    output_hist(outputs[::3], data_directory, bins=1000)
+    output_hist(outputs[::3], data_directory, bins=100)
 
     # Clean data
     configs["electrode_info"] = get_electrode_info(configs, clipping_value)
-    if configs["electrode_info"]["output_electrodes"]["clipping_value"] is not None:
+    if configs["electrode_info"]["output_electrodes"][
+            "clipping_value"] is not None:
         inputs, outputs = clip_data(
             inputs,
             outputs,
             configs["electrode_info"]["output_electrodes"]["clipping_value"],
         )
-        print("% of points cropped: ", (1 - len(outputs) / nr_raw_samples) * 100)
+        print("% of points cropped: ",
+              (1 - len(outputs) / nr_raw_samples) * 100)
         print("\n")
     # save data
     save_npz(data_directory, "postprocessed_data", inputs, outputs, configs)
@@ -118,27 +116,22 @@ def save_npz(data_directory, file_name, inputs, outputs, configs):
 def get_electrode_info(configs, clipping_value):
     electrode_info = {}
     electrode_info["electrode_no"] = (
-        configs["input_data"]["input_electrodes"]
-        + configs["input_data"]["output_electrodes"]
-    )
+        configs["input_data"]["input_electrodes"] +
+        configs["input_data"]["output_electrodes"])
     electrode_info["activation_electrodes"] = {}
-    electrode_info["activation_electrodes"]["electrode_no"] = configs["input_data"][
-        "input_electrodes"
-    ]
-    electrode_info["activation_electrodes"]["voltage_ranges"] = get_voltage_ranges(
-        configs
-    )
+    electrode_info["activation_electrodes"]["electrode_no"] = configs[
+        "input_data"]["input_electrodes"]
+    electrode_info["activation_electrodes"][
+        "voltage_ranges"] = get_voltage_ranges(configs)
     electrode_info["output_electrodes"] = {}
-    electrode_info["output_electrodes"]["electrode_no"] = configs["input_data"][
-        "output_electrodes"
-    ]
-    electrode_info["output_electrodes"]["amplification"] = configs[
-        "driver"
-    ]["amplification"]
+    electrode_info["output_electrodes"]["electrode_no"] = configs[
+        "input_data"]["output_electrodes"]
+    electrode_info["output_electrodes"]["amplification"] = configs["driver"][
+        "amplification"]
     if clipping_value == "default":
         electrode_info["output_electrodes"]["clipping_value"] = (
-            electrode_info["output_electrodes"]["amplification"] * np.array([-4, 4])
-        ).tolist()
+            electrode_info["output_electrodes"]["amplification"] *
+            np.array([-4, 4])).tolist()
     else:
         electrode_info["output_electrodes"]["clipping_value"] = clipping_value
 
@@ -164,22 +157,17 @@ def print_electrode_info(configs):
     print(
         f"There are {configs['activation_electrodes']['electrode_no']} activation electrodes: "
     )
-    print(
-        "\t * Lower bound of voltage ranges: "
-        + str(configs["activation_electrodes"]["voltage_ranges"][:, 0])
-    )
-    print(
-        "\t * Upper bound of voltage ranges: "
-        + str(configs["activation_electrodes"]["voltage_ranges"][:, 1])
-    )
+    print("\t * Lower bound of voltage ranges: " +
+          str(configs["activation_electrodes"]["voltage_ranges"][:, 0]))
+    print("\t * Upper bound of voltage ranges: " +
+          str(configs["activation_electrodes"]["voltage_ranges"][:, 1]))
     print(
         f"There are {configs['output_electrodes']['electrode_no']} output electrodes: "
     )
-    print("\t * Clipping value: " + str(configs["output_electrodes"]["clipping_value"]))
-    print(
-        "\t * Amplification correction value: "
-        + str(configs["output_electrodes"]["amplification"])
-    )
+    print("\t * Clipping value: " +
+          str(configs["output_electrodes"]["clipping_value"]))
+    print("\t * Amplification correction value: " +
+          str(configs["output_electrodes"]["amplification"]))
 
 
 def output_hist(outputs, data_directory, bins=100, show=False):
@@ -196,13 +184,14 @@ def output_hist(outputs, data_directory, bins=100, show=False):
 
 def clip_data(inputs, outputs, clipping_value):
 
-    print(f"\nClipping data outside range {clipping_value[0]} and {clipping_value[1]}")
+    print(
+        f"\nClipping data outside range {clipping_value[0]} and {clipping_value[1]}"
+    )
     mean_output = np.mean(outputs, axis=1)
     # Get cropping mask
     if type(clipping_value) is list:
-        cropping_mask = (mean_output < clipping_value[1]) * (
-            mean_output > clipping_value[0]
-        )
+        cropping_mask = (mean_output < clipping_value[1]) * (mean_output >
+                                                             clipping_value[0])
     elif type(clipping_value) is float:
         cropping_mask = np.abs(mean_output) < clipping_value
     else:
@@ -221,8 +210,7 @@ def clip_data(inputs, outputs, clipping_value):
 
 def data_merger(list_dirs):
     NotImplementedError(
-        "Merging of data from a list of data directories not implemented!"
-    )
+        "Merging of data from a list of data directories not implemented!")
     # raw_data = {}
     # out_list = []
     # inp_list = []
