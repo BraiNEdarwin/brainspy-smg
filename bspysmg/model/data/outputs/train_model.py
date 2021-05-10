@@ -15,7 +15,7 @@ from brainspy.utils.pytorch import TorchUtils
 from brainspy.utils.io import create_directory_timestamp
 from brainspy.processors.simulation.model import NeuralNetworkModel
 from bspysmg.model.data.inputs.dataset import load_data
-from bspysmg.model.data.plots.model_results_plotter import plot_all
+from bspysmg.model.data.plots.model_results_plotter import plot_error_vs_output, plot_error_hist
 
 
 def init_seed(configs):
@@ -85,17 +85,18 @@ def generate_surrogate_model(
         test_loss = default_val_step(model, dataloaders[2], criterion, amplification)
         print("Test loss: " + str(test_loss))
 
-    performances = np.array(performances)
     plt.figure()
-    plt.plot(performances[0])
-    if not performances[1] == []:
-        plt.plot(performances[1])
+    plt.plot(TorchUtils.to_numpy(performances[0]))
+    if not len(performances[1]) == 0:
+        plt.plot(TorchUtils.to_numpy(performances[1]))
     if test_loss is None:
         plt.title("Training profile")
     else:
         plt.title("Training profile /n Test loss : %.8f (nA)" % test_loss)
-    if not performances[1] == []:
+    if not len(performances[1]) == 0:
         plt.legend(["training", "validation"])
+    plt.xlabel("Epoch no.")
+    plt.ylabel("RMSE (nA)")
     plt.savefig(os.path.join(results_dir, "training_profile"))
 
     # print("Model saved in :" + results_dir)
@@ -116,7 +117,7 @@ def train_loop(
     if start_epoch > 0:
         start_epoch += 1
 
-    train_losses, val_losses = [], []
+    train_losses, val_losses = TorchUtils.format([]), TorchUtils.format([])
     min_val_loss = np.inf
 
     for epoch in range(epochs):
@@ -125,14 +126,16 @@ def train_loop(
             model, dataloaders[0], criterion, optimizer
         )
         running_loss *= amplification
-        train_losses.append(running_loss)
-        description = "training loss: {:.8f} (nA)\n".format(train_losses[-1])
+        running_loss = torch.sqrt(running_loss)
+        train_losses = torch.cat((train_losses, running_loss.unsqueeze(dim=0)), dim=0)
+        description = "Training loss (RMSE): {:.8f} (nA)\n".format(train_losses[-1].item())
 
         if dataloaders[1] is not None and len(dataloaders[1]) > 0:
             val_loss = default_val_step(model, dataloaders[1], criterion)
             val_loss *= amplification
-            val_losses.append(val_loss)
-            description += "validation loss: {:.8f} (nA)\n".format(val_losses[-1])
+            val_loss = torch.sqrt(val_loss)
+            val_losses = torch.cat((val_losses, val_loss.unsqueeze(dim=0)), dim=0)
+            description += "Validation loss (RMSE): {:.8f} (nA)\n".format(val_losses[-1].item())
             # Save only when peak val performance is reached
             if (
                 save_dir is not None
@@ -171,7 +174,7 @@ def train_loop(
     ):
         training_data = torch.load(os.path.join(save_dir, "training_data.pt"))
         model.load_state_dict(training_data["model_state_dict"])
-        print("Min validation loss: {:.8f} (nA)\n".format(min_val_loss))
+        print("Min validation loss (RMSE): {:.8f} (nA)\n".format(min_val_loss.item()))
     else:
         torch.save(
             {
@@ -227,19 +230,38 @@ def postprocess(dataloader, model, criterion, amplification, results_dir, label)
         model.eval()
         for inputs, targets in tqdm(dataloader):
             inputs, targets = to_device(inputs, targets)
-            all_targets.append(amplification * targets.squeeze())
-            all_predictions.append(amplification * model(inputs).squeeze())
-            loss = criterion(all_predictions[-1], all_targets[-1])
-            running_loss += loss.item() * inputs.shape[0]  # sum up batch loss
+            predictions = model(inputs).squeeze()
+            targets = targets.squeeze()
+            all_targets.append(amplification * targets)
+            all_predictions.append(amplification * predictions)
+            loss = criterion(predictions, targets.squeeze())
+            running_loss += loss * inputs.shape[0]  # sum up batch loss
 
     running_loss /= len(dataloader.dataset)
-    print(str(criterion) + ": " + str(running_loss))
+    running_loss = running_loss * amplification
 
-    all_targets = TorchUtils.format(torch.cat(all_targets))
-    all_predictions = TorchUtils.format(torch.cat(all_predictions))
+    print(label.capitalize() + " loss (MSE): {:.8f} (nA)".format(running_loss.item()))
+    print(label.capitalize() + " loss (RMSE): {:.8f} (nA)\n".format(torch.sqrt(running_loss).item()))
 
-    plot_all(all_targets, all_predictions, results_dir, name=label)
+    all_targets = TorchUtils.to_numpy(torch.cat(all_targets))
+    all_predictions = TorchUtils.to_numpy(torch.cat(all_predictions))
 
+    error = all_targets - all_predictions
+
+    plot_error_vs_output(
+        all_targets,
+        error,
+        results_dir,
+        name=label + "_error_vs_output",
+    )
+    plot_error_hist(
+        all_targets,
+        all_predictions,
+        error,
+        TorchUtils.to_numpy(running_loss),
+        results_dir,
+        name=label + "_error",
+    )
 
 def to_device(inputs, targets):
     if inputs.device != TorchUtils.get_device():
