@@ -37,8 +37,8 @@ class ConsistencyChecker(Sampler):
             outputs = self.get_batch(inputs)
             charging_signal_deviations = np.sqrt(np.mean((outputs - self.chargingup_outputs[batch_indices])**2))
             deviation_chargeup.append(charging_signal_deviations)
-            print(f'Charging up: sqrt-deviation of batch {batch+1}/{int(len(self.chargingup_outputs)/self.batch_size)} from data: {charging_signal_deviations:.2f} (nA)')
-
+            print(f'* Charging up: Batch {batch+1}/{int(len(self.chargingup_outputs)/self.batch_size)}\n RMSE deviation of batch from original data: {charging_signal_deviations:.2f} (nA)\n')
+        print('\n')
         # Initialize sampling loop
         for trial in range(self.repetitions):
             start_trial = time.time()
@@ -54,8 +54,8 @@ class ConsistencyChecker(Sampler):
             end_trial = time.time()
             deviations[trial] = np.sqrt(np.mean((results[trial] - self.reference_outputs)**2))
             correlation[trial] = np.corrcoef(results[trial].T, self.reference_outputs.T)[0, 1]
-            print(f'Consistency check {trial+1}/{self.repetitions} took {end_trial - start_trial :.2f} sec. with {batch+1} batches')
-            print(f"Corr: {correlation[trial]:.2f} ; Deviation: {deviations[trial]:.2f}")
+            print(f'* Consistency check {trial+1}/{self.repetitions} took {end_trial - start_trial :.2f} sec. with {batch+1} batches')
+            print(f"\tCorr: {correlation[trial]:.2f} ; Deviation: {deviations[trial]:.2f}")
         self.close_processor()
 
         np.savez(self.results_filename, results=results, deviations=deviations, correlation=correlation)
@@ -73,10 +73,11 @@ def consistency_check(main_dir, repetitions=1, sampler_configs_name='sampler_con
     std_output = np.std(outputs, axis=0)
 
     plt.figure()
-    plt.plot(mean_output, 'k', label='mean over repetitions')
-    plt.plot(mean_output + std_output, ':k')
-    plt.plot(mean_output - std_output, ':k', label='stdev over repetitions')
-    plt.plot(sampler.reference_outputs, 'r', label='reference signal')
+    plt.plot(sampler.reference_outputs, 'r', label='reference signal', alpha=0.5)
+    plt.plot(mean_output, 'k', label='mean over repetitions', alpha=0.5)
+    plt.plot(mean_output + std_output, ':k', alpha=0.5)
+    plt.plot(mean_output - std_output, ':k', label='stdev over repetitions', alpha=0.5)
+
     plt.title(f'Consistency over {sampler.repetitions} trials with same input')
     plt.legend()
     plt.savefig(os.path.join(sampler.results_dir, 'consistency_check'))
@@ -85,22 +86,22 @@ def consistency_check(main_dir, repetitions=1, sampler_configs_name='sampler_con
     plt.plot(mean_output - sampler.reference_outputs, "b", label="mean - reference")
     plt.plot(std_output, ":k", label="stdev over repetitions")
     plt.plot(-std_output, ":k")
-    plt.title("Difference Mean Signal and Reference Signal")
+    plt.title("Difference Mean Signal and Reference Signal (nA)")
     plt.legend()
     plt.savefig(os.path.join(sampler.results_dir, 'diff_mean-ref'))
 
     plt.figure()
     plt.hist(deviations)
-    plt.title("Deviations of Reference Signal")
+    plt.title("RMSE Deviations of Reference Signal (nA)")
     plt.savefig(os.path.join(sampler.results_dir, 'hist_deviations'))
 
     plt.figure()
     plt.plot(deviation_chargeup)
-    plt.title("DEVIATIONS WHILE CHARGING UP")
+    plt.title("RMSE deviations (nA) while charging up")
     plt.savefig(os.path.join(sampler.results_dir, 'deviations_while_charging_up'))
 
     plt.show()
 
 
 if __name__ == '__main__':
-    consistency_check('tmp/data/training/TEST/Brains_testing_2021_05_07_142853', repetitions=5)
+    consistency_check('tmp/data/training/TEST/Brains_testing_2021_05_07_142853', repetitions=1)
