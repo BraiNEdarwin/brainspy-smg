@@ -37,7 +37,7 @@ class ConsistencyChecker(Sampler):
             outputs = self.get_batch(inputs)
             charging_signal_deviations = np.sqrt(np.mean((outputs - self.chargingup_outputs[batch_indices])**2))
             deviation_chargeup.append(charging_signal_deviations)
-            print(f'Charging up: sqrt-deviation of batch {batch+1}/{len(self.chargingup_outputs)/self.batch_size} from data: {charging_signal_deviations:.2f} (nA)')
+            print(f'Charging up: sqrt-deviation of batch {batch+1}/{int(len(self.chargingup_outputs)/self.batch_size)} from data: {charging_signal_deviations:.2f} (nA)')
 
         # Initialize sampling loop
         for trial in range(self.repetitions):
