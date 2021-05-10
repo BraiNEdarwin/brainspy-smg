@@ -23,13 +23,13 @@ class ModelDataset(Dataset):
         return (self.inputs[index, :], self.targets[index, :])
 
     def load_data(self, configs):
-        print("Data loading from: \n" + configs["postprocessed_data_path"])
+        print("\n* Loading data from file:\n" + configs["postprocessed_data_path"])
         with np.load(
             configs["postprocessed_data_path"], allow_pickle=True
         ) as data:  # why was allow_pickle not required before? Do we need this?
             # TODO: change in data generation the key meta to info_dictionary
             sampling_configs = data["info"].tolist()
-            print(f"Sampling config keys:\n {sampling_configs.keys()}\n")
+            
             # Create from numpy arrays torch.tensors and send them to device
             inputs = data["inputs"][
                 :: configs["steps"]
@@ -37,8 +37,8 @@ class ModelDataset(Dataset):
             outputs = data["outputs"][
                 :: configs["steps"]
             ]  # TorchUtils.get_tensor_from_numpy(data['outputs'][::configs['steps']])  # Outputs need dim Nx1
-            print(f"Shape of inputs: {inputs.shape}\n Shape of outputs: {outputs.shape}")
-
+            print(f"\t- Shape of inputs:  {inputs.shape}\n\t- Shape of outputs: {outputs.shape}\n")
+            print(f"* Sampling configs has the following keys:\n\t{sampling_configs.keys()}\n")
         return inputs, outputs, sampling_configs
 
 
