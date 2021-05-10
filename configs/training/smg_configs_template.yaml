@@ -1,6 +1,6 @@
 results_base_dir: tmp/output/conv_model
 hyperparameters:
-  epochs: 1000
+  epochs: 2
   learning_rate: 1.0e-05
 model_structure:
   hidden_sizes:
@@ -13,12 +13,12 @@ model_structure:
   D_out: 1
   activation: relu
 data:
-  postprocessed_data_path: "postprocessed_data.npz"
+  train_data_path: "/home/unai/Documents/3-Programming/bspy/smg/tmp/data/training/TEST/Brains_testing_2021_05_07_142853/postprocessed_data.npz"
+  test_data_path: "/home/unai/Documents/3-Programming/bspy/smg/tmp/data/training/TEST/Brains_testing_2021_05_07_142853/postprocessed_data.npz"
   steps: 3
   batch_size: 128
   worker_no: 0
   pin_memory: False
   split_percentages:
-    - 0.9 # Training data
-    - 0.1 # Dev/validation data
-    - 0 # Test data
+    - 1 # Training data
+    - 0 # Dev/validation data

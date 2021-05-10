@@ -5,13 +5,15 @@ from brainspy.utils.pytorch import TorchUtils
 
 
 class ModelDataset(Dataset):
-    def __init__(self, configs):
+    def __init__(self, configs, train=True):
+        self.train = train
         self.inputs, targets, self.sampling_configs = self.load_data(configs["data"])
         self.targets = (
             targets / self.sampling_configs["driver"]["amplification"]
         )
         self.inputs = TorchUtils.format(self.inputs)
         self.targets = TorchUtils.format(self.targets)
+
         assert len(self.inputs) == len(
             self.targets
         ), "Inputs and Outpus have NOT the same length"
@@ -23,9 +25,10 @@ class ModelDataset(Dataset):
         return (self.inputs[index, :], self.targets[index, :])
 
     def load_data(self, configs):
-        print("\n* Loading data from file:\n" + configs["postprocessed_data_path"])
+        data_path = self.get_data_path(configs)
+        print("\n* Loading data from file:\n" + data_path)
         with np.load(
-            configs["postprocessed_data_path"], allow_pickle=True
+            data_path, allow_pickle=True
         ) as data:  # why was allow_pickle not required before? Do we need this?
             # TODO: change in data generation the key meta to info_dictionary
             sampling_configs = data["info"].tolist()
@@ -41,6 +44,11 @@ class ModelDataset(Dataset):
             print(f"* Sampling configs has the following keys:\n\t{sampling_configs.keys()}\n")
         return inputs, outputs, sampling_configs
 
+    def get_data_path(self, configs):
+        if self.train:
+            return configs["train_data_path"]
+        else:
+            return configs['test_data_path']
 
 def get_info_dict(training_configs, sampling_configs):
     info_dict = {}
@@ -62,27 +70,28 @@ def load_data(configs):
     amplification = TorchUtils.format(info_dict["sampling_configs"]["driver"][
         "amplification"
     ])
+    if configs["data"]["split_percentages"][0] < 1:
+        len_val = int(len(dataset) * configs["data"]["split_percentages"][1])
+    
+        # Split dataset
+        split_length = [
+            len(dataset) - len_val,
+            len_val
+        ]
 
-    # Split dataset
-    split_length = [
-        int(len(dataset) * configs["data"]["split_percentages"][i])
-        for i in range(len(configs["data"]["split_percentages"]))
-    ]
-    remainder = len(dataset) - sum(split_length)
-    split_length[
-        0
-    ] += remainder  # Split length is a list of integers. The remainder of values is added to the training set.
+        datasets = random_split(dataset, split_length)
+    else:
+        datasets = []
+        datasets.append(dataset)
+        datasets.append([])
 
-    datasets = random_split(dataset, split_length)
-
-    filtered_datasets = []
-    for i in range(len(datasets)):
-        if len(datasets[i]) != 0:
-            filtered_datasets.append(datasets[i])
+    if 'test_data_path' in configs['data']:
+        test_dataset = ModelDataset(configs, train=False)
+        datasets.append(test_dataset)
 
     # Create dataloaders
-    # If length of the dataset is not divisible by the batch_size, it will drop the last batch.
     dataloaders = []
+    shuffle = [True, False, False]
     for i in range(len(datasets)):
         if len(datasets[i]) != 0:
             dataloaders.append(
@@ -91,7 +100,7 @@ def load_data(configs):
                     batch_size=configs["data"]["batch_size"],
                     num_workers=configs["data"]["worker_no"],
                     pin_memory=configs["data"]["pin_memory"],
-                    shuffle=True,
+                    shuffle=shuffle[i],
                 )
             )
         else:

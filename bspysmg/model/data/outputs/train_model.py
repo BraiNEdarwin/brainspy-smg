@@ -71,7 +71,7 @@ def generate_surrogate_model(
     labels = ["TRAINING", "VALIDATION", "TEST"]
     for i in range(len(dataloaders)):
         if dataloaders[i] is not None:
-            postprocess(
+            loss = postprocess(
                 dataloaders[i],
                 model,
                 criterion,
@@ -80,19 +80,14 @@ def generate_surrogate_model(
                 label=labels[i],
             )
 
-    test_loss = None
-    if dataloaders[2] is not None:
-        test_loss = default_val_step(model, dataloaders[2], criterion, amplification)
-        print("Test loss: " + str(test_loss))
-
     plt.figure()
     plt.plot(TorchUtils.to_numpy(performances[0]))
     if not len(performances[1]) == 0:
         plt.plot(TorchUtils.to_numpy(performances[1]))
-    if test_loss is None:
+    if dataloaders[-1].dataset.train:
         plt.title("Training profile")
     else:
-        plt.title("Training profile /n Test loss : %.8f (nA)" % test_loss)
+        plt.title("Training profile /n Test loss : %.6f (nA)" % loss)
     if not len(performances[1]) == 0:
         plt.legend(["training", "validation"])
     plt.xlabel("Epoch no.")
@@ -128,14 +123,14 @@ def train_loop(
         running_loss *= amplification
         running_loss = torch.sqrt(running_loss)
         train_losses = torch.cat((train_losses, running_loss.unsqueeze(dim=0)), dim=0)
-        description = "Training loss (RMSE): {:.8f} (nA)\n".format(train_losses[-1].item())
+        description = "Training loss (RMSE): {:.6f} (nA)\n".format(train_losses[-1].item())
 
         if dataloaders[1] is not None and len(dataloaders[1]) > 0:
             val_loss = default_val_step(model, dataloaders[1], criterion)
             val_loss *= amplification
             val_loss = torch.sqrt(val_loss)
             val_losses = torch.cat((val_losses, val_loss.unsqueeze(dim=0)), dim=0)
-            description += "Validation loss (RMSE): {:.8f} (nA)\n".format(val_losses[-1].item())
+            description += "Validation loss (RMSE): {:.6f} (nA)\n".format(val_losses[-1].item())
             # Save only when peak val performance is reached
             if (
                 save_dir is not None
@@ -174,7 +169,7 @@ def train_loop(
     ):
         training_data = torch.load(os.path.join(save_dir, "training_data.pt"))
         model.load_state_dict(training_data["model_state_dict"])
-        print("Min validation loss (RMSE): {:.8f} (nA)\n".format(min_val_loss.item()))
+        print("Min validation loss (RMSE): {:.6f} (nA)\n".format(min_val_loss.item()))
     else:
         torch.save(
             {
@@ -230,21 +225,21 @@ def postprocess(dataloader, model, criterion, amplification, results_dir, label)
         model.eval()
         for inputs, targets in tqdm(dataloader):
             inputs, targets = to_device(inputs, targets)
-            predictions = model(inputs).squeeze()
-            targets = targets.squeeze()
+            predictions = model(inputs) #.squeeze()
+            #targets = targets.squeeze()
             all_targets.append(amplification * targets)
             all_predictions.append(amplification * predictions)
-            loss = criterion(predictions, targets.squeeze())
+            loss = criterion(predictions, targets)
             running_loss += loss * inputs.shape[0]  # sum up batch loss
 
     running_loss /= len(dataloader.dataset)
     running_loss = running_loss * amplification
 
-    print(label.capitalize() + " loss (MSE): {:.8f} (nA)".format(running_loss.item()))
-    print(label.capitalize() + " loss (RMSE): {:.8f} (nA)\n".format(torch.sqrt(running_loss).item()))
+    print(label.capitalize() + " loss (MSE): {:.6f} (nA)".format(running_loss.item()))
+    print(label.capitalize() + " loss (RMSE): {:.6f} (nA)\n".format(torch.sqrt(running_loss).item()))
 
-    all_targets = TorchUtils.to_numpy(torch.cat(all_targets))
-    all_predictions = TorchUtils.to_numpy(torch.cat(all_predictions))
+    all_targets = TorchUtils.to_numpy(torch.cat(all_targets, dim=0))
+    all_predictions = TorchUtils.to_numpy(torch.cat(all_predictions, dim=0))
 
     error = all_targets - all_predictions
 
@@ -262,6 +257,7 @@ def postprocess(dataloader, model, criterion, amplification, results_dir, label)
         results_dir,
         name=label + "_error",
     )
+    return torch.sqrt(running_loss)
 
 def to_device(inputs, targets):
     if inputs.device != TorchUtils.get_device():
