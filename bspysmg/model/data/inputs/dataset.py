@@ -29,7 +29,7 @@ class ModelDataset(Dataset):
         ) as data:  # why was allow_pickle not required before? Do we need this?
             # TODO: change in data generation the key meta to info_dictionary
             sampling_configs = data["info"].tolist()
-            print(f"Sampling config keys :\n {sampling_configs.keys()}")
+            print(f"Sampling config keys:\n {sampling_configs.keys()}\n")
             # Create from numpy arrays torch.tensors and send them to device
             inputs = data["inputs"][
                 :: configs["steps"]
@@ -37,7 +37,7 @@ class ModelDataset(Dataset):
             outputs = data["outputs"][
                 :: configs["steps"]
             ]  # TorchUtils.get_tensor_from_numpy(data['outputs'][::configs['steps']])  # Outputs need dim Nx1
-            print(f"Shape of outputs: {outputs.shape}; shape of inputs: {inputs.shape}")
+            print(f"Shape of inputs: {inputs.shape}\n Shape of outputs: {outputs.shape}")
 
         return inputs, outputs, sampling_configs
 
@@ -59,9 +59,9 @@ def load_data(configs):
     dataset = ModelDataset(configs)
     info_dict = get_info_dict(configs, dataset.sampling_configs)
 
-    amplification = info_dict["sampling_configs"]["driver"][
+    amplification = TorchUtils.format(info_dict["sampling_configs"]["driver"][
         "amplification"
-    ]
+    ])
 
     # Split dataset
     split_length = [
