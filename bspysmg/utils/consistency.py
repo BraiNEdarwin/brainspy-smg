@@ -24,8 +24,8 @@ class ConsistencyChecker(Sampler):
         self.results_dir = create_directory_timestamp(main_dir, 'consistency_check')
         self.results_filename = os.path.join(self.results_dir, 'consistency_results.npz')
         self.repetitions = repetitions
-    def get_data(self):
 
+    def get_data(self):
         results = np.zeros((self.repetitions,) + self.reference_outputs.shape)
         deviations = np.zeros(self.repetitions)
         correlation = np.zeros(self.repetitions)
@@ -63,9 +63,9 @@ class ConsistencyChecker(Sampler):
         return results, deviations, correlation, deviation_chargeup
 
 
-def consistency_check(main_dir):
+def consistency_check(main_dir, repetitions=1, sampler_configs_name='sampler_configs.json', reference_batch_name='reference_batch.npz', charging_signal_name='charging_signal.npz'):
 
-    sampler = ConsistencyChecker(main_dir)
+    sampler = ConsistencyChecker(main_dir, repetitions=repetitions, sampler_configs_name=sampler_configs_name, reference_batch_name=reference_batch_name, charging_signal_name=charging_signal_name)
 
     outputs, deviations, correlation, deviation_chargeup = sampler.get_data()
 
@@ -100,9 +100,7 @@ def consistency_check(main_dir):
     plt.savefig(os.path.join(sampler.results_dir, 'deviations_while_charging_up'))
 
     plt.show()
-    print("DONE!")
 
 
 if __name__ == '__main__':
-
-    consistency_check('tmp/data/training/TEST/Brains_testing_2021_05_07_142853')
+    consistency_check('tmp/data/training/TEST/Brains_testing_2021_05_07_142853', repetitions=5)
