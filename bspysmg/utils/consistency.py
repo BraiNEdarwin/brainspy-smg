@@ -84,8 +84,8 @@ def consistency_check(main_dir, repetitions=1, sampler_configs_name='sampler_con
 
     plt.figure()
     plt.plot(mean_output - sampler.reference_outputs, "b", label="mean - reference")
-    plt.plot(std_output, ":k", label="stdev over repetitions")
-    plt.plot(-std_output, ":k")
+    plt.plot(mean_output - sampler.reference_outputs + std_output, ":k", label="stdev over repetitions")
+    plt.plot(mean_output - sampler.reference_outputs -std_output, ":k")
     plt.title("Difference Mean Signal and Reference Signal (nA)")
     plt.legend()
     plt.savefig(os.path.join(sampler.results_dir, 'diff_mean-ref'))
