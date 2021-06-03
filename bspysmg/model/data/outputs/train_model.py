@@ -93,7 +93,10 @@ def generate_surrogate_model(
     plt.xlabel("Epoch no.")
     plt.ylabel("RMSE (nA)")
     plt.savefig(os.path.join(results_dir, "training_profile"))
-
+    if not dataloaders[-1].dataset.train:
+        training_data = torch.load(os.path.join(results_dir, "training_data.pt"))
+        training_data['test_loss'] = loss
+        torch.save(training_data, os.path.join(results_dir, "training_data.pt"))
     # print("Model saved in :" + results_dir)
 
 
