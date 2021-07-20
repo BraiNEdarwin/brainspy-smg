@@ -17,7 +17,7 @@ import os
 
 class Sampler:
     def __init__(self, configs):
-        self.processor = get_driver(configs["driver"])
+        self.driver = get_driver(configs["driver"])
         self.configs = configs
         if 'amplitude' not in self.configs[
                 'input_data'] and 'offset' not in self.configs['input_data']:
@@ -37,7 +37,7 @@ class Sampler:
         # Ramp input batch (0.5 sec up and down)
         batch_ramped = self.ramp_input_batch(input_batch)
         # Readout output signal
-        outputs_ramped = self.processor.forward_numpy(batch_ramped.T)
+        outputs_ramped = self.driver.forward_numpy(batch_ramped.T)
         return outputs_ramped[self.filter_ramp]
 
     def ramp_input_batch(self, input_batch):
@@ -87,7 +87,7 @@ class Sampler:
             print(
                 f'Outputs collection for batch {str(batch)} of {str(input_dict["number_batches"])} took {str(end_batch - start_batch)} sec.'
             )
-        self.close_processor()
+        self.close_driver()
         return self.configs["save_directory"]
 
     def batch_generator(self, nr_samples, batch):
@@ -176,17 +176,17 @@ class Sampler:
             os.path.join(self.configs["save_directory"], 'example_batch'))
         plt.close()
 
-    def close_processor(self):
+    def close_driver(self):
         """
         Experiments in hardware require that the connection with the drivers is closed.
         This method helps closing this connection when necessary.
         """
         try:
-            self.processor.close_tasks()
+            self.driver.close_tasks()
             print('Instrument task closed')
         except AttributeError:
             print(
-                'There is no closing function for the current processor configuration. Skipping.'
+                'There is no closing function for the current driver configuration. Skipping.'
             )
 
 
