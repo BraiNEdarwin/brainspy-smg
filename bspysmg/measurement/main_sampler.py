@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from brainspy.utils.io import load_configs
 from bspysmg.measurement.data.output.sampler_mgr import Sampler
