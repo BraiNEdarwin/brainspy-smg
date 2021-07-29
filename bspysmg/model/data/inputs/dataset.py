@@ -1,3 +1,4 @@
+import torch
 import numpy as np
 from torch.utils.data import Dataset, DataLoader, random_split
 
@@ -5,9 +6,8 @@ from brainspy.utils.pytorch import TorchUtils
 
 
 class ModelDataset(Dataset):
-    def __init__(self, configs, train=True):
-        self.train = train
-        self.inputs, targets, self.sampling_configs = self.load_data(configs["data"])
+    def __init__(self, data_path, steps):
+        self.inputs, targets, self.sampling_configs = self.load_data(data_path, steps)
         self.targets = (
             targets / self.sampling_configs["driver"]["amplification"]
         )
@@ -24,31 +24,15 @@ class ModelDataset(Dataset):
     def __getitem__(self, index):
         return (self.inputs[index, :], self.targets[index, :])
 
-    def load_data(self, configs):
-        data_path = self.get_data_path(configs)
+    def load_data(self, data_path, steps):
         print("\n* Loading data from file:\n" + data_path)
-        with np.load(
-            data_path, allow_pickle=True
-        ) as data:  # why was allow_pickle not required before? Do we need this?
-            # TODO: change in data generation the key meta to info_dictionary
+        with np.load(data_path, allow_pickle=True) as data:
             sampling_configs = data["info"].tolist()
-            
-            # Create from numpy arrays torch.tensors and send them to device
-            inputs = data["inputs"][
-                :: configs["steps"]
-            ]  # TorchUtils.get_tensor_from_numpy(data['inputs'][::configs['steps']])  # shape: Nx#electrodes
-            outputs = data["outputs"][
-                :: configs["steps"]
-            ]  # TorchUtils.get_tensor_from_numpy(data['outputs'][::configs['steps']])  # Outputs need dim Nx1
+            inputs = data["inputs"][::steps]
+            outputs = data["outputs"][::steps]
             print(f"\t- Shape of inputs:  {inputs.shape}\n\t- Shape of outputs: {outputs.shape}\n")
             print(f"* Sampling configs has the following keys:\n\t{sampling_configs.keys()}\n")
         return inputs, outputs, sampling_configs
-
-    def get_data_path(self, configs):
-        if self.train:
-            return configs["train_data_path"]
-        else:
-            return configs['test_data_path']
 
 def get_info_dict(training_configs, sampling_configs):
     info_dict = {}
@@ -62,32 +46,29 @@ def get_info_dict(training_configs, sampling_configs):
 
 
 def load_data(configs):
-
     # Load dataset
-    dataset = ModelDataset(configs)
-    info_dict = get_info_dict(configs, dataset.sampling_configs)
-
-    amplification = TorchUtils.format(info_dict["sampling_configs"]["driver"][
-        "amplification"
-    ])
-    if configs["data"]["split_percentages"][0] < 1:
-        len_val = int(len(dataset) * configs["data"]["split_percentages"][1])
-    
-        # Split dataset
-        split_length = [
-            len(dataset) - len_val,
-            len_val
-        ]
-
-        datasets = random_split(dataset, split_length)
-    else:
-        datasets = []
+    # Only training configs will be taken into account for info dict
+    # For ranges and etc.
+    datasets = []
+    info_dict = None
+    amplification = None
+    dataset_names = ['train','validation','test']
+    for i in range(len(configs['data']['dataset_paths'])):
+        dataset = ModelDataset(configs['data']['dataset_paths'][i], configs['data']['steps'])
+        
+        if i > 0:
+            amplification_aux = TorchUtils.format(info_dict["sampling_configs"]["driver"][
+                "amplification"
+            ])
+            assert (torch.eq(amplification_aux, amplification).all(), 
+            "Amplification correction factor should be the same for all datasets. Check if all datasets come from the same setup.")
+            info_dict[dataset_names[i]+'_sampling_configs'] = dataset.sampling_configs
+        else:
+            info_dict = get_info_dict(configs, dataset.sampling_configs)
+        amplification = TorchUtils.format(info_dict["sampling_configs"]["driver"][
+                "amplification"
+            ])
         datasets.append(dataset)
-        datasets.append([])
-
-    if 'test_data_path' in configs['data']:
-        test_dataset = ModelDataset(configs, train=False)
-        datasets.append(test_dataset)
 
     # Create dataloaders
     dataloaders = []
