@@ -248,7 +248,7 @@ if __name__ == '__main__':
     # configs["input_indices"] = [2, 3]
     configs["electrode_effects"] = {}
     # configs["electrode_effects"]["amplification"] = [1]
-    configs["electrode_effects"]["output_clipping"] = [-114, 114]
+    # configs["electrode_effects"]["output_clipping"] = [-114, 114]
     # configs["electrode_effects"]["noise"] = {}
     # configs["electrode_effects"]["noise"]["noise_type"] = "gaussian"
     # configs["electrode_effects"]["noise"]["variance"] = 0.6533523201942444

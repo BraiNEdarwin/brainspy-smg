@@ -1,6 +1,6 @@
 results_base_dir: tmp/output/conv_model
 hyperparameters:
-  epochs: 3
+  epochs: 100
   learning_rate: 1.0e-05
 model_structure:
   hidden_sizes:
@@ -21,3 +21,6 @@ data:
   batch_size: 128
   worker_no: 0
   pin_memory: False
+  split_percentages:
+    - 1 # Training data
+    - 0 # Dev/validation data
