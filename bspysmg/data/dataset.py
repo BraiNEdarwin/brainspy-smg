@@ -303,7 +303,8 @@ def get_dataloaders(configs):
     dataset_names = ['train', 'validation', 'test']
     for i in range(len(configs['data']['dataset_paths'])):
         dataset = ModelDataset(configs['data']['dataset_paths'][i],
-                               configs['data']['steps'])
+                               steps=configs['data']['steps'],
+                               tag=dataset_names[i])
 
         if i > 0:
             amplification_aux = TorchUtils.format(
