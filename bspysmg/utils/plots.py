@@ -84,10 +84,7 @@ def output_hist(outputs, data_dir, bins=100, show=False):
 
 
 def iv_plot(configs, inputs, output):
-    #xaxis = self.gen_input_wfrm()
-    #devlist = configs['driver'][
-    #    'instruments_setup']  # get_default_brains_setup_dict()
-    ylabeldist = -5
+    ylabeldist = -10
     electrode_id = 0
     cmap = plt.get_cmap("tab10")
     for k, dev in enumerate(configs['devices']):
@@ -132,8 +129,8 @@ def iv_plot(configs, inputs, output):
                         if configs["driver"]['instruments_setup'][dev][
                                 "activation_channel_mask"][z] == 1:
                             masked_idx = sum(
-                                configs["driver"]['instruments_setup']
-                                [dev]["activation_channel_mask"][:z + 1]) - 1
+                                configs["driver"]['instruments_setup'][dev]
+                                ["activation_channel_mask"][:z + 1]) - 1
                             axs[i, j].plot(inputs[key][dev][masked_idx],
                                            label="IV" + str(z),
                                            color=cmap(z))
