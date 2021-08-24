@@ -83,15 +83,14 @@ def output_hist(outputs, data_dir, bins=100, show=False):
 #         plt.show()
 
 
-def iv_plot(self, configs, inputs, output):
-
+def iv_plot(configs, inputs, output):
     #xaxis = self.gen_input_wfrm()
-    devlist = configs['driver'][
-        'instruments_setup']  # get_default_brains_setup_dict()
+    #devlist = configs['driver'][
+    #    'instruments_setup']  # get_default_brains_setup_dict()
     ylabeldist = -5
     electrode_id = 0
     cmap = plt.get_cmap("tab10")
-    for k, dev in enumerate(self.configs['devices']):
+    for k, dev in enumerate(configs['devices']):
         fig, axs = plt.subplots(2, 4)
         # plt.grid(True)
         fig.suptitle('Device ' + dev + ' - Input voltage vs Output current')
@@ -100,10 +99,10 @@ def iv_plot(self, configs, inputs, output):
                 exp_index = j + i * 4
                 exp = "IV" + str(exp_index + 1)
                 if exp_index < 7:
-                    if self.configs["driver"]['instruments_setup'][dev][
+                    if configs["driver"]['instruments_setup'][dev][
                             "activation_channel_mask"][exp_index] == 1:
                         masked_idx = sum(
-                            self.configs["driver"]['instruments_setup'][dev]
+                            configs["driver"]['instruments_setup'][dev]
                             ["activation_channel_mask"][:exp_index + 1]) - 1
                         axs[i, j].plot(inputs[exp][dev][masked_idx],
                                        output[exp][dev],
@@ -130,10 +129,10 @@ def iv_plot(self, configs, inputs, output):
                 else:
                     for z, key in enumerate(inputs.keys()):
                         m = 0
-                        if self.configs["driver"]['instruments_setup'][dev][
+                        if configs["driver"]['instruments_setup'][dev][
                                 "activation_channel_mask"][z] == 1:
                             masked_idx = sum(
-                                self.configs["driver"]['instruments_setup']
+                                configs["driver"]['instruments_setup']
                                 [dev]["activation_channel_mask"][:z + 1]) - 1
                             axs[i, j].plot(inputs[key][dev][masked_idx],
                                            label="IV" + str(z),
