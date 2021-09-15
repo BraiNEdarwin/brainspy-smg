@@ -83,7 +83,17 @@ def output_hist(outputs, data_dir, bins=100, show=False):
 #         plt.show()
 
 
-def iv_plot(configs, inputs, output):
+def iv_plot(result, input_electrode, save_plot=None, show_plot=False):
+    plt.plot(result, label='IV Curve for electrode ' + str(input_electrode))
+    plt.xlabel('Point no.')
+    plt.ylabel('Current (nA)')
+    if save_plot is not None:
+        plt.savefig(save_plot)
+    if show_plot:
+        plt.show()
+
+
+def multi_iv_plot(configs, inputs, output):
     ylabeldist = -10
     electrode_id = 0
     cmap = plt.get_cmap("tab10")

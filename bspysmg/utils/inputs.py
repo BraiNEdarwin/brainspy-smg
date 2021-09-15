@@ -104,7 +104,7 @@ def get_frequency(configs):
         aux[:configs['activation_electrode_no']]) * configs['factor']
 
 
-def generate_sawtooth(input_range, n_points, direction):
+def generate_sawtooth_multiple(input_range, n_points, direction):
 
     n_points = n_points / 2
 
@@ -133,6 +133,48 @@ def generate_sawtooth(input_range, n_points, direction):
     result = np.concatenate((Input1, Input2, Input3))
     if not (result.shape[0] == int(n_points * 2)):
         result = np.concatenate((result, np.array([0])))
+    return result
+
+
+def generate_sawtooth_simple(v_low: float,
+                             v_high: float,
+                             point_no: int,
+                             up_direction: bool = False):
+    """Generates a simple sawtooth for a single channel (electrode). It goes from zero to a certain
+    point (v_low), from that point to another point (v_max), and from that last point to zero again.
+    The direction can be inverted using up_direction=True so that the sawtooth goes from zero to 
+    v_max, from v_max to v_min, and from v_min to zero.
+
+    Parameters
+    ----------
+    v_low : float
+        Minimum voltage that the sawtooth will achieve.
+    v_high : float
+        Maximum voltage that the sawtooth will achieve.
+    point_no : int
+        Number of points that the sawtooth will have.
+    up_direction : bool, optional
+        Direction of the sawtooth. If true, the sawtooth will go first up and then down. 
+        If False, the sawtooth will go first down and then up. By default False.
+
+    Returns
+    -------
+    np.array
+        An array containing the two pointed sawtooth in a single dimension.
+    """
+    assert point_no % 2 == 0, 'Only an even point number is accepted.'
+    point_no = int(point_no / 2)
+
+    if up_direction:
+        aux = v_low
+        v_low = v_high
+        v_high = aux
+
+    ramp1 = np.linspace(0, v_low, int((point_no * v_low) / (v_low - v_high)))
+    ramp2 = np.linspace(v_low, v_high, point_no)
+    ramp3 = np.linspace(v_high, 0, int((point_no * v_high) / (v_high - v_low)))
+
+    result = np.concatenate((ramp1, ramp2, ramp3))
     return result
 
 

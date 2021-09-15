@@ -1,11 +1,11 @@
 import numpy as np
 from brainspy.utils.io import load_configs
 from brainspy.utils.manager import get_driver
-from bspysmg.utils.plots import iv_plot
+from bspysmg.utils.plots import multi_iv_plot
 from bspysmg.utils.inputs import generate_sawtooth, generate_sinewave
 
 
-class IVMeasurement():
+class MultiIVMeasurement():
     def __init__(self, configs):
         self.configs = configs
         self.input_signal = self.configs['input_signal']
@@ -35,7 +35,7 @@ class IVMeasurement():
             for j, dev in enumerate(self.configs['devices']):
                 output[exp][dev] = output_array[:, j]
         self.driver.close_tasks()
-        iv_plot(configs, inputs, output)
+        multi_iv_plot(configs, inputs, output)
 
     def create_input_arrays(self, inputs_dict):
 
@@ -107,7 +107,7 @@ if __name__ == '__main__':
     configs['driver'] = load_configs(
         'configs/utils/brains_ivcurve_template.yaml')
 
-    test = IVMeasurement(configs)
+    test = MultiIVMeasurement(configs)
     test.run_test()
     #suite = unittest.TestSuite()
     #suite.addTest(IVtest(configs))
