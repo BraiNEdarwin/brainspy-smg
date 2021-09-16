@@ -119,7 +119,7 @@ def post_process(data_dir: str, clipping_value="default", **kwargs):
             kwargs["list_data"],
             activation_electrode_no=activation_electrode_no,
             readout_electrode_no=readout_electrode_no)
-    else:
+    elif len(kwargs.keys()) > 0:
         assert (
             False
         ), f"{list(kwargs.keys())} not recognized! kwargs must be list_data"

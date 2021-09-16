@@ -3,6 +3,7 @@ from brainspy.utils.manager import get_driver
 from bspysmg.utils.inputs import get_input_generator
 from brainspy.utils.io import create_directory_timestamp as mkdir
 from brainspy.utils.io import save_configs
+from bspysmg.utils.plots import plot_waves
 from more_itertools import grouper
 import matplotlib.pyplot as plt
 import numpy as np
@@ -194,8 +195,8 @@ class Sampler:
                     "activation_electrode_no"]
                 output_no = self.configs["input_data"]["readout_electrode_no"]
                 legend = self.get_header(input_no, output_no).split(',')
-                self.plot_waves(inputs.T, outputs, input_no, output_no, batch,
-                                legend)
+                plot_waves(inputs.T, outputs, input_no, output_no, batch,
+                                legend, self.configs["save_directory"])
             print(
                 f"Outputs collection for batch {batch} of {input_dict['number_batches']} "
                 + f"took {end_batch - start_batch} sec.")
@@ -320,7 +321,7 @@ if __name__ == '__main__':
     CONFIGS = load_configs(
         'configs/sampling/sampling_configs_template_cdaq_to_cdaq.yaml')
     sampler = Sampler(CONFIGS)
-    path_to_data = sampler.get_data()
+    path_to_data = sampler.sample()
 
     INPUTS, OUTPUTS, INFO_DICT = post_process(path_to_data,
                                               clipping_value=None)

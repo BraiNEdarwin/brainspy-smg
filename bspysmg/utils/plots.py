@@ -45,7 +45,7 @@ def plot_error_vs_output(targets, error, save_dir, name="error_vs_output"):
     plt.close()
 
 
-def plot_waves(self, inputs, outputs, input_no, output_no, batch, legend):
+def plot_waves(inputs, outputs, input_no, output_no, batch, legend, save_directory):
     plt.figure()
     plt.suptitle(f'Data for NN training in batch {batch}')
     plt.subplot(211)
@@ -59,7 +59,7 @@ def plot_waves(self, inputs, outputs, input_no, output_no, batch, legend):
     plt.legend(legend[-output_no:])
     plt.xlabel('Time points (a.u.)')
     plt.tight_layout()
-    plt.savefig(os.path.join(self.configs["save_directory"], 'example_batch'))
+    plt.savefig(os.path.join(save_directory, 'example_batch'))
     plt.close()
 
 
