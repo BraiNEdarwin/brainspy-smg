@@ -19,6 +19,16 @@ from bspysmg.utils.plots import plot_error_vs_output, plot_error_hist
 
 
 def init_seed(configs):
+    """
+    Initializes a random seed from configs dict if seed key present otherwise generates a 
+    deterministic random seed and creates a new seed key in configs dict. 
+
+    Parameters
+    ----------
+    configs : dict
+        Training configurations.
+    """
+    
     if "seed" in configs:
         seed = configs["seed"]
     else:
