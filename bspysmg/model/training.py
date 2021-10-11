@@ -19,6 +19,22 @@ from bspysmg.utils.plots import plot_error_vs_output, plot_error_hist
 
 
 def init_seed(configs):
+    """
+    Initializes a random seed for training. A random seed is a starting point for pseudorandom
+    number generator algorithms which is used for reproducibility.
+    Also see - https://pytorch.org/docs/stable/notes/randomness.html  
+
+    Parameters
+    ----------
+    configs : dict
+         Training configurations with the following keys:
+
+        - seed:  int [Optional]
+            The desired seed for the random number generator. If the dictionary does not contain 
+            this key, a deterministic random seed will be applied, and added to the key 'seed' in 
+            the dictionary.
+    """
+    
     if "seed" in configs:
         seed = configs["seed"]
     else:
