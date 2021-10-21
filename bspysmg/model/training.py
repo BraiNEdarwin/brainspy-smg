@@ -368,7 +368,7 @@ def postprocess(dataloader, model, criterion, amplification, results_dir,
     return torch.sqrt(running_loss)
 
 
-def to_device(inputs : torch.tensor, targets : tensor) -> tuple:
+def to_device(inputs : torch.tensor, targets : torch.tensor) -> tuple:
     """
     Copies input and target tensors to current device for processing.
     See - https://pytorch.org/docs/stable/tensor_attributes.html#torch.torch.device
@@ -377,7 +377,7 @@ def to_device(inputs : torch.tensor, targets : tensor) -> tuple:
     ----------
     inputs : torch.tensor
         Input data used for training the model.
-    targets : torch tensor
+    targets : torch.tensor
         Target data used for training the model.
 
     Returns
