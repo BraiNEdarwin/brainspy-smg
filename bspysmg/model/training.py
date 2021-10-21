@@ -132,6 +132,43 @@ def train_loop(
     save_dir=None,
     early_stopping=True,
 ):
+    """
+    Performs the training of a model and returns the trained model, training loss
+    validation loss.
+
+    Parameters
+    ----------
+    model : custom NeuralNetworkModel of type torch.nn.Module
+        Model to be trained.
+    info_dict : dict
+        The dictionary used for initialising the surrogate model.
+    dataloaders :  list
+        A list containing a single PyTorch Dataloader containing the training dataset.
+    criterion : <method>
+        Fitness/loss function that will be used to train the model.
+    optimizer : torch.optim
+        Optimization method used to train the model which decreases model's loss.
+    epochs : int
+        The number of iterations for which the model is to be trained.
+    amplification: float
+        Amplification correction factor used in the device to correct the amplification
+        applied to the output current in order to convert it into voltage before its
+        readout.
+    start_epoch : int [Optional]
+        The starting value of the epochs.
+    save_dir : string [Optional]
+        Name of the path and file where the trained model is to be saved.
+    early_stopping : bool [Optional]
+        If this is set to true, early stopping algorithm is used during the training
+        of the model.
+        Also see - https://medium.com/analytics-vidhya/early-stopping-with-pytorch-to-
+        restrain-your-model-from-overfitting-dce6de4081c5
+
+    Returns
+    -------
+    tuple
+        Trained model and a list of training loss and validation loss.
+    """
     if start_epoch > 0:
         start_epoch += 1
 
@@ -208,6 +245,26 @@ def train_loop(
 
 
 def default_train_step(model, dataloader, criterion, optimizer):
+    """
+    Performs the training step of a model within a single epoch and returns the
+    current loss and current trained model.
+
+    Parameters
+    ----------
+    model : custom NeuralNetworkModel of type torch.nn.Module
+        Model to be trained.
+    dataloader :  torch.utils.data.DataLoader
+        A PyTorch Dataloader containing the training dataset.
+    criterion : <method>
+        Fitness/loss function that will be used to train the model.
+    optimizer : torch.optim
+        Optimization method used to train the model which decreases model's loss.
+
+    Returns
+    -------
+    tuple
+        Trained model and training loss for the current epoch.
+    """
     running_loss = 0
     model.train()
     loop = tqdm(dataloader)
@@ -225,6 +282,24 @@ def default_train_step(model, dataloader, criterion, optimizer):
 
 
 def default_val_step(model, dataloader, criterion):
+     """
+    Performs the validation step of a model within a single epoch and returns
+    the validation loss.
+
+    Parameters
+    ----------
+    model : custom NeuralNetworkModel of type torch.nn.Module
+        Model to be trained.
+    dataloader :  torch.utils.data.DataLoader
+        A PyTorch Dataloader containing the training dataset.
+    criterion : <method>
+        Fitness/loss function that will be used to train the model.
+
+    Returns
+    -------
+    float
+        validation loss for the current epoch.
+    """
     with torch.no_grad():
         val_loss = 0
         model.eval()
