@@ -18,7 +18,7 @@ from bspysmg.data.dataset import get_dataloaders
 from bspysmg.utils.plots import plot_error_vs_output, plot_error_hist
 
 
-def init_seed(configs):
+def init_seed(configs : dict) -> None:
     """
     Initializes a random seed for training. A random seed is a starting point for pseudorandom
     number generator algorithms which is used for reproducibility.
@@ -34,7 +34,6 @@ def init_seed(configs):
             this key, a deterministic random seed will be applied, and added to the key 'seed' in 
             the dictionary.
     """
-    
     if "seed" in configs:
         seed = configs["seed"]
     else:
@@ -121,17 +120,17 @@ def generate_surrogate_model(
 
 
 def train_loop(
-    model,
-    info_dict,
-    dataloaders,
-    criterion,
-    optimizer,
-    epochs,
-    amplification,
-    start_epoch=0,
-    save_dir=None,
-    early_stopping=True,
-):
+    model : NeuralNetworkModel,
+    info_dict : dict,
+    dataloaders : list,
+    criterion : torch.nn.modules.loss,
+    optimizer : torch.optim,
+    epochs : int,
+    amplification : float,
+    start_epoch : int = 0,
+    save_dir : str = None,
+    early_stopping : bool = True,
+) -> tuple:
     """
     Performs the training of a model and returns the trained model, training loss
     validation loss.
@@ -244,7 +243,11 @@ def train_loop(
     return model, [train_losses, val_losses]
 
 
-def default_train_step(model, dataloader, criterion, optimizer):
+def default_train_step(model : NeuralNetworkModel,
+dataloader : torch.utils.data.DataLoader,
+criterion : torch.nn.modules.loss,
+optimizer : torch.optim
+) -> tuple:
     """
     Performs the training step of a model within a single epoch and returns the
     current loss and current trained model.
@@ -281,7 +284,10 @@ def default_train_step(model, dataloader, criterion, optimizer):
     return model, running_loss
 
 
-def default_val_step(model, dataloader, criterion):
+def default_val_step(model : NeuralNetworkModel,
+dataloader : torch.utils.data.DataLoader,
+criterion : torch.nn.modules.loss
+) -> tuple:
      """
     Performs the validation step of a model within a single epoch and returns
     the validation loss.
@@ -298,7 +304,7 @@ def default_val_step(model, dataloader, criterion):
     Returns
     -------
     float
-        validation loss for the current epoch.
+        Validation loss for the current epoch.
     """
     with torch.no_grad():
         val_loss = 0
@@ -362,7 +368,23 @@ def postprocess(dataloader, model, criterion, amplification, results_dir,
     return torch.sqrt(running_loss)
 
 
-def to_device(inputs, targets):
+def to_device(inputs : torch.tensor, targets : tensor) -> tuple:
+    """
+    Copies input and target tensors to current device for processing.
+    See - https://pytorch.org/docs/stable/tensor_attributes.html#torch.torch.device
+
+    Parameters
+    ----------
+    inputs : torch.tensor
+        Input data used for training the model.
+    targets : torch tensor
+        Target data used for training the model.
+
+    Returns
+    -------
+    tuple
+        Input and target data allocated to current device.
+    """
     if inputs.device != TorchUtils.get_device():
         inputs = inputs.to(device=TorchUtils.get_device())
     if targets.device != TorchUtils.get_device():
