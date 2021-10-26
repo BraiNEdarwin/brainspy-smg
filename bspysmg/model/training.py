@@ -16,6 +16,7 @@ from brainspy.utils.io import create_directory_timestamp
 from brainspy.processors.simulation.model import NeuralNetworkModel
 from bspysmg.data.dataset import get_dataloaders
 from bspysmg.utils.plots import plot_error_vs_output, plot_error_hist
+from typing import Tuple, List
 
 
 def init_seed(configs : dict) -> None:
@@ -130,7 +131,7 @@ def train_loop(
     start_epoch : int = 0,
     save_dir : str = None,
     early_stopping : bool = True,
-) -> tuple:
+) -> Tuple[NeuralNetworkModel, List[float]]:
     """
     Performs the training of a model and returns the trained model, training loss
     validation loss.
@@ -247,7 +248,7 @@ def default_train_step(model : NeuralNetworkModel,
 dataloader : torch.utils.data.DataLoader,
 criterion : torch.nn.modules.loss,
 optimizer : torch.optim
-) -> tuple:
+) -> Tuple[NeuralNetworkModel, float]:
     """
     Performs the training step of a model within a single epoch and returns the
     current loss and current trained model.
@@ -287,8 +288,8 @@ optimizer : torch.optim
 def default_val_step(model : NeuralNetworkModel,
 dataloader : torch.utils.data.DataLoader,
 criterion : torch.nn.modules.loss
-) -> tuple:
-     """
+) -> float:
+    """
     Performs the validation step of a model within a single epoch and returns
     the validation loss.
 
@@ -368,16 +369,18 @@ def postprocess(dataloader, model, criterion, amplification, results_dir,
     return torch.sqrt(running_loss)
 
 
-def to_device(inputs : torch.tensor, targets : torch.tensor) -> tuple:
+def to_device(inputs : torch.Tensor,
+targets : torch.Tensor
+) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     Copies input and target tensors to current device for processing.
     See - https://pytorch.org/docs/stable/tensor_attributes.html#torch.torch.device
 
     Parameters
     ----------
-    inputs : torch.tensor
+    inputs : torch.Tensor
         Input data used for training the model.
-    targets : torch.tensor
+    targets : torch.Tensor
         Target data used for training the model.
 
     Returns
