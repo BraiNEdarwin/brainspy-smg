@@ -45,12 +45,30 @@ def init_seed(configs : dict) -> None:
 
 
 def generate_surrogate_model(
-        configs,
-        custom_model=NeuralNetworkModel,
-        criterion=MSELoss(),
-        custom_optimizer=Adam,
-        main_folder="training_data",
-):
+        configs : dict,
+        custom_model : torch.nn.Module = NeuralNetworkModel,
+        criterion : torch.nn = MSELoss(),
+        custom_optimizer : torch.optim = Adam,
+        main_folder : str = "training_data",
+) -> None:
+    """
+    Initialises a neural network model, trains it and plots the training,
+    validation and testing loss curves. It also saves the model and results
+    to a specified dicrectory.
+
+    Parameters
+    ----------
+    configs :
+        Training configurations for training a model.
+    custom_model : custom NeuralNetworkModel of type torch.nn.Module
+        Model to be trained.
+    criterion : <method>
+        Fitness/loss function that will be used to train the model.
+    custom_optimizer : torch.optim
+        Optimization method used to train the model which decreases model's loss.
+    save_dir : string [Optional]
+        Name of the path where the trained model is to be saved.
+    """
     # Initialise seed and create data directories
     init_seed(configs)
     results_dir = create_directory_timestamp(configs["results_base_dir"],
@@ -121,7 +139,7 @@ def generate_surrogate_model(
 
 
 def train_loop(
-    model : NeuralNetworkModel,
+    model : torch.nn.Module,
     info_dict : dict,
     dataloaders : list,
     criterion : torch.nn.modules.loss,
@@ -131,7 +149,7 @@ def train_loop(
     start_epoch : int = 0,
     save_dir : str = None,
     early_stopping : bool = True,
-) -> Tuple[NeuralNetworkModel, List[float]]:
+) -> Tuple[torch.nn.Module, List[float]]:
     """
     Performs the training of a model and returns the trained model, training loss
     validation loss.
@@ -244,11 +262,11 @@ def train_loop(
     return model, [train_losses, val_losses]
 
 
-def default_train_step(model : NeuralNetworkModel,
+def default_train_step(model : torch.nn.Module,
 dataloader : torch.utils.data.DataLoader,
 criterion : torch.nn.modules.loss,
 optimizer : torch.optim
-) -> Tuple[NeuralNetworkModel, float]:
+) -> Tuple[torch.nn.Module, float]:
     """
     Performs the training step of a model within a single epoch and returns the
     current loss and current trained model.
@@ -285,7 +303,7 @@ optimizer : torch.optim
     return model, running_loss
 
 
-def default_val_step(model : NeuralNetworkModel,
+def default_val_step(model : torch.nn.Module,
 dataloader : torch.utils.data.DataLoader,
 criterion : torch.nn.modules.loss
 ) -> float:
