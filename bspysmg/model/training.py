@@ -291,7 +291,7 @@ optimizer : torch.optim
     model.train()
     loop = tqdm(dataloader)
     for inputs, targets in loop:
-        inputs, targets = to_device(inputs, targets)
+        inputs, targets = to_device(inputs), to_device(targets)
         optimizer.zero_grad()
         predictions = model(inputs)
         loss = criterion(predictions, targets)
@@ -330,7 +330,7 @@ criterion : torch.nn.modules.loss
         model.eval()
         loop = tqdm(dataloader)
         for inputs, targets in loop:
-            inputs, targets = to_device(inputs, targets)
+            inputs, targets = to_device(inputs), to_device(targets)
             predictions = model(inputs)
             loss = criterion(predictions, targets)
             val_loss += loss.item() * inputs.shape[0]
@@ -349,7 +349,7 @@ def postprocess(dataloader, model, criterion, amplification, results_dir,
     with torch.no_grad():
         model.eval()
         for inputs, targets in tqdm(dataloader):
-            inputs, targets = to_device(inputs, targets)
+            inputs, targets = to_device(inputs), to_device(targets)
             predictions = model(inputs)
             all_targets.append(amplification * targets)
             all_predictions.append(amplification * predictions)
@@ -387,30 +387,24 @@ def postprocess(dataloader, model, criterion, amplification, results_dir,
     return torch.sqrt(running_loss)
 
 
-def to_device(inputs : torch.Tensor,
-targets : torch.Tensor
-) -> Tuple[torch.Tensor, torch.Tensor]:
+def to_device(inputs : torch.Tensor) -> torch.Tensor:
     """
-    Copies input and target tensors to current device for processing.
+    Copies input tensors to current device for processing.
     See - https://pytorch.org/docs/stable/tensor_attributes.html#torch.torch.device
 
     Parameters
     ----------
     inputs : torch.Tensor
-        Input data used for training the model.
-    targets : torch.Tensor
-        Target data used for training the model.
+        Input tensor which needs to be loaded into current device.
 
     Returns
     -------
     tuple
-        Input and target data allocated to current device.
+        Input tensor allocated to current device.
     """
     if inputs.device != TorchUtils.get_device():
         inputs = inputs.to(device=TorchUtils.get_device())
-    if targets.device != TorchUtils.get_device():
-        targets = targets.to(device=TorchUtils.get_device())
-    return (inputs, targets)
+    return inputs
 
 
 if __name__ == "__main__":
