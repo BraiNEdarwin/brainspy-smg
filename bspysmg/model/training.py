@@ -141,7 +141,7 @@ def generate_surrogate_model(
 def train_loop(
     model : torch.nn.Module,
     info_dict : dict,
-    dataloaders : list,
+    dataloaders : List[torch.utils.data.DataLoader],
     criterion : torch.nn.modules.loss,
     optimizer : torch.optim,
     epochs : int,
