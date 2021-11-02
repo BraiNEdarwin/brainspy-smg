@@ -16,9 +16,10 @@ from brainspy.utils.io import create_directory_timestamp
 from brainspy.processors.simulation.model import NeuralNetworkModel
 from bspysmg.data.dataset import get_dataloaders
 from bspysmg.utils.plots import plot_error_vs_output, plot_error_hist
+from typing import Tuple, List
 
 
-def init_seed(configs):
+def init_seed(configs : dict) -> None:
     """
     Initializes a random seed for training. A random seed is a starting point for pseudorandom
     number generator algorithms which is used for reproducibility.
@@ -34,7 +35,6 @@ def init_seed(configs):
             this key, a deterministic random seed will be applied, and added to the key 'seed' in 
             the dictionary.
     """
-    
     if "seed" in configs:
         seed = configs["seed"]
     else:
@@ -45,12 +45,30 @@ def init_seed(configs):
 
 
 def generate_surrogate_model(
-        configs,
-        custom_model=NeuralNetworkModel,
-        criterion=MSELoss(),
-        custom_optimizer=Adam,
-        main_folder="training_data",
-):
+        configs : dict,
+        custom_model : torch.nn.Module = NeuralNetworkModel,
+        criterion : torch.nn = MSELoss(),
+        custom_optimizer : torch.optim = Adam,
+        main_folder : str = "training_data",
+) -> None:
+    """
+    Initialises a neural network model, trains it and plots the training,
+    validation and testing loss curves. It also saves the model and results
+    to a specified dicrectory.
+
+    Parameters
+    ----------
+    configs :
+        Training configurations for training a model.
+    custom_model : custom NeuralNetworkModel of type torch.nn.Module
+        Model to be trained.
+    criterion : <method>
+        Fitness/loss function that will be used to train the model.
+    custom_optimizer : torch.optim
+        Optimization method used to train the model which decreases model's loss.
+    save_dir : string [Optional]
+        Name of the path where the trained model is to be saved.
+    """
     # Initialise seed and create data directories
     init_seed(configs)
     results_dir = create_directory_timestamp(configs["results_base_dir"],
@@ -121,17 +139,17 @@ def generate_surrogate_model(
 
 
 def train_loop(
-    model,
-    info_dict,
-    dataloaders,
-    criterion,
-    optimizer,
-    epochs,
-    amplification,
-    start_epoch=0,
-    save_dir=None,
-    early_stopping=True,
-):
+    model : torch.nn.Module,
+    info_dict : dict,
+    dataloaders : List[torch.utils.data.DataLoader],
+    criterion : torch.nn.modules.loss,
+    optimizer : torch.optim,
+    epochs : int,
+    amplification : float,
+    start_epoch : int = 0,
+    save_dir : str = None,
+    early_stopping : bool = True,
+) -> Tuple[torch.nn.Module, List[float]]:
     """
     Performs the training of a model and returns the trained model, training loss
     validation loss.
@@ -244,7 +262,11 @@ def train_loop(
     return model, [train_losses, val_losses]
 
 
-def default_train_step(model, dataloader, criterion, optimizer):
+def default_train_step(model : torch.nn.Module,
+dataloader : torch.utils.data.DataLoader,
+criterion : torch.nn.modules.loss,
+optimizer : torch.optim
+) -> Tuple[torch.nn.Module, float]:
     """
     Performs the training step of a model within a single epoch and returns the
     current loss and current trained model.
@@ -269,7 +291,7 @@ def default_train_step(model, dataloader, criterion, optimizer):
     model.train()
     loop = tqdm(dataloader)
     for inputs, targets in loop:
-        inputs, targets = to_device(inputs, targets)
+        inputs, targets = to_device(inputs), to_device(targets)
         optimizer.zero_grad()
         predictions = model(inputs)
         loss = criterion(predictions, targets)
@@ -281,8 +303,11 @@ def default_train_step(model, dataloader, criterion, optimizer):
     return model, running_loss
 
 
-def default_val_step(model, dataloader, criterion):
-     """
+def default_val_step(model : torch.nn.Module,
+dataloader : torch.utils.data.DataLoader,
+criterion : torch.nn.modules.loss
+) -> float:
+    """
     Performs the validation step of a model within a single epoch and returns
     the validation loss.
 
@@ -298,14 +323,14 @@ def default_val_step(model, dataloader, criterion):
     Returns
     -------
     float
-        validation loss for the current epoch.
+        Validation loss for the current epoch.
     """
     with torch.no_grad():
         val_loss = 0
         model.eval()
         loop = tqdm(dataloader)
         for inputs, targets in loop:
-            inputs, targets = to_device(inputs, targets)
+            inputs, targets = to_device(inputs), to_device(targets)
             predictions = model(inputs)
             loss = criterion(predictions, targets)
             val_loss += loss.item() * inputs.shape[0]
@@ -324,7 +349,7 @@ def postprocess(dataloader, model, criterion, amplification, results_dir,
     with torch.no_grad():
         model.eval()
         for inputs, targets in tqdm(dataloader):
-            inputs, targets = to_device(inputs, targets)
+            inputs, targets = to_device(inputs), to_device(targets)
             predictions = model(inputs)
             all_targets.append(amplification * targets)
             all_predictions.append(amplification * predictions)
@@ -362,12 +387,24 @@ def postprocess(dataloader, model, criterion, amplification, results_dir,
     return torch.sqrt(running_loss)
 
 
-def to_device(inputs, targets):
+def to_device(inputs : torch.Tensor) -> torch.Tensor:
+    """
+    Copies input tensors to current device for processing.
+    See - https://pytorch.org/docs/stable/tensor_attributes.html#torch.torch.device
+
+    Parameters
+    ----------
+    inputs : torch.Tensor
+        Input tensor which needs to be loaded into current device.
+
+    Returns
+    -------
+    tuple
+        Input tensor allocated to current device.
+    """
     if inputs.device != TorchUtils.get_device():
         inputs = inputs.to(device=TorchUtils.get_device())
-    if targets.device != TorchUtils.get_device():
-        targets = targets.to(device=TorchUtils.get_device())
-    return (inputs, targets)
+    return inputs
 
 
 if __name__ == "__main__":
