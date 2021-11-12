@@ -339,8 +339,39 @@ criterion : torch.nn.modules.loss
     return val_loss
 
 
-def postprocess(dataloader, model, criterion, amplification, results_dir,
-                label):
+def postprocess(dataloader : torch.utils.data.DataLoader,
+model : torch.nn.Module,
+criterion : torch.nn.modules.loss,
+amplification : float,
+results_dir : str,
+label : str
+) -> float:
+    """
+    Plots error vs output and error histogram for given dataset and saves it to
+    specified directory.
+
+    Parameters
+    ----------
+    dataloader :  torch.utils.data.DataLoader
+        A PyTorch Dataloader containing the training dataset.
+    model : custom NeuralNetworkModel of type torch.nn.Module
+        Model to be trained.
+    criterion : <method>
+        Fitness/loss function that will be used to train the model.
+    amplification: float
+        Amplification correction factor used in the device to correct the amplification
+        applied to the output current in order to convert it into voltage before its
+        readout.
+    results_dir : string
+        Name of the path and file where the plots are to be saved.
+    label : string
+        Name of the dataset. I.e., train, validation or test.
+
+    Returns
+    -------
+    float
+        Mean Squared error evaluated on given dataset.
+    """
     print(f"Postprocessing {label} data ... ")
     # i = 0
     running_loss = 0
