@@ -26,7 +26,26 @@ def plot_error_hist(targets, prediction, error, mse, save_dir, name="error"):
     plt.close()
 
 
-def plot_error_vs_output(targets, error, save_dir, name="error_vs_output"):
+def plot_error_vs_output(targets : np.array,
+error : np.array,
+save_dir : str,
+name : str ="error_vs_output"
+) -> None:
+    """
+    Plots  and saves error vs output graph for given error and their
+    correspoding output.
+
+    Parameters
+    ----------
+    targets : An array of type np.array
+        Reference data used for training/validation.
+    error : An array of type np.array
+        Errors correspoding to each target data point.
+    save_dir : string
+        Name of the path where the graph is to be saved.
+    name : string [Optional]
+        Name of the file for the graph.
+    """
     plt.figure()
     plt.plot(targets, error, ".")
     plt.plot(

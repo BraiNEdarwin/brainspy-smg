@@ -58,7 +58,7 @@ def generate_surrogate_model(
 
     Parameters
     ----------
-    configs :
+    configs : dict
         Training configurations for training a model.
     custom_model : custom NeuralNetworkModel of type torch.nn.Module
         Model to be trained.
