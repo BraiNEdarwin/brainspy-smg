@@ -3,7 +3,32 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_error_hist(targets, prediction, error, mse, save_dir, name="error"):
+def plot_error_hist(targets : np.array,
+prediction : np.array,
+error : np.array,
+mse : np.array,
+save_dir : str,
+name : str ="error"
+) -> None:
+    """
+    Plots and saves error histogram graph for given target and
+    predicted data.
+
+    Parameters
+    ----------
+    targets : An array of type np.array
+        Reference data used for training/validation.
+    targets : An array of type np.array
+        Predictions made by model.
+    error : An array of type np.array
+        Errors correspoding to each target data point.
+    mse : An array of type np.array
+        Mean squared error correspoding to each target data point.
+    save_dir : string
+        Name of the path where the graph is to be saved.
+    name : string [Optional]
+        Name of the file for the graph.
+    """
     plt.figure()
     plt.title('Predicted vs True values')
     plt.subplot(1, 2, 1)
