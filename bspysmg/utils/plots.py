@@ -174,7 +174,27 @@ show : bool =False
 #         plt.show()
 
 
-def iv_plot(result, input_electrode, save_plot=None, show_plot=False):
+def iv_plot(result : np.array,
+input_electrode : int,
+save_plot : bool =None,
+show_plot : bool =False
+) -> None:
+    """
+    Plots iv characteristics and optinally saves the graph
+    for a given electrode number.
+
+    Parameters
+    ----------
+    result : An array of type np.array
+        Output current values of an electrode.
+    input_electrode : int
+        Electrode number.
+    save_plot : bool [Optional]
+        If set to true, it saves the generated plot to
+        current directory.
+    show_plot : bool [Optional]
+        If set to true, it displays the generated plot.
+    """
     plt.plot(result, label='IV Curve for electrode ' + str(input_electrode))
     plt.xlabel('Point no.')
     plt.ylabel('Current (nA)')
