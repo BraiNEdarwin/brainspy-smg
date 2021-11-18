@@ -47,8 +47,8 @@ def init_seed(configs : dict) -> None:
 def generate_surrogate_model(
         configs : dict,
         custom_model : torch.nn.Module = NeuralNetworkModel,
-        criterion : torch.nn = MSELoss(),
-        custom_optimizer : torch.optim = Adam,
+        criterion : torch.nn.loss._Loss = MSELoss(),
+        custom_optimizer : torch.optim.Optimizer = Adam(),
         main_folder : str = "training_data",
 ) -> None:
     """
@@ -60,11 +60,11 @@ def generate_surrogate_model(
     ----------
     configs : dict
         Training configurations for training a model.
-    custom_model : custom NeuralNetworkModel of type torch.nn.Module
+    custom_model : custom model of type torch.nn.Module
         Model to be trained.
     criterion : <method>
         Fitness/loss function that will be used to train the model.
-    custom_optimizer : torch.optim
+    custom_optimizer : torch.optim.Optimizer
         Optimization method used to train the model which decreases model's loss.
     save_dir : string [Optional]
         Name of the path where the trained model is to be saved.
@@ -142,8 +142,8 @@ def train_loop(
     model : torch.nn.Module,
     info_dict : dict,
     dataloaders : List[torch.utils.data.DataLoader],
-    criterion : torch.nn.modules.loss,
-    optimizer : torch.optim,
+    criterion : torch.nn.loss._Loss,
+    optimizer : torch.optim.Optimizer,
     epochs : int,
     amplification : float,
     start_epoch : int = 0,
@@ -156,7 +156,7 @@ def train_loop(
 
     Parameters
     ----------
-    model : custom NeuralNetworkModel of type torch.nn.Module
+    model : custom model of type torch.nn.Module
         Model to be trained.
     info_dict : dict
         The dictionary used for initialising the surrogate model.
@@ -164,7 +164,7 @@ def train_loop(
         A list containing a single PyTorch Dataloader containing the training dataset.
     criterion : <method>
         Fitness/loss function that will be used to train the model.
-    optimizer : torch.optim
+    optimizer : torch.optim.Optimizer
         Optimization method used to train the model which decreases model's loss.
     epochs : int
         The number of iterations for which the model is to be trained.
@@ -264,8 +264,8 @@ def train_loop(
 
 def default_train_step(model : torch.nn.Module,
 dataloader : torch.utils.data.DataLoader,
-criterion : torch.nn.modules.loss,
-optimizer : torch.optim
+criterion : torch.nn.loss._Loss,
+optimizer : torch.optim.Optimizer
 ) -> Tuple[torch.nn.Module, float]:
     """
     Performs the training step of a model within a single epoch and returns the
@@ -273,13 +273,13 @@ optimizer : torch.optim
 
     Parameters
     ----------
-    model : custom NeuralNetworkModel of type torch.nn.Module
+    model : custom model of type torch.nn.Module
         Model to be trained.
     dataloader :  torch.utils.data.DataLoader
         A PyTorch Dataloader containing the training dataset.
     criterion : <method>
         Fitness/loss function that will be used to train the model.
-    optimizer : torch.optim
+    optimizer : torch.optim.Optimizer
         Optimization method used to train the model which decreases model's loss.
 
     Returns
@@ -305,7 +305,7 @@ optimizer : torch.optim
 
 def default_val_step(model : torch.nn.Module,
 dataloader : torch.utils.data.DataLoader,
-criterion : torch.nn.modules.loss
+criterion : torch.nn.loss._Loss
 ) -> float:
     """
     Performs the validation step of a model within a single epoch and returns
@@ -313,7 +313,7 @@ criterion : torch.nn.modules.loss
 
     Parameters
     ----------
-    model : custom NeuralNetworkModel of type torch.nn.Module
+    model : custom model of type torch.nn.Module
         Model to be trained.
     dataloader :  torch.utils.data.DataLoader
         A PyTorch Dataloader containing the training dataset.
@@ -341,7 +341,7 @@ criterion : torch.nn.modules.loss
 
 def postprocess(dataloader : torch.utils.data.DataLoader,
 model : torch.nn.Module,
-criterion : torch.nn.modules.loss,
+criterion : torch.nn.loss._Loss,
 amplification : float,
 results_dir : str,
 label : str
@@ -354,7 +354,7 @@ label : str
     ----------
     dataloader :  torch.utils.data.DataLoader
         A PyTorch Dataloader containing the training dataset.
-    model : custom NeuralNetworkModel of type torch.nn.Module
+    model : custom model of type torch.nn.Module
         Model to be trained.
     criterion : <method>
         Fitness/loss function that will be used to train the model.
@@ -420,18 +420,18 @@ label : str
 
 def to_device(inputs : torch.Tensor) -> torch.Tensor:
     """
-    Copies input tensors to current device for processing.
+    Copies input tensors from CPU to GPU device for processing.
     See - https://pytorch.org/docs/stable/tensor_attributes.html#torch.torch.device
 
     Parameters
     ----------
     inputs : torch.Tensor
-        Input tensor which needs to be loaded into current device.
+        Input tensor which needs to be loaded into GPU device.
 
     Returns
     -------
     tuple
-        Input tensor allocated to current device.
+        Input tensor allocated to GPU device.
     """
     if inputs.device != TorchUtils.get_device():
         inputs = inputs.to(device=TorchUtils.get_device())
