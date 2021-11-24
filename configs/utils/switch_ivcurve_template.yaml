@@ -1,0 +1,17 @@
+activation_sampling_frequency: 1000
+readout_sampling_frequency: 1000
+sampling_frequency: 1000
+instrument_type: cdaq_to_cdaq
+real_time_rack: False
+instruments_setup: 
+  multiple_devices: False
+  trigger_source: cDAQ1
+  activation_instrument: cDAQ1Mod1
+  activation_channels: [0,2,5,3,4,6,1]
+  activation_voltage_ranges:  [[-0.7,0.3],[-1.2,0.7],[-1.2,1],[-1.2,1.2],[-1.2,1],[-1.2,0.7],[-0.7,0.3]]
+  readout_instrument: cDAQ1Mod3
+  readout_channels: [0] #ai4
+  activation_channel_mask: [1,1,1,1,1,1,1]
+amplification: [28.5]
+#sampling_frequency: 50
+gain_info: 33.3MOhm
