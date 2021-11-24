@@ -7,7 +7,7 @@ from brainspy.utils.io import load_configs
 from bspysmg.measurement.data.output.sampler_mgr import Sampler
 from brainspy.utils.io import create_directory_timestamp
 from brainspy.utils.pytorch import TorchUtils
-
+from typing import Tuple
 
 class ConsistencyChecker(Sampler):
     def __init__(self,
@@ -16,7 +16,8 @@ class ConsistencyChecker(Sampler):
                  sampler_configs_name : str='sampler_configs.json',
                  reference_batch_name : str='reference_batch.npz',
                  charging_signal_name : str='charging_signal.npz',
-                 model : torch.nn.Module=None):
+                 model : torch.nn.Module=None
+                 ) -> None:
         """
         Initializes dataset and directory to save results for consistency checking
         experiment of a model.
@@ -56,11 +57,11 @@ class ConsistencyChecker(Sampler):
         self.repetitions = repetitions
         self.model = model
 
-    def get_data(self):
+    def get_data(self) -> Tuple[np.array]:
         """
-        The main function used for consistency checking. It uses the reference data
-        and model's outputs to check if the outputs of model are consistent with device
-        over several runs.
+        The main function that implements consistency checking routine. It uses
+        the reference data and model's outputs to check if the outputs of model
+        are consistent with device over several runs.
 
         Returns
         -------
@@ -212,13 +213,33 @@ class ConsistencyChecker(Sampler):
                                                                    np.newaxis]
 
 
-def consistency_check(main_dir,
-                      repetitions=1,
-                      sampler_configs_name='sampler_configs.json',
-                      reference_batch_name='reference_batch.npz',
-                      charging_signal_name='charging_signal.npz',
-                      model=None):
+def consistency_check(main_dir : str,
+                      repetitions : int=1,
+                      sampler_configs_name : str='sampler_configs.json',
+                      reference_batch_name : str='reference_batch.npz',
+                      charging_signal_name : str='charging_signal.npz',
+                      model : torch.nn.Module=None
+                      ) -> None:
+    """
+    This is the driver function used for consistency checking. It initializes a
+    ConsistencyChecker object and performs the consistency check using the get_data
+    function. It also plots and saves various graphs of calculated metrics.
 
+    Parameters
+    ----------
+    main_dir : str
+        Path to main directory which contains the configuration files.
+    repetitions : int [Optional]
+        Number of times the experiments should be repeated.
+    sampler_configs_name : str [Optional]
+        Name of the file which contains sampling configuration.
+    reference_batch_name : str [Optional]
+        Name of the file which contains the reference dataset.
+    charging_signal_name : str [Optional]
+        Name of the file which contains device inputs and outputs.
+    model : custom model of type torch.nn.Module [Optional]
+        Model whose consistency is to be checked.
+    """
     sampler = ConsistencyChecker(main_dir,
                                  repetitions=repetitions,
                                  sampler_configs_name=sampler_configs_name,
