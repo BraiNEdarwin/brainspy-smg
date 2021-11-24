@@ -1,4 +1,4 @@
-name: bspy-reza
+name: bspy
 channels:
   - pytorch
   - conda-forge
@@ -104,4 +104,3 @@ dependencies:
     - werkzeug==2.0.1
     - wheel==0.36.2
     - yapf==0.31.0
-prefix: C:\Users\Mohamadreza\anaconda3\envs\bspy
