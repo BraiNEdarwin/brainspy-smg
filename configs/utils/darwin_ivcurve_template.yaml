@@ -1,0 +1,11 @@
+instrument_type: cdaq_to_nidaq # Possible values are: simulation, simulation_debug, cdaq_to_cdaq, and cdaq_to_nidaq 
+real_time_rack: False # Driver can be local or remote. Remote for the RT NI Rack (Pinky), and local for the regular one (Brains).
+sampling_frequency: 1000
+amplification: 100
+instruments_setup:
+  multiple_devices: False
+  activation_instrument: cDAQ3Mod1
+  activation_channels: [0,1,2,3,4,5,6] # Channels through which voltages will be sent for activating the device (with both data inputs and control voltages)
+  activation_voltage_ranges:  [[-0.7,0.3],[-0.7,0.3],[-0.7,0.3],[-0.7,0.3],[-0.7,0.3],[-0.7,0.3],[-0.7,0.3]]
+  readout_instrument: dev1
+  readout_channels: [0] # Channels for reading the output current values

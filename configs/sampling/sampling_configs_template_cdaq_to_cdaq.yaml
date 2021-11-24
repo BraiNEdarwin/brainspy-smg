@@ -9,8 +9,8 @@ driver:
   gain_info: 33.3MOhm
 input_data:
   input_distribution: sawtooth
-  input_electrodes: 7
-  output_electrodes: 1
+  activation_electrode_no: 7
+  readout_electrode_no: 1
   input_frequency: [2, 3, 5, 7, 13, 17, 19]
   phase: [-0.57, 0.25, -1.54, 2.17, 0.08, 0.15, -0.65]
   factor: 0.05
