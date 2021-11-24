@@ -25,7 +25,7 @@ class IVMeasurement():
             vmax, vmin, point_no, up_direction)
         result = self.driver.forward_numpy(data.T)
         if close:
-            self.driver.close()
+            self.driver.close_tasks()
         iv_plot(result, input_electrode, save_plot, show_plot)
         return result
 
@@ -33,6 +33,6 @@ class IVMeasurement():
 if __name__ == '__main__':
 
     from brainspy.utils.io import load_configs
-    configs = load_configs('configs/utils/darwin_ivcurve_template.yaml')
+    configs = load_configs('configs/utils/switch_ivcurve_template.yaml')
     measurement = IVMeasurement(configs)
-    measurement.iv_curve(-0.3, 0.3, point_no=5000, input_electrode=1)
+    measurement.iv_curve(-0.3, 0.3, point_no=5000, input_electrode=1, show_plot=True)
