@@ -430,7 +430,7 @@ def to_device(inputs : torch.Tensor) -> torch.Tensor:
 
     Returns
     -------
-    tuple
+    torch.Tensor
         Input tensor allocated to GPU device.
     """
     if inputs.device != TorchUtils.get_device():
