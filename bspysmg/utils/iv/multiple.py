@@ -2,7 +2,7 @@ import numpy as np
 from brainspy.utils.io import load_configs
 from brainspy.utils.manager import get_driver
 from bspysmg.utils.plots import multi_iv_plot
-from bspysmg.utils.inputs import generate_sawtooth, generate_sinewave
+from bspysmg.utils.inputs import generate_sawtooth_multiple, generate_sinewave
 
 
 class MultiIVMeasurement():
@@ -70,7 +70,7 @@ class MultiIVMeasurement():
 
     def gen_input_wfrm(self, input_range):
         if self.input_signal['input_signal_type'] == 'sawtooth':
-            input_data = generate_sawtooth(input_range, self.configs['shape'],
+            input_data = generate_sawtooth_multiple(input_range, self.configs['shape'],
                                            self.input_signal['direction'])
         elif self.input_signal['input_signal_type'] == 'sine':
             input_data = generate_sinewave(
@@ -105,7 +105,7 @@ if __name__ == '__main__':
 
     # @TODO: Create templates for other setups
     configs['driver'] = load_configs(
-        'configs/utils/brains_ivcurve_template.yaml')
+        'configs/utils/switch_ivcurve_template.yaml')
 
     test = MultiIVMeasurement(configs)
     test.run_test()
