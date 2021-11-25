@@ -30,7 +30,8 @@ class ConsistencyChecker(Sampler):
         repetitions : int [Optional]
             Number of times the experiments should be repeated.
         sampler_configs_name : str [Optional]
-            Name of the file which contains sampling configuration with following keys:
+            Name of the file which contains sampling configuration and is used to initialize the
+            parent class Sampler. It has the following keys:
             * save_directory: str
                 Directory where the all the sampling data will be stored.
             * data_name: str
@@ -119,7 +120,8 @@ class ConsistencyChecker(Sampler):
         """
         The main function that implements consistency checking routine. It uses
         the reference data and device's outputs to check if the outputs of device
-        are consistent with device over several runs.
+        are consistent with device over several runs. Optionally it can also check
+        consistency of a trained neural network over device measurements.
 
         Returns
         -------
