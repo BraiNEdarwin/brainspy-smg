@@ -292,8 +292,8 @@ def get_voltage_ranges(offset: list, amplitude: list):
         Array containing the ranges per electrode, where the shape is (electrode_no,2). Being
         2 the minimum and maximum of the ranges, respectively.
     """
-    offset = np.array(offset)
-    amplitude = np.array(amplitude)
+    offset = np.array(offset, dtype=np.float32)
+    amplitude = np.array(amplitude, dtype=np.float32)
     min_voltage = (offset - amplitude)[:, np.newaxis]
     max_voltage = (offset + amplitude)[:, np.newaxis]
     return np.concatenate((min_voltage, max_voltage), axis=1)
