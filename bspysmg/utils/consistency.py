@@ -4,7 +4,7 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from brainspy.utils.io import load_configs
-from bspysmg.measurement.data.output.sampler_mgr import Sampler
+from bspysmg.data.sampling import Sampler
 from brainspy.utils.io import create_directory_timestamp
 from brainspy.utils.pytorch import TorchUtils
 
@@ -49,12 +49,12 @@ class ConsistencyChecker(Sampler):
             model_deviation_chargeup = []
 
         for batch, batch_indices in enumerate(
-                self.batch_generator(len(self.chargingup_outputs),
-                                     self.batch_size)):
+                self.get_batch_indices(len(self.chargingup_outputs),
+                                       self.batch_size)):
             # Generate inputs (without ramping)
             inputs = self.chargingup_inputs[:, batch_indices]
             # Get outputs (without ramping)
-            outputs = self.get_batch(inputs)
+            outputs = self.sample_batch(inputs)
             charging_signal_deviations = np.sqrt(
                 np.mean((outputs - self.chargingup_outputs[batch_indices])**2))
             deviation_chargeup.append(charging_signal_deviations)
@@ -91,12 +91,12 @@ class ConsistencyChecker(Sampler):
         for trial in range(self.repetitions):
             start_trial = time.time()
             for batch, batch_indices in enumerate(
-                    self.batch_generator(self.nr_samples, self.batch_size)):
+                    self.get_batch_indices(self.nr_samples, self.batch_size)):
 
                 # Generate inputs (without ramping)
                 inputs = self.reference_inputs[:, batch_indices]
                 # Get outputs (without ramping; raming is done in the get_batch method)
-                device_outputs = self.get_batch(inputs)
+                device_outputs = self.sample_batch(inputs)
                 results[trial, batch_indices] = device_outputs
                 # if (batch % 1) == 0:
                 #     self.plot_waves(inputs.T, outputs, batch)
@@ -132,18 +132,10 @@ class ConsistencyChecker(Sampler):
         else:
             return results, deviations, correlation, deviation_chargeup, model_results, model_deviations, correlation, deviation_chargeup
 
-    # def get_batch(self, input_batch):
-    #      super(ConsistencyChecker, self).get_batch(input_batch)
-    #     # # Ramp input batch (0.5 sec up and down)
-    #     # batch_ramped = self.ramp_input_batch(input_batch)
-    #     # # Readout output signal
-    #     # outputs_ramped = self.driver.forward_numpy(batch_ramped.T)
-    #     return outputs_device[self.filter_ramp]
-
     def get_model_batch(self, input_batch):
-        #outputs_device = super(ConsistencyChecker,self).get_batch(input_batch)
+        # outputs_device = super(ConsistencyChecker,self).sample_batch(input_batch)
         # Ramp input batch (0.5 sec up and down) and format it to pytorch
-        batch_ramped = TorchUtils.format(self.ramp_input_batch(input_batch).T)
+        batch_ramped = TorchUtils.format(self.ramp_input(input_batch).T)
         self.model.eval()
         with torch.no_grad():
             outputs_ramped = TorchUtils.to_numpy(
