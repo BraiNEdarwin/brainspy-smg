@@ -2,7 +2,7 @@ import numpy as np
 from brainspy.utils.io import load_configs
 from brainspy.utils.manager import get_driver
 from bspysmg.utils.plots import multi_iv_plot
-from bspysmg.utils.inputs import generate_sawtooth, generate_sinewave
+from bspysmg.utils.inputs import generate_sawtooth_simple, generate_sinewave
 
 
 class MultiIVMeasurement():
@@ -85,7 +85,7 @@ class MultiIVMeasurement():
                 Generated signals. 
         """
         if self.input_signal['input_signal_type'] == 'sawtooth':
-            input_data = generate_sawtooth(input_range, self.configs['shape'],
+            input_data = generate_sawtooth_simple(input_range[0], input_range[1], self.configs['shape'],
                                            self.input_signal['direction'])
         elif self.input_signal['input_signal_type'] == 'sine':
             input_data = generate_sinewave(
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     configs = {}
     configs['results_base_dir'] = 'tmp/tests/iv'
     configs['show_plots'] = True
-    configs['devices'] = ["D"]
+    configs['devices'] = ["A"]
     # configs['devices'] = [
     #     "A", "B", "C", "D", "E"
     # ]  #["D"]  # To remove devices from this list, set the mask to zero first in the configs.
