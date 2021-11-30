@@ -2,7 +2,7 @@ import numpy as np
 from scipy import signal
 
 
-def get_input_generator(configs):
+def get_input_generator(configs : dict):
     if configs["input_data"]["input_distribution"] == "sine":
         return load_configs(configs), sine_wave
     elif configs["input_data"]["input_distribution"] == "sawtooth":
@@ -17,7 +17,7 @@ def get_input_generator(configs):
 
 
 def sine_wave(time_points: int, frequency: int, phase: float, amplitude: float,
-              offset: float):
+              offset: float) -> np.array:
     """
     Generates a sine wave.
 
@@ -45,7 +45,7 @@ def sine_wave(time_points: int, frequency: int, phase: float, amplitude: float,
 
 
 def sawtooth_wave(time_points: int, frequency: int, phase: float,
-                  amplitude: float, offset: float):
+                  amplitude: float, offset: float) -> np.array:
     """
     Generates a sawtooth wave.
 
@@ -84,7 +84,7 @@ def sawtooth_wave(time_points: int, frequency: int, phase: float,
 #     raise NotImplementedError('Uniform random waveform not implemented')
 
 
-def load_configs(config_dict):
+def load_configs(config_dict : dict) -> dict:
     configs = config_dict["input_data"]
     configs['sampling_frequency'] = config_dict["driver"]['sampling_frequency']
     configs['input_frequency'] = get_frequency(configs)
@@ -98,13 +98,13 @@ def load_configs(config_dict):
     return configs
 
 
-def get_frequency(configs):
+def get_frequency(configs : dict) -> float:
     aux = np.array(configs['input_frequency'])[:, np.newaxis]
     return np.sqrt(
         aux[:configs['activation_electrode_no']]) * configs['factor']
 
 
-def generate_sawtooth_multiple(input_range, n_points, direction):
+def generate_sawtooth_multiple(input_range, n_points, direction) -> np.array:
 
     n_points = n_points / 2
 
@@ -139,7 +139,7 @@ def generate_sawtooth_multiple(input_range, n_points, direction):
 def generate_sawtooth_simple(v_low: float,
                              v_high: float,
                              point_no: int,
-                             up_direction: bool = False):
+                             up_direction: bool = False) -> np.array:
     """Generates a simple sawtooth for a single channel (electrode). It goes from zero to a certain
     point (v_low), from that point to another point (v_max), and from that last point to zero again.
     The direction can be inverted using up_direction=True so that the sawtooth goes from zero to 
@@ -178,7 +178,7 @@ def generate_sawtooth_simple(v_low: float,
     return result
 
 
-def generate_sinewave(n, fs, amplitude, phase=0):
+def generate_sinewave(n : int, fs : float, amplitude : float, phase: float=0) -> np.array:
     '''
 	Generates a sine wave that can be used for the input data.
 	freq:       Frequencies of the inputs in an one-dimensional array

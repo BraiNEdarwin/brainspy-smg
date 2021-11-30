@@ -9,10 +9,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 import os
+from typing import List, Tuple
 
 
 class Sampler:
-    def __init__(self, configs: dict):
+    def __init__(self, configs: dict) -> None:
         """
         Initialises the driver from which the data will be acquired, and it stores the sampling
         configurations internally. It also calculates the amplitude and vertical offset of the input
@@ -84,7 +85,7 @@ class Sampler:
                 'input_data'] and 'offset' not in self.configs['input_data']:
             self.config_offset_and_amplitude()
 
-    def config_offset_and_amplitude(self):
+    def config_offset_and_amplitude(self) -> None:
         """
         It extracts the offset and amplitude values that the input waveforms will have, according
         to the voltage ranges specified in the driver. It stores them into the configuration
@@ -99,7 +100,7 @@ class Sampler:
         print(f"Amplitude: {str(amplitude)}")
         print(f"Offset: {str(offset)}")
 
-    def sample_batch(self, x: np.array):
+    def sample_batch(self, x: np.array) -> np.array:
         """
         Perform a sampling operation over one input batch. This method includes
         a ramping from zero until the beginning of the batch until the first point, and
@@ -149,7 +150,7 @@ class Sampler:
             ramped_input[j, self.end_batch:] = np.linspace(x[j, -1], 0, ramp)
         return ramped_input
 
-    def sample(self, plot_interval: int = 1):
+    def sample(self, plot_interval: int = 1) -> str:
         """
         Performs a full sampling operation, divided into several batches,
         according to the configurations given to the class. It stores each
@@ -203,7 +204,7 @@ class Sampler:
         self.close_driver()
         return self.configs["save_directory"]
 
-    def get_batch_indices(self, sample_no: int, batch_size: int):
+    def get_batch_indices(self, sample_no: int, batch_size: int) -> List[int]:
         """
         Collects data length into indices and yields them into fixed-length chunks or blocks.
 
@@ -231,21 +232,21 @@ class Sampler:
             except StopIteration:
                 return
 
-    def get_header(self, input_no: int, output_no: int):
+    def get_header(self, input_no: int, output_no: int) -> str:
         """
-        Gets the header of the txt file data, so that is stored
+        Gets the header of the txt file data, so that is stored as a string format.
 
         Parameters
         ----------
         input_no : int
-            [description]
+            The input electrode number.
         output_no : int
-            [description]
+            The output electrode number.
 
         Returns
         -------
-        [type]
-            [description]
+        str
+            The headers of each input and output batch in a string format.
         """
         header = ""
         for i in range(input_no):
@@ -257,7 +258,7 @@ class Sampler:
                 header += f"Output {i}"
         return header
 
-    def init_configs(self):
+    def init_configs(self) -> Tuple[int, int, dict]:
         input_dict, self.generate_inputs = get_input_generator(self.configs)
 
         total_number_samples = input_dict["number_batches"] * input_dict[
@@ -276,7 +277,7 @@ class Sampler:
 
         return int(total_number_samples), int(batch_size), input_dict
 
-    def save_batch(self, *args):
+    def save_batch(self, *args) -> None:
         """
             Stores a batch of data on the same IO.dat text comma separated values file.
         """
@@ -299,7 +300,7 @@ class Sampler:
             with open(self.path_to_iodata, 'wb') as f:
                 np.savetxt(f, [], header=header)
 
-    def close_driver(self):
+    def close_driver(self) -> None:
         """
         Adequately closes the connection to the drivers.
         """
