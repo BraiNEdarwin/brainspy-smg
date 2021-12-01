@@ -67,7 +67,7 @@ class IVMeasurement():
                 IV response of device or surrogate model.
         """
         activation_electrode_no = len(
-            configs['instruments_setup']['activation_channels'])
+            self.driver.configs['instruments_setup']['activation_channels'])
         data = np.zeros((activation_electrode_no, point_no))
         data[input_electrode] = generate_sawtooth_simple(
             vmax, vmin, point_no, up_direction)

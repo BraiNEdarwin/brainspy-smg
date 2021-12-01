@@ -98,7 +98,7 @@ class ModelDataset(Dataset):
         """
         return (self.inputs[index, :], self.targets[index, :])
 
-    def load_data_from_npz(self, filename: str, steps: int) -> Tuple[np.array]:
+    def load_data_from_npz(self, filename: str, steps: int) -> Tuple[np.array, np.array, dict]:
         """
         Loads the inputs, targets and sampling configurations from a given postprocessed_data.npz
         file.
@@ -164,7 +164,7 @@ class ModelDataset(Dataset):
         print("\n* Loading data from file:\n" + filename)
         # Pickle = True, since it also contains a dictionary.
         with np.load(filename, allow_pickle=True) as data:
-            sampling_configs = data["sampling_configs"].tolist()
+            sampling_configs = data["sampling_configs"]
             inputs = data["inputs"][::steps]
             outputs = data["outputs"][::steps]
             print(
