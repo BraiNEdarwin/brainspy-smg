@@ -7,16 +7,95 @@ from brainspy.utils.io import load_configs
 from bspysmg.data.sampling import Sampler
 from brainspy.utils.io import create_directory_timestamp
 from brainspy.utils.pytorch import TorchUtils
-
+from typing import Tuple
 
 class ConsistencyChecker(Sampler):
     def __init__(self,
-                 main_dir,
-                 repetitions=1,
-                 sampler_configs_name='sampler_configs.json',
-                 reference_batch_name='reference_batch.npz',
-                 charging_signal_name='charging_signal.npz',
-                 model=None):
+                 main_dir : str,
+                 repetitions :int=1,
+                 sampler_configs_name : str='sampler_configs.json',
+                 reference_batch_name : str='reference_batch.npz',
+                 charging_signal_name : str='charging_signal.npz',
+                 model : torch.nn.Module=None
+                 ) -> None:
+        """
+        Initializes dataset and directory to save results for consistency checking
+        experiment of a model. This function uses sampler config files and already
+        existing device input-output dataset and original measurements.
+
+        Parameters
+        ----------
+        main_dir : str
+            Path to main directory which contains the configuration files.
+        repetitions : int [Optional]
+            Number of times the experiments should be repeated.
+        sampler_configs_name : str [Optional]
+            Name of the file which contains sampling configuration and is used to initialize the
+            parent class Sampler. It has the following keys:
+            * save_directory: str
+                Directory where the all the sampling data will be stored.
+            * data_name: str
+                Inside the path specified on the variable save_directory, a folder will be created,
+                with the format: <data_name>+<current_timestamp>. This variable specified the
+                prefix of that folder before the timestamp.
+            * driver: dict
+                Dictionary containing the driver configurations. For more information check the
+                documentation about this configuration file, check the documentation of
+                brainspy.processors.hardware.drivers.ni.setup.NationalInstrumentsSetup
+            * input_data : dict
+                Dictionary containing the information necessary to create the input sampling data.
+                - input_distribution: str
+                    It determines the wave shape of the input. Two main options availeble 'sawtooth'
+                    and 'sine'. The first option will create saw-like signals, and the second
+                    sine-wave signals. Sawtooth signals have more coverage on the edges of the
+                    input range.
+                - activation_electrode_no: int
+                    Number of activation electrodes in the device that wants to be sampled.
+                - readout_electrode_no : int
+                    Number of readout electrodes in the device that wants to be sampled.
+                - input_frequency: list
+                    Base frequencies of the input waves that will be created. In order to optimise
+                    coverage, irrational numbers are recommended. The list should have the same
+                    length as the activation electrode number. E.g., for 7 activation electrodes:
+                    input_frequency = [2, 3, 5, 7, 13, 17, 19]
+                - phase : float
+                    Horizontal shift of the input signals. It is recommended to have random numbers
+                    which are different for the training, validation and test datasets. These
+                    numbers will be square rooted and multiplied by a given factor.
+                - factor : float
+                    Given factor by which the input frequencies will be multiplied after square
+                    rooting them.
+                - amplitude : Optional[list[float]]
+                    Amplitude of the generated input wave signal. It is calculated according to the
+                    minimum and maximum ranges of each electrode. Where the amplitude value should
+                    correspond with (max_range_value - min_range_value) / 2. If no amplitude is
+                    given it will be automatically calculated from the driver configurations for
+                    activation electrode ranges. If it wants to be manually set, the offset
+                    variable should also be included in the dictionary.
+                - offset: Optional[list[float]]
+                    Vertical offset of the generated input wave signal. It is calculated according
+                    to the minimum and maximum ranges of each electrode. Where the offset value
+                    should correspond with (max_range_value + min_range_value) / 2. If no offset
+                    is given it will be automatically calculated from the driver configurations for
+                    activation electrode ranges. If it wants to be manually set, the offset
+                    variable should also be included in the dictionary.
+                - ramp_time: float
+                    Time that will be taken before sending each batch to go from zero to the first
+                    point of the batch and to zero from the last point of the batch.
+                - batch_time:
+                    Time that the sampling of each batch will take.
+                - number_batches: int
+                    Number of batches that will be sampled. A default value of 3880 is reccommended.
+        reference_batch_name : str [Optional]
+            Name of the file which contains the reference dataset. This is the original device
+            measurements. It is a npz file with columns 'inputs' and 'outputs'.
+        charging_signal_name : str [Optional]
+            Name of the file which contains device inputs and outputs. This is the device behaviour
+            at present moment. It is a npz file with columns 'inputs' and 'outputs'.
+        model : custom model of type torch.nn.Module [Optional]
+            Model whose consistency is to be checked. This is a trained neural network model over
+            DNPU measurements and sampled input data.
+        """
         super(ConsistencyChecker, self).__init__(
             load_configs(os.path.join(main_dir, sampler_configs_name)))
         _, self.batch_size, _ = self.init_configs()
@@ -37,7 +116,38 @@ class ConsistencyChecker(Sampler):
         self.repetitions = repetitions
         self.model = model
 
-    def get_data(self):
+    def get_data(self) -> Tuple[np.array]:
+        """
+        The main function that implements consistency checking routine. It uses
+        the reference data and device's outputs to check if the outputs of device
+        are consistent with device over several runs. Optionally it can also check
+        consistency of a trained neural network over device measurements.
+
+        Returns
+        -------
+        tuple
+            tuple with following data:
+                - results: np.array
+                    outputs generated by the device.
+                - deviations: np.array
+                    RMSE between device outputs and refernce data.
+                - correlation: np.array
+                    Value of correlation coefficient between device outputs and
+                    refence data.
+                - deviation_chargeup: np.array
+                    RMSE deviation between device output and original device output.
+                
+                if model is not None:
+                    - model_results: np.array
+                        outputs generated by the model.
+                    - model_deviations: np.array
+                        RMSE between model outputs and refernce data.
+                    - model_correlation: np.array
+                        Value of correlation coefficient between model outputs and
+                        refence data.
+                    - model_deviation_chargeup: np.array
+                        RMSE deviation between model output and original device output.
+        """
         results = np.zeros((self.repetitions, ) + self.reference_outputs.shape)
         deviations = np.zeros(self.repetitions)
         correlation = np.zeros(self.repetitions)
@@ -130,7 +240,30 @@ class ConsistencyChecker(Sampler):
         if self.model is None:
             return results, deviations, correlation, deviation_chargeup
         else:
-            return results, deviations, correlation, deviation_chargeup, model_results, model_deviations, correlation, deviation_chargeup
+            return results, deviations, correlation, deviation_chargeup, model_results, model_deviations, model_correlation, model_deviation_chargeup
+
+    # def get_batch(self, input_batch):
+    #      super(ConsistencyChecker, self).get_batch(input_batch)
+    #     # # Ramp input batch (0.5 sec up and down)
+    #     # batch_ramped = self.ramp_input_batch(input_batch)
+    #     # # Readout output signal
+    #     # outputs_ramped = self.driver.forward_numpy(batch_ramped.T)
+    #     return outputs_device[self.filter_ramp]
+
+    def get_model_batch(self,
+    input_batch : torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Ramp the input batch (0.5 sec up and down) and format it to Tensor. Ramping is
+        required to avoid abrupt changes in the voltage. The input is masked from 0v to
+        first value and then final value back to 0v.
+
+        Returns
+        -------
+        torch.Tensor
+            Input tensor ramped and allocated to tensor.
+        """
+        #outputs_device = super(ConsistencyChecker,self).get_batch(input_batch)
 
     def get_model_batch(self, input_batch):
         # outputs_device = super(ConsistencyChecker,self).sample_batch(input_batch)
@@ -145,13 +278,40 @@ class ConsistencyChecker(Sampler):
                                                                    np.newaxis]
 
 
-def consistency_check(main_dir,
-                      repetitions=1,
-                      sampler_configs_name='sampler_configs.json',
-                      reference_batch_name='reference_batch.npz',
-                      charging_signal_name='charging_signal.npz',
-                      model=None):
+def consistency_check(main_dir : str,
+                      repetitions : int=1,
+                      sampler_configs_name : str='sampler_configs.json',
+                      reference_batch_name : str='reference_batch.npz',
+                      charging_signal_name : str='charging_signal.npz',
+                      model : torch.nn.Module=None
+                      ) -> None:
+    """
+    This is the driver function used for consistency checking. Consistency checking involves
+    checking how DNPU device is behaving at present moment against how it was before
+    measurement. This check can also be performed against trained neural network model over
+    DNPU measurements. This function initializes a ConsistencyChecker object and performs the 
+    consistency check using the get_data function. It also plots and saves various graphs of
+    calculated metrics.
 
+    Parameters
+    ----------
+    main_dir : str
+        Path to main directory which contains the configuration files.
+    repetitions : int [Optional]
+        Number of times the experiments should be repeated.
+    sampler_configs_name : str [Optional]
+        Name of the file which contains sampling configuration with keys mentioned in
+        constructor function of ConsistencyChecker class.
+    reference_batch_name : str [Optional]
+        Name of the file which contains the reference dataset. This is the original device
+        measurements. It is a npz file with columns 'inputs' and 'outputs'.
+    charging_signal_name : str [Optional]
+        Name of the file which contains device inputs and outputs. This is the device behaviour
+        at present moment. It is a npz file with columns 'inputs' and 'outputs'.
+    model : custom model of type torch.nn.Module [Optional]
+        Model whose consistency is to be checked. This is a trained neural network model over
+        DNPU measurements and sampled input data. 
+    """
     sampler = ConsistencyChecker(main_dir,
                                  repetitions=repetitions,
                                  sampler_configs_name=sampler_configs_name,

@@ -6,7 +6,21 @@ from bspysmg.utils.inputs import generate_sawtooth_simple, generate_sinewave
 
 
 class MultiIVMeasurement():
-    def __init__(self, configs):
+    def __init__(self, configs : dict) -> None:
+        """
+        Initializes the configurations for measuring the IV curves of several devices.
+
+        Parameters
+        ----------
+            configs : dict
+                Dictionary containing the configurations for IV measurements with
+                following keys:
+
+                - input_signal: str
+                    The type of signal to generate - sawtooth or sine.
+                - devices: list
+                    List of devices for which IV response is to be computed.
+        """
         self.configs = configs
         self.input_signal = self.configs['input_signal']
         self.index_prog = {}
@@ -14,8 +28,11 @@ class MultiIVMeasurement():
         for dev in self.configs['devices']:
             self.index_prog[dev] = 0
 
-    def run_test(self):
-
+    def run_test(self) -> None:
+        """
+        Generates the IV response of devices to a sawtooth or sine wave and plots it
+        on the screen.
+        """
         # save(mode='configs', path=self.configs['results_base_dir'], filename='test_configs.json', overwrite=self.configs['overwrite_results'], data=self.configs)
 
         self.driver = get_driver(self.configs['driver'])
@@ -37,8 +54,23 @@ class MultiIVMeasurement():
         self.driver.close_tasks()
         multi_iv_plot(configs, inputs, output)
 
-    def create_input_arrays(self, inputs_dict):
+    def create_input_arrays(self, inputs_dict : dict) -> np.array:
+        """
+        Generates input signal arrays for each device in inputs_dict dictionary that will
+        be used to measure the IV response of those devices. The devices can be the DNPU
+        device or a surrogate model. 
 
+        Parameters
+        ----------
+            inputs_dict : dict
+                Dictionary containing the devices for which IV curve is to be measured
+                as keys.
+        
+        Returns
+        ----------
+            inputs_array : np.array
+                Generated signal arrays for each device.
+        """
         #inputs_dict = {}
         inputs_array = []
 
@@ -68,7 +100,22 @@ class MultiIVMeasurement():
 
         return inputs_array.T
 
-    def gen_input_wfrm(self, input_range):
+    def gen_input_wfrm(self, input_range : float) -> np.array:
+        """
+        Generates multiple input signals to compute the IV response of DNPU device or
+        a surrogate model. It uses configs dictionary key input_signal_type to
+        generate sawtooth or sine signal.
+
+        Parameters
+        ----------
+            input_range : float
+                Maximum voltage that the signal will achieve.
+
+        Returns
+        ----------
+            result : np.array
+                Generated signals. 
+        """
         if self.input_signal['input_signal_type'] == 'sawtooth':
             input_data = generate_sawtooth_simple(input_range[0], input_range[1], self.configs['shape'],
                                            self.input_signal['direction'])

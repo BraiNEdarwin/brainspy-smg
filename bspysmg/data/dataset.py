@@ -2,10 +2,11 @@ import torch
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from brainspy.utils.pytorch import TorchUtils
+from typing import Tuple, List
 
 
 class ModelDataset(Dataset):
-    def __init__(self, filename: str, steps: int = 1, tag: str = 'train'):
+    def __init__(self, filename: str, steps: int = 1, tag: str = 'train') -> None:
         """Initialisation of the dataset. It loads a posprocessed_data.npz file into memory.
         The targets of this file are divided by the amplification correction factor, so that
         data is made setup independent.
@@ -71,7 +72,7 @@ class ModelDataset(Dataset):
         assert len(self.inputs) == len(
             self.targets), "Inputs and Outpus have NOT the same length"
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Overwrittes the __len__ method from the super class torch.utils.data.
 
         Returns
@@ -81,7 +82,7 @@ class ModelDataset(Dataset):
         """
         return len(self.inputs)
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> Tuple[np.array]:
         """Overwrittes the __getitem__ method from the super class torch.utils.data.
         The method supports fetching a data sample for a given key.
 
@@ -97,7 +98,7 @@ class ModelDataset(Dataset):
         """
         return (self.inputs[index, :], self.targets[index, :])
 
-    def load_data_from_npz(self, filename: str, steps: int):
+    def load_data_from_npz(self, filename: str, steps: int) -> Tuple[np.array, np.array, dict]:
         """
         Loads the inputs, targets and sampling configurations from a given postprocessed_data.npz
         file.
@@ -163,7 +164,7 @@ class ModelDataset(Dataset):
         print("\n* Loading data from file:\n" + filename)
         # Pickle = True, since it also contains a dictionary.
         with np.load(filename, allow_pickle=True) as data:
-            sampling_configs = data["sampling_configs"].tolist()
+            sampling_configs = data["sampling_configs"]
             inputs = data["inputs"][::steps]
             outputs = data["outputs"][::steps]
             print(
@@ -175,7 +176,7 @@ class ModelDataset(Dataset):
         return inputs, outputs, sampling_configs
 
 
-def get_info_dict(training_configs, sampling_configs):
+def get_info_dict(training_configs : dict, sampling_configs : dict) -> dict:
     """
     Retrieve the info dictionary given the training configs and the sampling configs.
     Note that the electrode_info key should be present in the sampling configs. This
@@ -241,7 +242,7 @@ def get_info_dict(training_configs, sampling_configs):
     return info_dict
 
 
-def get_dataloaders(configs):
+def get_dataloaders(configs : dict)-> Tuple[List[torch.utils.dataDataLoader], float, dict]:
     """
     Loads all the datasets specified in the dataset_paths list key of the configurations dictionary
     and creates a dataloader.

@@ -45,25 +45,64 @@ def init_seed(configs : dict) -> None:
 
 
 def generate_surrogate_model(
-        configs : dict,
-        custom_model : torch.nn.Module = NeuralNetworkModel,
-        criterion : torch.nn.loss._Loss = MSELoss(),
-        custom_optimizer : torch.optim.Optimizer = Adam(),
-        main_folder : str = "training_data",
+    configs : dict,
+    custom_model : torch.nn.Module=NeuralNetworkModel,
+    criterion : torch.nn.loss._Loss=MSELoss(),
+    custom_optimizer : torch.optim.Optimizer=Adam(),
+    main_folder : str="training_data",
 ) -> None:
     """
     Initialises a neural network model, trains it and plots the training,
     validation and testing loss curves. It also saves the model and results
-    to a specified dicrectory.
+    to a specified dicrectory. It uses training and validation dataset for
+    training and testing the model. These datasets are loaded from a npz file
+    whose information is persent in the configuration dictionary.
 
     Parameters
     ----------
     configs : dict
-        Training configurations for training a model.
+        Training configurations for training a model with following keys:
+        * results_base_dir: str
+            Directory where the trained model and corresponding performance plots will be stored.
+        * seed: int
+            Sets the seed for generating random numbers to a non-deterministic random number.
+        * hyperparameters:
+            epochs: int
+            learning_rate: float
+        * model_structure: dict
+            The definition of the internal structure of the surrogate model, which is typically five
+            fully-connected layers of 90 nodes each.
+            - hidden_sizes : list
+                A list containing the number of nodes of each layer of the surrogate model.
+                E.g., [90,90,90,90,90]
+            - D_in: int
+                Number of input features of the surrogate model structure. It should correspond to
+                the activation electrode number.
+            - D_out: int
+                Number of output features of the surrogate model structure. It should correspond to
+                the readout electrode number.
+        * data:
+        dataset_paths: list[str]
+            A list of paths to the Training, Validation and Test datasets, stored as
+            postprocessed_data.npz
+        steps : int
+            It allows to skip parts of the data when loading it into memory. The number indicates
+            how many items will be skipped in between. By default, step number is one (no values
+            are skipped). E.g., if steps = 2, and the inputs are [0, 1, 2, 3, 4, 5, 6]. The only
+            inputs taken into account would be: [0, 2, 4, 6].
+        batch_size: int
+            How many samples will contain each forward pass.
+        worker_no: int
+            How many subprocesses to use for data loading. 0 means that the data will be loaded in
+            the main process. (default: 0)
+        pin_memory: boolean
+            If True, the data loader will copy Tensors into CUDA pinned memory before returning
+            them. If your data elements are a custom type, or your collate_fn returns a batch that
+            is a custom type.
     custom_model : custom model of type torch.nn.Module
         Model to be trained.
     criterion : <method>
-        Fitness/loss function that will be used to train the model.
+        Loss function that will be used to train the model.
     custom_optimizer : torch.optim.Optimizer
         Optimization method used to train the model which decreases model's loss.
     save_dir : string [Optional]
@@ -142,8 +181,8 @@ def train_loop(
     model : torch.nn.Module,
     info_dict : dict,
     dataloaders : List[torch.utils.data.DataLoader],
-    criterion : torch.nn.loss._Loss,
-    optimizer : torch.optim.Optimizer,
+    criterion : torch.nn.loss._Loss=MSELoss(),
+    optimizer : torch.optim.Optimizer=Adam(),
     epochs : int,
     amplification : float,
     start_epoch : int = 0,
@@ -152,18 +191,56 @@ def train_loop(
 ) -> Tuple[torch.nn.Module, List[float]]:
     """
     Performs the training of a model and returns the trained model, training loss
-    validation loss.
+    validation loss. It also saves the model in each epoch if current validation
+    loss is less than the previous validation loss.
 
     Parameters
     ----------
     model : custom model of type torch.nn.Module
         Model to be trained.
     info_dict : dict
-        The dictionary used for initialising the surrogate model.
+        The dictionary used for initialising the surrogate model. It has the following keys:
+        * model_structure: dict
+            The definition of the internal structure of the surrogate model, which is typically five
+            fully-connected layers of 90 nodes each.
+            - hidden_sizes : list
+                A list containing the number of nodes of each layer of the surrogate model.
+                E.g., [90,90,90,90,90]
+            - D_in: int
+                Number of input features of the surrogate model structure. It should correspond to
+                the activation electrode number.
+            - D_out: int
+                Number of output features of the surrogate model structure. It should correspond to
+                the readout electrode number.
+        * electrode_info: dict
+            It contains all the information required for the surrogate model about the electrodes.
+                * electrode_no: int
+                    Total number of electrodes in the device
+                * activation_electrodes: dict
+                    - electrode_no: int
+                        Number of activation electrodes used for gathering the data
+                    - voltage_ranges: list
+                        Voltage ranges used for gathering the data. It contains the ranges per
+                        electrode, where the shape is (electrode_no,2). Being 2 the minimum and
+                        maximum of the ranges, respectively.
+                * output_electrodes: dict
+                    - electrode_no : int
+                        Number of output electrodes used for gathering the data
+                    - clipping_value: list[float,float]
+                        Value used to apply a clipping to the sampling data within the specified
+                        values.
+                    - amplification: float
+                        Amplification correction factor used in the device to correct the
+                        amplification applied to the output current in order to convert it into
+                        voltage before its readout.
+        * training_configs: dict
+            A copy of the configurations used for training the surrogate model.
+        * sampling_configs : dict
+            A copy of the configurations used for gathering the training data.
     dataloaders :  list
         A list containing a single PyTorch Dataloader containing the training dataset.
     criterion : <method>
-        Fitness/loss function that will be used to train the model.
+        Loss function that will be used to train the model.
     optimizer : torch.optim.Optimizer
         Optimization method used to train the model which decreases model's loss.
     epochs : int
@@ -264,8 +341,8 @@ def train_loop(
 
 def default_train_step(model : torch.nn.Module,
 dataloader : torch.utils.data.DataLoader,
-criterion : torch.nn.loss._Loss,
-optimizer : torch.optim.Optimizer
+criterion : torch.nn.loss._Loss=MSELoss(),
+optimizer : torch.optim.Optimizer=Adam()
 ) -> Tuple[torch.nn.Module, float]:
     """
     Performs the training step of a model within a single epoch and returns the
@@ -278,7 +355,7 @@ optimizer : torch.optim.Optimizer
     dataloader :  torch.utils.data.DataLoader
         A PyTorch Dataloader containing the training dataset.
     criterion : <method>
-        Fitness/loss function that will be used to train the model.
+        Loss function that will be used to train the model.
     optimizer : torch.optim.Optimizer
         Optimization method used to train the model which decreases model's loss.
 
@@ -305,7 +382,7 @@ optimizer : torch.optim.Optimizer
 
 def default_val_step(model : torch.nn.Module,
 dataloader : torch.utils.data.DataLoader,
-criterion : torch.nn.loss._Loss
+criterion : torch.nn.loss._Loss=MSELoss()
 ) -> float:
     """
     Performs the validation step of a model within a single epoch and returns
@@ -318,7 +395,7 @@ criterion : torch.nn.loss._Loss
     dataloader :  torch.utils.data.DataLoader
         A PyTorch Dataloader containing the training dataset.
     criterion : <method>
-        Fitness/loss function that will be used to train the model.
+        Loss function that will be used to train the model.
 
     Returns
     -------
@@ -341,7 +418,7 @@ criterion : torch.nn.loss._Loss
 
 def postprocess(dataloader : torch.utils.data.DataLoader,
 model : torch.nn.Module,
-criterion : torch.nn.loss._Loss,
+criterion : torch.nn.loss._Loss=MSELoss(),
 amplification : float,
 results_dir : str,
 label : str
@@ -357,7 +434,7 @@ label : str
     model : custom model of type torch.nn.Module
         Model to be trained.
     criterion : <method>
-        Fitness/loss function that will be used to train the model.
+        Loss function that will be used to train the model.
     amplification: float
         Amplification correction factor used in the device to correct the amplification
         applied to the output current in order to convert it into voltage before its
@@ -420,7 +497,8 @@ label : str
 
 def to_device(inputs : torch.Tensor) -> torch.Tensor:
     """
-    Copies input tensors from CPU to GPU device for processing.
+    Copies input tensors from CPU to GPU device for processing. GPU allows multithreading
+    which makes computation faster. The rule of thumb is using 4 worker threads per GPU.
     See - https://pytorch.org/docs/stable/tensor_attributes.html#torch.torch.device
 
     Parameters
@@ -430,7 +508,7 @@ def to_device(inputs : torch.Tensor) -> torch.Tensor:
 
     Returns
     -------
-    tuple
+    torch.Tensor
         Input tensor allocated to GPU device.
     """
     if inputs.device != TorchUtils.get_device():
