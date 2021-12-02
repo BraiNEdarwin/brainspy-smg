@@ -6,7 +6,7 @@ from bspysmg.utils.inputs import generate_sawtooth_simple, generate_sinewave
 
 
 class MultiIVMeasurement():
-    def __init__(self, configs : dict) -> None:
+    def __init__(self, configs: dict) -> None:
         """
         Initializes the configurations for measuring the IV curves of several devices.
 
@@ -28,7 +28,10 @@ class MultiIVMeasurement():
         for dev in self.configs['devices']:
             self.index_prog[dev] = 0
 
-    def run_test(self) -> None:
+    def run_test(
+            self,
+            experiments=["IV1", "IV2", "IV3", "IV4", "IV5", "IV6",
+                         "IV7"]) -> None:
         """
         Generates the IV response of devices to a sawtooth or sine wave and plots it
         on the screen.
@@ -36,7 +39,6 @@ class MultiIVMeasurement():
         # save(mode='configs', path=self.configs['results_base_dir'], filename='test_configs.json', overwrite=self.configs['overwrite_results'], data=self.configs)
 
         self.driver = get_driver(self.configs['driver'])
-        experiments = ["IV1", "IV2", "IV3", "IV4", "IV5", "IV6", "IV7"]
         self.devices_in_experiments = {}
         output = {}
         inputs = {}
@@ -54,7 +56,7 @@ class MultiIVMeasurement():
         self.driver.close_tasks()
         multi_iv_plot(configs, inputs, output)
 
-    def create_input_arrays(self, inputs_dict : dict) -> np.array:
+    def create_input_arrays(self, inputs_dict: dict) -> np.array:
         """
         Generates input signal arrays for each device in inputs_dict dictionary that will
         be used to measure the IV response of those devices. The devices can be the DNPU
@@ -100,7 +102,7 @@ class MultiIVMeasurement():
 
         return inputs_array.T
 
-    def gen_input_wfrm(self, input_range : float) -> np.array:
+    def gen_input_wfrm(self, input_range: float) -> np.array:
         """
         Generates multiple input signals to compute the IV response of DNPU device or
         a surrogate model. It uses configs dictionary key input_signal_type to
@@ -117,8 +119,9 @@ class MultiIVMeasurement():
                 Generated signals. 
         """
         if self.input_signal['input_signal_type'] == 'sawtooth':
-            input_data = generate_sawtooth_simple(input_range[0], input_range[1], self.configs['shape'],
-                                           self.input_signal['direction'])
+            input_data = generate_sawtooth_simple(
+                input_range[0], input_range[1], self.configs['shape'],
+                self.input_signal['direction'])
         elif self.input_signal['input_signal_type'] == 'sine':
             input_data = generate_sinewave(
                 self.configs['shape'],

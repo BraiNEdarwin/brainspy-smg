@@ -19,7 +19,7 @@ from bspysmg.utils.plots import plot_error_vs_output, plot_error_hist
 from typing import Tuple, List
 
 
-def init_seed(configs : dict) -> None:
+def init_seed(configs: dict) -> None:
     """
     Initializes a random seed for training. A random seed is a starting point for pseudorandom
     number generator algorithms which is used for reproducibility.
@@ -45,18 +45,23 @@ def init_seed(configs : dict) -> None:
 
 
 def generate_surrogate_model(
-    configs : dict,
-    custom_model : torch.nn.Module=NeuralNetworkModel,
-    criterion : torch.nn.loss._Loss=MSELoss(),
-    custom_optimizer : torch.optim.Optimizer=Adam(),
-    main_folder : str="training_data",
+    configs: dict,
+    custom_model: torch.nn.Module = NeuralNetworkModel,
+    criterion: torch.nn.loss._Loss = MSELoss(),
+    custom_optimizer: torch.optim.Optimizer = Adam(),
+    main_folder: str = "training_data",
 ) -> None:
     """
-    Initialises a neural network model, trains it and plots the training,
-    validation and testing loss curves. It also saves the model and results
-    to a specified dicrectory. It uses training and validation dataset for
-    training and testing the model. These datasets are loaded from a npz file
-    whose information is persent in the configuration dictionary.
+    It loads the training and validation datasets from the npz file specified
+    in the field data/dataset_paths of the configs dictionary. These npz files
+    can be created when running the postprocessing of the sampling data. The
+    method will train a neural network with the structure specified in the
+    model_structure field of the configs using the loaded training and validation
+    datasets. It provides, on the specified saving directory, a trained model,
+    the plots of the training performance, and the error of the model.
+
+    Note that the method will only save a model (in each epoch) if current validation
+    loss is less than the validation loss from the previous epoch.
 
     Parameters
     ----------
@@ -82,23 +87,23 @@ def generate_surrogate_model(
                 Number of output features of the surrogate model structure. It should correspond to
                 the readout electrode number.
         * data:
-        dataset_paths: list[str]
-            A list of paths to the Training, Validation and Test datasets, stored as
-            postprocessed_data.npz
-        steps : int
-            It allows to skip parts of the data when loading it into memory. The number indicates
-            how many items will be skipped in between. By default, step number is one (no values
-            are skipped). E.g., if steps = 2, and the inputs are [0, 1, 2, 3, 4, 5, 6]. The only
-            inputs taken into account would be: [0, 2, 4, 6].
-        batch_size: int
-            How many samples will contain each forward pass.
-        worker_no: int
-            How many subprocesses to use for data loading. 0 means that the data will be loaded in
-            the main process. (default: 0)
-        pin_memory: boolean
-            If True, the data loader will copy Tensors into CUDA pinned memory before returning
-            them. If your data elements are a custom type, or your collate_fn returns a batch that
-            is a custom type.
+            dataset_paths: list[str]
+                A list of paths to the Training, Validation and Test datasets, stored as
+                postprocessed_data.npz
+            steps : int
+                It allows to skip parts of the data when loading it into memory. The number indicates
+                how many items will be skipped in between. By default, step number is one (no values
+                are skipped). E.g., if steps = 2, and the inputs are [0, 1, 2, 3, 4, 5, 6]. The only
+                inputs taken into account would be: [0, 2, 4, 6].
+            batch_size: int
+                How many samples will contain each forward pass.
+            worker_no: int
+                How many subprocesses to use for data loading. 0 means that the data will be loaded in
+                the main process. (default: 0)
+            pin_memory: boolean
+                If True, the data loader will copy Tensors into CUDA pinned memory before returning
+                them. If your data elements are a custom type, or your collate_fn returns a batch that
+                is a custom type.
     custom_model : custom model of type torch.nn.Module
         Model to be trained.
     criterion : <method>
@@ -178,16 +183,16 @@ def generate_surrogate_model(
 
 
 def train_loop(
-    model : torch.nn.Module,
-    info_dict : dict,
-    dataloaders : List[torch.utils.data.DataLoader],
-    criterion : torch.nn.loss._Loss=MSELoss(),
-    optimizer : torch.optim.Optimizer=Adam(),
-    epochs : int,
-    amplification : float,
-    start_epoch : int = 0,
-    save_dir : str = None,
-    early_stopping : bool = True,
+    model: torch.nn.Module,
+    info_dict: dict,
+    dataloaders: List[torch.utils.data.DataLoader],
+    criterion: torch.nn.loss._Loss = MSELoss(),
+    optimizer: torch.optim.Optimizer = Adam(),
+    epochs: int,
+    amplification: float,
+    start_epoch: int = 0,
+    save_dir: str = None,
+    early_stopping: bool = True,
 ) -> Tuple[torch.nn.Module, List[float]]:
     """
     Performs the training of a model and returns the trained model, training loss
@@ -339,10 +344,11 @@ def train_loop(
     return model, [train_losses, val_losses]
 
 
-def default_train_step(model : torch.nn.Module,
-dataloader : torch.utils.data.DataLoader,
-criterion : torch.nn.loss._Loss=MSELoss(),
-optimizer : torch.optim.Optimizer=Adam()
+def default_train_step(
+    model: torch.nn.Module,
+    dataloader: torch.utils.data.DataLoader,
+    criterion: torch.nn.loss._Loss = MSELoss(),
+    optimizer: torch.optim.Optimizer = Adam()
 ) -> Tuple[torch.nn.Module, float]:
     """
     Performs the training step of a model within a single epoch and returns the
@@ -380,9 +386,10 @@ optimizer : torch.optim.Optimizer=Adam()
     return model, running_loss
 
 
-def default_val_step(model : torch.nn.Module,
-dataloader : torch.utils.data.DataLoader,
-criterion : torch.nn.loss._Loss=MSELoss()
+def default_val_step(
+    model: torch.nn.Module,
+    dataloader: torch.utils.data.DataLoader,
+    criterion: torch.nn.loss._Loss = MSELoss()
 ) -> float:
     """
     Performs the validation step of a model within a single epoch and returns
@@ -416,13 +423,12 @@ criterion : torch.nn.loss._Loss=MSELoss()
     return val_loss
 
 
-def postprocess(dataloader : torch.utils.data.DataLoader,
-model : torch.nn.Module,
-criterion : torch.nn.loss._Loss=MSELoss(),
-amplification : float,
-results_dir : str,
-label : str
-) -> float:
+def postprocess(dataloader: torch.utils.data.DataLoader,
+                model: torch.nn.Module,
+                criterion: torch.nn.loss._Loss = MSELoss(),
+                amplification: float,
+                results_dir: str,
+                label: str) -> float:
     """
     Plots error vs output and error histogram for given dataset and saves it to
     specified directory.
@@ -495,7 +501,7 @@ label : str
     return torch.sqrt(running_loss)
 
 
-def to_device(inputs : torch.Tensor) -> torch.Tensor:
+def to_device(inputs: torch.Tensor) -> torch.Tensor:
     """
     Copies input tensors from CPU to GPU device for processing. GPU allows multithreading
     which makes computation faster. The rule of thumb is using 4 worker threads per GPU.
