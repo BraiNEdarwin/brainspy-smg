@@ -9,15 +9,15 @@ from brainspy.utils.io import create_directory_timestamp
 from brainspy.utils.pytorch import TorchUtils
 from typing import Tuple
 
+
 class ConsistencyChecker(Sampler):
     def __init__(self,
-                 main_dir : str,
-                 repetitions :int=1,
-                 sampler_configs_name : str='sampler_configs.json',
-                 reference_batch_name : str='reference_batch.npz',
-                 charging_signal_name : str='charging_signal.npz',
-                 model : torch.nn.Module=None
-                 ) -> None:
+                 main_dir: str,
+                 repetitions: int = 1,
+                 sampler_configs_name: str = 'sampler_configs.json',
+                 reference_batch_name: str = 'reference_batch.npz',
+                 charging_signal_name: str = 'charging_signal.npz',
+                 model: torch.nn.Module = None) -> None:
         """
         Initializes dataset and directory to save results for consistency checking
         experiment of a model. This function uses sampler config files and already
@@ -250,9 +250,7 @@ class ConsistencyChecker(Sampler):
     #     # outputs_ramped = self.driver.forward_numpy(batch_ramped.T)
     #     return outputs_device[self.filter_ramp]
 
-    def get_model_batch(self,
-    input_batch : torch.Tensor
-    ) -> torch.Tensor:
+    def get_model_batch(self, input_batch: torch.Tensor) -> torch.Tensor:
         """
         Ramp the input batch (0.5 sec up and down) and format it to Tensor. Ramping is
         required to avoid abrupt changes in the voltage. The input is masked from 0v to
@@ -264,8 +262,6 @@ class ConsistencyChecker(Sampler):
             Input tensor ramped and allocated to tensor.
         """
         #outputs_device = super(ConsistencyChecker,self).get_batch(input_batch)
-
-    def get_model_batch(self, input_batch):
         # outputs_device = super(ConsistencyChecker,self).sample_batch(input_batch)
         # Ramp input batch (0.5 sec up and down) and format it to pytorch
         batch_ramped = TorchUtils.format(self.ramp_input(input_batch).T)
@@ -278,13 +274,12 @@ class ConsistencyChecker(Sampler):
                                                                    np.newaxis]
 
 
-def consistency_check(main_dir : str,
-                      repetitions : int=1,
-                      sampler_configs_name : str='sampler_configs.json',
-                      reference_batch_name : str='reference_batch.npz',
-                      charging_signal_name : str='charging_signal.npz',
-                      model : torch.nn.Module=None
-                      ) -> None:
+def consistency_check(main_dir: str,
+                      repetitions: int = 1,
+                      sampler_configs_name: str = 'sampler_configs.json',
+                      reference_batch_name: str = 'reference_batch.npz',
+                      charging_signal_name: str = 'charging_signal.npz',
+                      model: torch.nn.Module = None) -> None:
     """
     This is the driver function used for consistency checking. Consistency checking involves
     checking how DNPU device is behaving at present moment against how it was before

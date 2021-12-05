@@ -6,8 +6,7 @@ from bspysmg.utils.inputs import generate_sawtooth_simple
 
 
 class IVMeasurement():
-
-    def __init__(self, configs : dict) -> None:
+    def __init__(self, configs: dict) -> None:
         """
         Initializes the driver for which IV curve is to be plotted. It uses a config dict to
         initialize the driver. The driver can be the DNPU device itself (on chip training) or
@@ -34,9 +33,8 @@ class IVMeasurement():
                  input_electrode: int,
                  up_direction: bool = True,
                  close: bool = True,
-                 show_plot: bool=False,
-                 save_plot: bool=None
-                 ) -> np.array:
+                 show_plot: bool = False,
+                 save_plot: bool = None) -> np.array:
         """
         Computes the IV response of DNPU device or surrogate model to an input sawtooth signal.
         Optionally plots the graph on screen and saves it to current directory.
@@ -84,6 +82,10 @@ if __name__ == '__main__':
     configs = load_configs('configs/utils/brains_ivcurve_template_simple.yaml')
     measurement = IVMeasurement(configs)
     for i in range(7):
-        measurement.iv_curve(-0.08, 0.08, point_no=5000, input_electrode=i, show_plot=True, close=False)
+        measurement.iv_curve(-0.08,
+                             0.08,
+                             point_no=5000,
+                             input_electrode=i,
+                             show_plot=True,
+                             close=False)
     measurement.driver.close_tasks()
-    

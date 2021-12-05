@@ -2,7 +2,7 @@ import numpy as np
 from scipy import signal
 
 
-def get_input_generator(configs : dict):
+def get_input_generator(configs: dict):
     if configs["input_data"]["input_distribution"] == "sine":
         return load_configs(configs), sine_wave
     elif configs["input_data"]["input_distribution"] == "sawtooth":
@@ -84,7 +84,7 @@ def sawtooth_wave(time_points: int, frequency: int, phase: float,
 #     raise NotImplementedError('Uniform random waveform not implemented')
 
 
-def load_configs(config_dict : dict) -> dict:
+def load_configs(config_dict: dict) -> dict:
     configs = config_dict["input_data"]
     configs['sampling_frequency'] = config_dict["driver"]['sampling_frequency']
     configs['input_frequency'] = get_frequency(configs)
@@ -98,7 +98,7 @@ def load_configs(config_dict : dict) -> dict:
     return configs
 
 
-def get_frequency(configs : dict) -> float:
+def get_frequency(configs: dict) -> float:
     aux = np.array(configs['input_frequency'])[:, np.newaxis]
     return np.sqrt(
         aux[:configs['activation_electrode_no']]) * configs['factor']
@@ -178,7 +178,10 @@ def generate_sawtooth_simple(v_low: float,
     return result
 
 
-def generate_sinewave(n : int, fs : float, amplitude : float, phase: float=0) -> np.array:
+def generate_sinewave(n: int,
+                      fs: float,
+                      amplitude: float,
+                      phase: float = 0) -> np.array:
     '''
 	Generates a sine wave that can be used for the input data.
 	freq:       Frequencies of the inputs in an one-dimensional array

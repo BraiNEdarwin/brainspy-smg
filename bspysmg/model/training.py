@@ -19,7 +19,7 @@ from bspysmg.utils.plots import plot_error_vs_output, plot_error_hist
 from typing import Tuple, List
 
 
-def init_seed(configs : dict) -> None:
+def init_seed(configs: dict) -> None:
     """
     Initializes a random seed for training. A random seed is a starting point for pseudorandom
     number generator algorithms which is used for reproducibility.
@@ -45,11 +45,11 @@ def init_seed(configs : dict) -> None:
 
 
 def generate_surrogate_model(
-    configs : dict,
-    custom_model : torch.nn.Module=NeuralNetworkModel,
-    criterion : torch.nn.loss._Loss=MSELoss(),
-    custom_optimizer : torch.optim.Optimizer=Adam(),
-    main_folder : str="training_data",
+    configs: dict,
+    custom_model: torch.nn.Module,
+    criterion: torch.nn.MSELoss,
+    custom_optimizer: torch.optim.Optimizer,
+    main_folder: str = "training_data",
 ) -> None:
     """
     Initialises a neural network model, trains it and plots the training,
@@ -178,16 +178,16 @@ def generate_surrogate_model(
 
 
 def train_loop(
-    model : torch.nn.Module,
-    info_dict : dict,
-    dataloaders : List[torch.utils.data.DataLoader],
-    criterion : torch.nn.loss._Loss=MSELoss(),
-    optimizer : torch.optim.Optimizer=Adam(),
-    epochs : int,
-    amplification : float,
-    start_epoch : int = 0,
-    save_dir : str = None,
-    early_stopping : bool = True,
+    model: torch.nn.Module,
+    info_dict: dict,
+    dataloaders: List[torch.utils.data.DataLoader],
+    criterion: torch.nn.MSELoss,
+    optimizer: torch.optim.Optimizer,
+    epochs: int,
+    amplification: float,
+    start_epoch: int = 0,
+    save_dir: str = None,
+    early_stopping: bool = True,
 ) -> Tuple[torch.nn.Module, List[float]]:
     """
     Performs the training of a model and returns the trained model, training loss
@@ -339,11 +339,10 @@ def train_loop(
     return model, [train_losses, val_losses]
 
 
-def default_train_step(model : torch.nn.Module,
-dataloader : torch.utils.data.DataLoader,
-criterion : torch.nn.loss._Loss=MSELoss(),
-optimizer : torch.optim.Optimizer=Adam()
-) -> Tuple[torch.nn.Module, float]:
+def default_train_step(
+        model: torch.nn.Module, dataloader: torch.utils.data.DataLoader,
+        criterion: torch.nn.MSELoss,
+        optimizer: torch.optim.Optimizer) -> Tuple[torch.nn.Module, float]:
     """
     Performs the training step of a model within a single epoch and returns the
     current loss and current trained model.
@@ -380,10 +379,9 @@ optimizer : torch.optim.Optimizer=Adam()
     return model, running_loss
 
 
-def default_val_step(model : torch.nn.Module,
-dataloader : torch.utils.data.DataLoader,
-criterion : torch.nn.loss._Loss=MSELoss()
-) -> float:
+def default_val_step(model: torch.nn.Module,
+                     dataloader: torch.utils.data.DataLoader,
+                     criterion: torch.nn.MSELoss) -> float:
     """
     Performs the validation step of a model within a single epoch and returns
     the validation loss.
@@ -416,13 +414,9 @@ criterion : torch.nn.loss._Loss=MSELoss()
     return val_loss
 
 
-def postprocess(dataloader : torch.utils.data.DataLoader,
-model : torch.nn.Module,
-criterion : torch.nn.loss._Loss=MSELoss(),
-amplification : float,
-results_dir : str,
-label : str
-) -> float:
+def postprocess(dataloader: torch.utils.data.DataLoader,
+                model: torch.nn.Module, criterion: torch.nn.MSELoss,
+                amplification: float, results_dir: str, label: str) -> float:
     """
     Plots error vs output and error histogram for given dataset and saves it to
     specified directory.
@@ -495,7 +489,7 @@ label : str
     return torch.sqrt(running_loss)
 
 
-def to_device(inputs : torch.Tensor) -> torch.Tensor:
+def to_device(inputs: torch.Tensor) -> torch.Tensor:
     """
     Copies input tensors from CPU to GPU device for processing. GPU allows multithreading
     which makes computation faster. The rule of thumb is using 4 worker threads per GPU.
