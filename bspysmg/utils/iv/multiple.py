@@ -28,7 +28,10 @@ class MultiIVMeasurement():
         for dev in self.configs['devices']:
             self.index_prog[dev] = 0
 
-    def run_test(self) -> None:
+    def run_test(
+            self,
+            experiments=["IV1", "IV2", "IV3", "IV4", "IV5", "IV6",
+                         "IV7"]) -> None:
         """
         Generates the IV response of devices to a sawtooth or sine wave and plots it
         on the screen.
@@ -36,7 +39,6 @@ class MultiIVMeasurement():
         # save(mode='configs', path=self.configs['results_base_dir'], filename='test_configs.json', overwrite=self.configs['overwrite_results'], data=self.configs)
 
         self.driver = get_driver(self.configs['driver'])
-        experiments = ["IV1", "IV2", "IV3", "IV4", "IV5", "IV6", "IV7"]
         self.devices_in_experiments = {}
         output = {}
         inputs = {}
