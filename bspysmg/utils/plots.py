@@ -206,10 +206,12 @@ def multi_iv_plot(configs, inputs, output):
         Dictionary containing the configurations for IV measurements with
         the following keys:
         - devices: list
-            List of devices for which IV response is to be computed.
+            List of devices for which IV response is to be computed. This list
+            contains the names of all the devices (A,B,C,D etc) involved in the
+            experiment.
         - driver: dict
-            List of devices for which IV response is to be computed. This list contains the
-            names of all the devices (A,B,C,D etc) involved in the experiment.
+            It contains the configurations for each device in the experiment which
+            are defined in the devices list.
     inputs : dict
         Dictionary containing the list of input signal waves for each device.
     outputs : dict

@@ -19,8 +19,12 @@ class MultiIVMeasurement():
                 Dictionary containing the configurations for IV measurements with
                 following keys:
 
-                - input_signal: str
-                    The type of signal to generate - sawtooth or sine.
+                - input_signal: dict
+                    The configuration of signal with following keys:
+                    - input_signal_type: str
+                        The type of signal to generate - sawtooth or sine.
+                    - time_in_seconds: int
+                        The length of the signal to generate in seconds.
                 - devices: list
                     List of devices for which IV response is to be computed. This list contains the
                     names of all the devices (A,B,C,D etc) involved in the experiment.
@@ -37,8 +41,15 @@ class MultiIVMeasurement():
             experiments=["IV1", "IV2", "IV3", "IV4", "IV5", "IV6",
                          "IV7"]) -> None:
         """
-        Generates the IV response of devices to a sawtooth or sine wave and plots it
-        on the screen.
+        Generates the IV response of devices to a sawtooth or sine wave and shows it
+        on the screen. It uses configs dictionary with the following keys:
+
+        - devices: list
+            List of devices for which IV response is to be computed. This list contains the
+            names of all the devices (A,B,C,D etc) involved in the experiment.
+        - driver: dict
+            It contains the configurations for each device in the experiment which
+            are defined in the devices list.
         """
         # save(mode='configs', path=self.configs['results_base_dir'], filename='test_configs.json', overwrite=self.configs['overwrite_results'], data=self.configs)
 
@@ -64,7 +75,16 @@ class MultiIVMeasurement():
         """
         Generates input signal arrays for each device in inputs_dict dictionary that will
         be used to measure the IV response of those devices. The devices can be the DNPU
-        device or a surrogate model. 
+        device or a surrogate model. It uses configs dictionary with the following keys:
+
+        - devices: list
+            List of devices for which IV response is to be computed. This list contains the
+            names of all the devices (A,B,C,D etc) involved in the experiment.
+        - shape: int
+            The length of the generated signal.
+        - driver: dict
+            It contains the configurations for each device in the experiment which
+            are defined in the devices list.
 
         Parameters
         ----------
