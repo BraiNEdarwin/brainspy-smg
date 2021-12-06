@@ -8,7 +8,10 @@ from bspysmg.utils.inputs import generate_sawtooth_simple, generate_sinewave
 class MultiIVMeasurement():
     def __init__(self, configs: dict) -> None:
         """
-        Initializes the configurations for measuring the IV curves of several devices.
+        Initializes the drivers for which IV curve is to be plotted. It uses a config dict to
+        initialize the driver. The drivers can be the DNPU device itself (on chip training) or
+        a surrogate model (off chip training). This class allows for the measurement of IV curves
+        for several devices in a single PCB.
 
         Parameters
         ----------
@@ -19,7 +22,8 @@ class MultiIVMeasurement():
                 - input_signal: str
                     The type of signal to generate - sawtooth or sine.
                 - devices: list
-                    List of devices for which IV response is to be computed.
+                    List of devices for which IV response is to be computed. This list contains the
+                    names of all the devices (A,B,C,D etc) involved in the experiment.
         """
         self.configs = configs
         self.input_signal = self.configs['input_signal']
@@ -104,19 +108,29 @@ class MultiIVMeasurement():
 
     def gen_input_wfrm(self, input_range: float) -> np.array:
         """
-        Generates multiple input signals to compute the IV response of DNPU device or
-        a surrogate model. It uses configs dictionary key input_signal_type to
-        generate sawtooth or sine signal.
+        Generates input signal to compute the IV response of DNPU device or
+        a surrogate model. It uses configs dictionary with the following keys:
+
+        - input_signal_type: str
+            The type of signal to generate - sawtooth or sine.
+        - shape: int
+            The length of the generated signal.
+        - direction: str ['up'/'down']
+            The Direction of the sawtooth. If true, the sawtooth will go first up
+            and then down. If False, the sawtooth will go first down and then up.
+            By default up.
+        - frequency: int
+            The frequency of the sine wave signal.
 
         Parameters
         ----------
             input_range : float
-                Maximum voltage that the signal will achieve.
+                Maximum voltage that the signal will achieve. Minimum voltage is 0.
 
         Returns
         ----------
             result : np.array
-                Generated signals. 
+                Generated sawtooth or sine signal.
         """
         if self.input_signal['input_signal_type'] == 'sawtooth':
             input_data = generate_sawtooth_simple(
