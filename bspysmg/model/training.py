@@ -45,12 +45,9 @@ def init_seed(configs: dict) -> None:
 
 
 def generate_surrogate_model(
-    configs: dict,
-    custom_model: torch.nn.Module = NeuralNetworkModel,
-    criterion: torch.nn.loss._Loss = MSELoss(),
-    custom_optimizer: torch.optim.Optimizer = Adam(),
-    main_folder: str = "training_data",
-) -> None:
+    configs: dict, custom_model: torch.nn.Module,
+    criterion: torch.nn.MSELoss, custom_optimizer: torch.optim.Optimizer,
+    main_folder: str = "training_data") -> None:
     """
     It loads the training and validation datasets from the npz file specified
     in the field data/dataset_paths of the configs dictionary. These npz files
@@ -186,8 +183,8 @@ def train_loop(
     model: torch.nn.Module,
     info_dict: dict,
     dataloaders: List[torch.utils.data.DataLoader],
-    criterion: torch.nn.loss._Loss = MSELoss(),
-    optimizer: torch.optim.Optimizer = Adam(),
+    criterion: torch.nn.MSELoss,
+    optimizer: torch.optim.Optimizer,
     epochs: int,
     amplification: float,
     start_epoch: int = 0,
@@ -345,11 +342,9 @@ def train_loop(
 
 
 def default_train_step(
-    model: torch.nn.Module,
-    dataloader: torch.utils.data.DataLoader,
-    criterion: torch.nn.loss._Loss = MSELoss(),
-    optimizer: torch.optim.Optimizer = Adam()
-) -> Tuple[torch.nn.Module, float]:
+        model: torch.nn.Module, dataloader: torch.utils.data.DataLoader,
+        criterion: torch.nn.MSELoss,
+        optimizer: torch.optim.Optimizer) -> Tuple[torch.nn.Module, float]:
     """
     Performs the training step of a model within a single epoch and returns the
     current loss and current trained model.
@@ -385,12 +380,9 @@ def default_train_step(
     running_loss /= len(dataloader.dataset)
     return model, running_loss
 
-
-def default_val_step(
-    model: torch.nn.Module,
-    dataloader: torch.utils.data.DataLoader,
-    criterion: torch.nn.loss._Loss = MSELoss()
-) -> float:
+def default_val_step(model: torch.nn.Module,
+                     dataloader: torch.utils.data.DataLoader,
+                     criterion: torch.nn.MSELoss) -> float:
     """
     Performs the validation step of a model within a single epoch and returns
     the validation loss.
@@ -424,11 +416,8 @@ def default_val_step(
 
 
 def postprocess(dataloader: torch.utils.data.DataLoader,
-                model: torch.nn.Module,
-                criterion: torch.nn.loss._Loss = MSELoss(),
-                amplification: float,
-                results_dir: str,
-                label: str) -> float:
+                model: torch.nn.Module, criterion: torch.nn.MSELoss,
+                amplification: float, results_dir: str, label: str) -> float:
     """
     Plots error vs output and error histogram for given dataset and saves it to
     specified directory.

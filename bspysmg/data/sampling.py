@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 import os
-from typing import List, Tuple
+from typing import Tuple, Generator
 
 
 class Sampler:
@@ -197,14 +197,15 @@ class Sampler:
                 output_no = self.configs["input_data"]["readout_electrode_no"]
                 legend = self.get_header(input_no, output_no).split(',')
                 plot_waves(inputs.T, outputs, input_no, output_no, batch,
-                                legend, self.configs["save_directory"])
+                           legend, self.configs["save_directory"])
             print(
                 f"Outputs collection for batch {batch} of {input_dict['number_batches']} "
                 + f"took {end_batch - start_batch} sec.")
         self.close_driver()
         return self.configs["save_directory"]
 
-    def get_batch_indices(self, sample_no: int, batch_size: int) -> List[int]:
+    def get_batch_indices(self, sample_no: int,
+                          batch_size: int) -> Generator[int, None, None]:
         """
         Collects data length into indices and yields them into fixed-length chunks or blocks.
 

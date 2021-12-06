@@ -3,13 +3,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_error_hist(targets : np.array,
-prediction : np.array,
-error : np.array,
-mse : np.array,
-save_dir : str,
-name : str ="error"
-) -> None:
+def plot_error_hist(targets: np.array,
+                    prediction: np.array,
+                    error: np.array,
+                    mse: np.array,
+                    save_dir: str,
+                    name: str = "error") -> None:
     """
     Plots and saves error histogram graph for given target and
     predicted data.
@@ -51,11 +50,10 @@ name : str ="error"
     plt.close()
 
 
-def plot_error_vs_output(targets : np.array,
-error : np.array,
-save_dir : str,
-name : str ="error_vs_output"
-) -> None:
+def plot_error_vs_output(targets: np.array,
+                         error: np.array,
+                         save_dir: str,
+                         name: str = "error_vs_output") -> None:
     """
     Plots and saves error vs output graph for given error and their
     correspoding output.
@@ -89,14 +87,9 @@ name : str ="error_vs_output"
     plt.close()
 
 
-def plot_waves(inputs : np.array,
-outputs : np.array,
-input_no : int,
-output_no : int,
-batch : int,
-legend : np.array,
-save_directory : str
-) -> None:
+def plot_waves(inputs: np.array, outputs: np.array, input_no: int,
+               output_no: int, batch: int, legend: np.array,
+               save_directory: str) -> None:
     """
     Plots and saves input and output waves for the model.
 
@@ -135,11 +128,10 @@ save_directory : str
     plt.close()
 
 
-def output_hist(outputs : np.array,
-data_dir : str,
-bins : int =100,
-show : bool =False
-) -> None:
+def output_hist(outputs: np.array,
+                data_dir: str,
+                bins: int = 100,
+                show: bool = False) -> None:
     """
     Saves and optionally plots the histogram of output/predictions
     of the model.
@@ -174,11 +166,10 @@ show : bool =False
 #         plt.show()
 
 
-def iv_plot(result : np.array,
-input_electrode : int,
-save_plot : bool =None,
-show_plot : bool =False
-) -> None:
+def iv_plot(result: np.array,
+            input_electrode: int,
+            save_plot: bool = None,
+            show_plot: bool = False) -> None:
     """
     Plots iv characteristics and optinally saves the graph
     for a given electrode number.
@@ -216,7 +207,7 @@ def multi_iv_plot(configs, inputs, output):
     inputs : dict
         Dictionary containing the list of input signal waves for each device.
     outputs : dict
-        Dictionary containing the list of output currents for each device. 
+        Dictionary containing the list of output currents for each device.
     """
     ylabeldist = -10
     electrode_id = 0

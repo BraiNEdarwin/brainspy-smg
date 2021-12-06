@@ -6,7 +6,10 @@ from typing import Tuple, List
 
 
 class ModelDataset(Dataset):
-    def __init__(self, filename: str, steps: int = 1, tag: str = 'train') -> None:
+    def __init__(self,
+                 filename: str,
+                 steps: int = 1,
+                 tag: str = 'train') -> None:
         """Initialisation of the dataset. It loads a posprocessed_data.npz file into memory.
         The targets of this file are divided by the amplification correction factor, so that
         data is made setup independent.
@@ -98,7 +101,8 @@ class ModelDataset(Dataset):
         """
         return (self.inputs[index, :], self.targets[index, :])
 
-    def load_data_from_npz(self, filename: str, steps: int) -> Tuple[np.array, np.array, dict]:
+    def load_data_from_npz(self, filename: str,
+                           steps: int) -> Tuple[np.array, np.array, dict]:
         """
         Loads the inputs, targets and sampling configurations from a given postprocessed_data.npz
         file.
@@ -176,7 +180,7 @@ class ModelDataset(Dataset):
         return inputs, outputs, sampling_configs
 
 
-def get_info_dict(training_configs : dict, sampling_configs : dict) -> dict:
+def get_info_dict(training_configs: dict, sampling_configs: dict) -> dict:
     """
     Retrieve the info dictionary given the training configs and the sampling configs.
     Note that the electrode_info key should be present in the sampling configs. This
@@ -242,7 +246,9 @@ def get_info_dict(training_configs : dict, sampling_configs : dict) -> dict:
     return info_dict
 
 
-def get_dataloaders(configs : dict)-> Tuple[List[torch.utils.dataDataLoader], float, dict]:
+def get_dataloaders(
+        configs: dict
+) -> Tuple[List[torch.utils.data.DataLoader], float, dict]:
     """
     Loads all the datasets specified in the dataset_paths list key of the configurations dictionary
     and creates a dataloader.
@@ -311,7 +317,7 @@ def get_dataloaders(configs : dict)-> Tuple[List[torch.utils.dataDataLoader], fl
             amplification_aux = TorchUtils.format(
                 info_dict["sampling_configs"]["driver"]["amplification"])
             assert torch.eq(amplification_aux, amplification).all(), (
-                "Amplification correction factor should be the same for all datasets. "
+                "Amplification correction factor should be the same for all datasets."
                 + "Check if all datasets come from the same setup.")
             info_dict[dataset_names[i] +
                       '_sampling_configs'] = dataset.sampling_configs
