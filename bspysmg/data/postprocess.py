@@ -4,10 +4,11 @@ import numpy as np
 
 from brainspy.utils.io import load_configs
 from bspysmg.utils.plots import output_hist
+from typing import Tuple
 
 
 def get_sampling_data(filename: str, activation_electrode_no: int,
-                      readout_electrode_no: int):
+                      readout_electrode_no: int) -> Tuple[np.array, np.array]:
     """
     Reads the sampling data from a text file (IO.dat) and returs the values loaded in numpy arrays.
 
@@ -38,7 +39,9 @@ def get_sampling_data(filename: str, activation_electrode_no: int,
     return inputs, outputs
 
 
-def post_process(data_dir: str, clipping_value="default", **kwargs):
+def post_process(data_dir: str,
+                 clipping_value="default",
+                 **kwargs) -> Tuple[np.array, np.array, dict]:
     """
     Postprocesses the data, cleans any clipping (optional), and merges data sets if needed. The data
     arrays are merged into a single array and cropped given the clipping_values. The function also
@@ -183,7 +186,7 @@ def post_process(data_dir: str, clipping_value="default", **kwargs):
 
 
 def save_npz(data_dir: str, file_name: str, inputs: np.array,
-             outputs: np.array, configs: dict):
+             outputs: np.array, configs: dict) -> None:
     """
     Stores the input, outputs and sampling configurations in an .npz file.
     The saved file needs to be opened with the option pickle=True, since it
@@ -201,24 +204,102 @@ def save_npz(data_dir: str, file_name: str, inputs: np.array,
         Array containing all the outputs of the device obtained during sampling, which correspond
         to the inputs to the device.
     configs : dict
-        [description]
+        Sampling configurations with the following keys:
+        -save_directory: str
+            Directory where the all the sampling data will be stored.
+        -data_name: str
+            Inside the path specified on the variable save_directory, a folder will be created,
+            with the format: <data_name>+<current_timestamp>. This variable specified the
+            prefix of that folder before the timestamp.
+        -driver: dict
+            Dictionary containing the driver configurations. For more information check the
+            documentation about this configuration file, check the documentation of
+            brainspy.processors.hardware.drivers.ni.setup.NationalInstrumentsSetup
+        -input_data : dict
+            Dictionary containing the information necessary to create the input sampling data.
+            - input_distribution: str
+                It determines the wave shape of the input. Two main options availeble 'sawtooth'
+                and 'sine'. The first option will create saw-like signals, and the second
+                sine-wave signals. Sawtooth signals have more coverage on the edges of the
+                input range.
+            - activation_electrode_no: int
+                Number of activation electrodes in the device that wants to be sampled.
+            - readout_electrode_no : int
+                Number of readout electrodes in the device that wants to be sampled.
+            - input_frequency: list
+                Base frequencies of the input waves that will be created. In order to optimise
+                coverage, irrational numbers are recommended. The list should have the same
+                length as the activation electrode number. E.g., for 7 activation electrodes:
+                input_frequency = [2, 3, 5, 7, 13, 17, 19]
+            - phase : float
+                Horizontal shift of the input signals. It is recommended to have random numbers
+                which are different for the training, validation and test datasets. These
+                numbers will be square rooted and multiplied by a given factor.
+            - factor : float
+                Given factor by which the input frequencies will be multiplied after square
+                rooting them.
+            - amplitude : Optional[list[float]]
+                Amplitude of the generated input wave signal. It is calculated according to the
+                minimum and maximum ranges of each electrode. Where the amplitude value should
+                correspond with (max_range_value - min_range_value) / 2. If no amplitude is
+                given it will be automatically calculated from the driver configurations for
+                activation electrode ranges. If it wants to be manually set, the offset
+                variable should also be included in the dictionary.
+            - offset: Optional[list[float]]
+                Vertical offset of the generated input wave signal. It is calculated according
+                to the minimum and maximum ranges of each electrode. Where the offset value
+                should correspond with (max_range_value + min_range_value) / 2. If no offset
+                is given it will be automatically calculated from the driver configurations for
+                activation electrode ranges. If it wants to be manually set, the offset
+                variable should also be included in the dictionary.
+            - ramp_time: float
+                Time that will be taken before sending each batch to go from zero to the first
+                point of the batch and to zero from the last point of the batch.
+            - batch_time:
+                Time that the sampling of each batch will take.
+            - number_batches: int
+                Number of batches that will be sampled. A default value of 3880 is reccommended.
     """
     save_to = os.path.join(data_dir, file_name)
     print(f"Data saved to: {save_to}.npz")
     np.savez(save_to, inputs=inputs, outputs=outputs, sampling_configs=configs)
 
 
-# TODO: FINISH DOCUMENTATION
-def get_electrode_info(configs, clipping_value):
+def get_electrode_info(configs: dict, clipping_value) -> dict:
     """
     Retrieve electrode information from the data sampling configurations.
 
     Parameters
     ----------
-    configs : [type]
-        [description]
-    clipping_value : [type]
-        [description]
+    configs : dict
+        Sampling configurations with the following keys:
+        -driver: dict
+            Dictionary containing the driver configurations. For more information check the
+            documentation about this configuration file, check the documentation of
+            brainspy.processors.hardware.drivers.ni.setup.NationalInstrumentsSetup
+        -input_data : dict
+            Dictionary containing the information necessary to create the input sampling data.
+            - activation_electrode_no: int
+                Number of activation electrodes in the device that wants to be sampled.
+            - readout_electrode_no : int
+                Number of readout electrodes in the device that wants to be sampled.
+            - amplitude : [list[float]]
+                Amplitude of the generated input wave signal. It is calculated according to the
+                minimum and maximum ranges of each electrode. Where the amplitude value should
+                correspond with (max_range_value - min_range_value) / 2. If no amplitude is
+                given it will be automatically calculated from the driver configurations for
+                activation electrode ranges. If it wants to be manually set, the offset
+                variable should also be included in the dictionary.
+            - offset: [list[float]]
+                Vertical offset of the generated input wave signal. It is calculated according
+                to the minimum and maximum ranges of each electrode. Where the offset value
+                should correspond with (max_range_value + min_range_value) / 2. If no offset
+                is given it will be automatically calculated from the driver configurations for
+                activation electrode ranges. If it wants to be manually set, the offset
+                variable should also be included in the dictionary.
+    clipping_value : str or list
+        The value that will be used to clip the sampling data within a specific range. if
+        default is passed, a default clipping value will be used. 
 
     Returns
     -------
@@ -270,7 +351,7 @@ def get_electrode_info(configs, clipping_value):
     return electrode_info
 
 
-def get_voltage_ranges(offset: list, amplitude: list):
+def get_voltage_ranges(offset: list, amplitude: list) -> np.array:
     """
     Calculate the voltage ranges of the device out of the information about the
     amplitude and the vertical offset that was used to compute the input waves
@@ -299,7 +380,7 @@ def get_voltage_ranges(offset: list, amplitude: list):
     return np.concatenate((min_voltage, max_voltage), axis=1)
 
 
-def print_electrode_info(configs: dict):
+def print_electrode_info(configs: dict) -> None:
     """
     Prints on screen the information about the electrodes that was gathered
     from the configuration file used for gathering the data from the device.
@@ -349,7 +430,8 @@ def print_electrode_info(configs: dict):
           str(configs["output_electrodes"]["amplification"]))
 
 
-def clip_data(inputs, outputs, clipping_value_range):
+def clip_data(inputs: np.array, outputs: np.array,
+              clipping_value_range: list) -> Tuple[np.array, np.array]:
     """
     Removes all the outputs and corresponding inputs where the output is outside a given maximum
     and minimum range.
