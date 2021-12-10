@@ -10,7 +10,8 @@ class IVMeasurement():
         """
         Initializes the driver for which IV curve is to be plotted. It uses a config dict to
         initialize the driver. The driver can be the DNPU device itself (on chip training) or
-        a surrogate model (off chip training).
+        a surrogate model (off chip training). This class only allows for measurement of IV
+        curves of one device at a time.
 
         Parameters
         ----------
@@ -37,7 +38,11 @@ class IVMeasurement():
                  save_plot: bool = None) -> np.array:
         """
         Computes the IV response of DNPU device or surrogate model to an input sawtooth signal.
-        Optionally plots the graph on screen and saves it to current directory.
+        Optionally shows the graph on screen and saves it to current directory. This is done
+        to check if a particular electrode has non linear IV response or a negative differential
+        resistance (NDR).
+        Also check - https://en.wikibooks.org/wiki/Circuit_Idea/Negative_Differential_Resistance
+                   - https://resources.pcb.cadence.com/blog/2019-what-is-linear-and-nonlinear-resistance
 
         Parameters
         ----------

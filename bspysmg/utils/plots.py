@@ -171,7 +171,7 @@ def iv_plot(result: np.array,
             save_plot: bool = None,
             show_plot: bool = False) -> None:
     """
-    Plots iv characteristics and optinally saves the graph
+    Plots IV characteristics and optinally saves the graph
     for a given electrode number.
 
     Parameters
@@ -203,7 +203,15 @@ def multi_iv_plot(configs, inputs, output):
     Parameters
     ----------
     configs : dict
-        Dictionary containing the configurations for IV measurements.
+        Dictionary containing the configurations for IV measurements with
+        the following keys:
+        - devices: list
+            List of devices for which IV response is to be computed. This list
+            contains the names of all the devices (A,B,C,D etc) involved in the
+            experiment.
+        - driver: dict
+            It contains the configurations for each device in the experiment which
+            are defined in the devices list.
     inputs : dict
         Dictionary containing the list of input signal waves for each device.
     outputs : dict

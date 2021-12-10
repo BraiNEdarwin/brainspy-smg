@@ -8,7 +8,10 @@ from bspysmg.utils.inputs import generate_sawtooth_simple, generate_sinewave
 class MultiIVMeasurement():
     def __init__(self, configs: dict) -> None:
         """
-        Initializes the configurations for measuring the IV curves of several devices.
+        Initializes the drivers for which IV curve is to be plotted. It uses a config dict to
+        initialize the driver. The drivers can be the DNPU device itself (on chip training) or
+        a surrogate model (off chip training). This class allows for the measurement of IV curves
+        for several devices in a single PCB.
 
         Parameters
         ----------
@@ -16,10 +19,15 @@ class MultiIVMeasurement():
                 Dictionary containing the configurations for IV measurements with
                 following keys:
 
-                - input_signal: str
-                    The type of signal to generate - sawtooth or sine.
+                - input_signal: dict
+                    The configuration of signal with following keys:
+                    - input_signal_type: str
+                        The type of signal to generate - sawtooth or sine.
+                    - time_in_seconds: int
+                        The length of the signal to generate in seconds.
                 - devices: list
-                    List of devices for which IV response is to be computed.
+                    List of devices for which IV response is to be computed. This list contains the
+                    names of all the devices (A,B,C,D etc) involved in the experiment.
         """
         self.configs = configs
         self.input_signal = self.configs['input_signal']
@@ -33,8 +41,15 @@ class MultiIVMeasurement():
             experiments=["IV1", "IV2", "IV3", "IV4", "IV5", "IV6",
                          "IV7"]) -> None:
         """
-        Generates the IV response of devices to a sawtooth or sine wave and plots it
-        on the screen.
+        Generates the IV response of devices to a sawtooth or sine wave and shows it
+        on the screen. It uses configs dictionary with the following keys:
+
+        - devices: list
+            List of devices for which IV response is to be computed. This list contains the
+            names of all the devices (A,B,C,D etc) involved in the experiment.
+        - driver: dict
+            It contains the configurations for each device in the experiment which
+            are defined in the devices list.
         """
         # save(mode='configs', path=self.configs['results_base_dir'], filename='test_configs.json', overwrite=self.configs['overwrite_results'], data=self.configs)
 
@@ -60,7 +75,16 @@ class MultiIVMeasurement():
         """
         Generates input signal arrays for each device in inputs_dict dictionary that will
         be used to measure the IV response of those devices. The devices can be the DNPU
-        device or a surrogate model. 
+        device or a surrogate model. It uses configs dictionary with the following keys:
+
+        - devices: list
+            List of devices for which IV response is to be computed. This list contains the
+            names of all the devices (A,B,C,D etc) involved in the experiment.
+        - shape: int
+            The length of the generated signal.
+        - driver: dict
+            It contains the configurations for each device in the experiment which
+            are defined in the devices list.
 
         Parameters
         ----------
@@ -104,19 +128,29 @@ class MultiIVMeasurement():
 
     def gen_input_wfrm(self, input_range: float) -> np.array:
         """
-        Generates multiple input signals to compute the IV response of DNPU device or
-        a surrogate model. It uses configs dictionary key input_signal_type to
-        generate sawtooth or sine signal.
+        Generates input signal to compute the IV response of DNPU device or
+        a surrogate model. It uses configs dictionary with the following keys:
+
+        - input_signal_type: str
+            The type of signal to generate - sawtooth or sine.
+        - shape: int
+            The length of the generated signal.
+        - direction: str ['up'/'down']
+            The Direction of the sawtooth. If true, the sawtooth will go first up
+            and then down. If False, the sawtooth will go first down and then up.
+            By default up.
+        - frequency: int
+            The frequency of the sine wave signal.
 
         Parameters
         ----------
             input_range : float
-                Maximum voltage that the signal will achieve.
+                Maximum voltage that the signal will achieve. Minimum voltage is 0.
 
         Returns
         ----------
             result : np.array
-                Generated signals. 
+                Generated sawtooth or sine signal.
         """
         if self.input_signal['input_signal_type'] == 'sawtooth':
             input_data = generate_sawtooth_simple(
