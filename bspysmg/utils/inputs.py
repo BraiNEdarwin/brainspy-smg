@@ -221,7 +221,25 @@ def load_configs(config_dict: dict) -> dict:
     return configs
 
 
-def get_frequency(configs: dict) -> float:
+def get_frequency(configs: dict) -> np.array:
+    """
+    Generate input frequency for each electrode.
+
+    Parameters
+    ----------
+    configs: dict
+        Sampling configurations, the dictionary has the following keys:
+            - input_frequency: list
+                Base frequencies of the input waves that will be created. In order to optimise
+                coverage, irrational numbers are recommended. The list should have the same
+                length as the activation electrode number. E.g., for 7 activation electrodes:
+                input_frequency = [2, 3, 5, 7, 13, 17, 19]
+    
+    Returns
+    ---------
+    np.array
+        List of input frequencies for each eletrode.
+    """
     aux = np.array(configs['input_frequency'])[:, np.newaxis]
     return np.sqrt(
         aux[:configs['activation_electrode_no']]) * configs['factor']
@@ -305,14 +323,25 @@ def generate_sinewave(n: int,
                       fs: float,
                       amplitude: float,
                       phase: float = 0) -> np.array:
-    '''
-	Generates a sine wave that can be used for the input data.
-	freq:       Frequencies of the inputs in an one-dimensional array
-	t:          The datapoint(s) index where to generate a sine value (1D array when multiple datapoints are used)
-	amplitude:  Amplitude of the sine wave (Vmax in this case)
-	fs:         Sample frequency of the device
-	phase:      (Optional) phase offset at t=0
-	'''
+    """
+    Generates a sine wave that can be used for the input data.
+
+    Parameters
+    ----------
+    n: int
+        The number of points to generate in the sine wave.
+    fs: float
+        Frequency of the sine wave.
+    amplitude: float
+        Amplitude of the sine wave.
+    phase: Optional[float]
+        Phase offset of sinewave at t=0.
+    
+    Returns
+    ---------
+    np.array
+        Generated sine wave.
+    """
     freq = fs / n
     points = np.linspace(0, 1 / freq, n)
     phases = points * 2 * np.pi * freq
