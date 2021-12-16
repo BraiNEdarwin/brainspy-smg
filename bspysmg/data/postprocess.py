@@ -65,7 +65,13 @@ def post_process(data_dir: str,
                            It can be either None, 'default' or [float,float]. The 'default' str
                            input will automatically take the clipping value by multiplying the
                            amplification of the data by -4 and 4. The None input will not apply any
-                           clipping.
+                           clipping. 
+                           NOTE: When the clipping value is set to None, the model will accurately
+                           represent the hardware setup (feedback resistance of the operational
+                           amplifier). When clipping value set to the values that
+                           are clipping, the model will extrapolate the results outside of the clipping
+                           range caused by the hardaware setup.
+
         - kwargs: Optional kwargs are as follows:
             - list_data: A list of strings indicating directories with postprocessed_data.npz
                          containing input and output data relationships from the device, as well
