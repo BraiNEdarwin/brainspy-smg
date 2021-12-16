@@ -1,8 +1,67 @@
 import numpy as np
 from scipy import signal
+from typing import Tuple, Callable
 
 
-def get_input_generator(configs: dict):
+def get_input_generator(configs: dict) -> Tuple[dict, Callable]:
+    """
+    Returns the configurations dictionary for generating input signal wave
+    and also returns the function that will be used for generating the signal.
+
+    Parameters
+    ----------
+    configs: dict
+        Sampling configurations, the dictionary has the following keys:
+        * input_data : dict
+            Dictionary containing the information necessary to create the input sampling data.
+            - input_distribution: str
+                It determines the wave shape of the input. Two main options availeble 'sawtooth'
+                and 'sine'. The first option will create saw-like signals, and the second
+                sine-wave signals. Sawtooth signals have more coverage on the edges of the
+                input range.
+            - activation_electrode_no: int
+                Number of activation electrodes in the device that wants to be sampled.
+            - readout_electrode_no : int
+                Number of readout electrodes in the device that wants to be sampled.
+            - input_frequency: list
+                Base frequencies of the input waves that will be created. In order to optimise
+                coverage, irrational numbers are recommended. The list should have the same
+                length as the activation electrode number. E.g., for 7 activation electrodes:
+                input_frequency = [2, 3, 5, 7, 13, 17, 19]
+            - phase : float
+                Horizontal shift of the input signals. It is recommended to have random numbers
+                which are different for the training, validation and test datasets. These
+                numbers will be square rooted and multiplied by a given factor.
+            - factor : float
+                Given factor by which the input frequencies will be multiplied after square
+                rooting them.
+            - amplitude : Optional[list[float]]
+                Amplitude of the generated input wave signal. It is calculated according to the
+                minimum and maximum ranges of each electrode. Where the amplitude value should
+                correspond with (max_range_value - min_range_value) / 2. If no amplitude is
+                given it will be automatically calculated from the driver configurations for
+                activation electrode ranges. If it wants to be manually set, the offset
+                variable should also be included in the dictionary.
+            - offset: Optional[list[float]]
+                Vertical offset of the generated input wave signal. It is calculated according
+                to the minimum and maximum ranges of each electrode. Where the offset value
+                should correspond with (max_range_value + min_range_value) / 2. If no offset
+                is given it will be automatically calculated from the driver configurations for
+                activation electrode ranges. If it wants to be manually set, the offset
+                variable should also be included in the dictionary.
+            - ramp_time: float
+                Time that will be taken before sending each batch to go from zero to the first
+                point of the batch and to zero from the last point of the batch.
+            - batch_time:
+                Time that the sampling of each batch will take.
+            - number_batches: int
+                Number of batches that will be sampled. A default value of 3880 is reccommended.
+
+    Returns
+    ----------
+    tuple
+        Sampling configuration dictionary and signal generating function.
+    """
     if configs["input_data"]["input_distribution"] == "sine":
         return load_configs(configs), sine_wave
     elif configs["input_data"]["input_distribution"] == "sawtooth":
@@ -85,6 +144,70 @@ def sawtooth_wave(time_points: int, frequency: int, phase: float,
 
 
 def load_configs(config_dict: dict) -> dict:
+    """
+    Creates a dictionary with sampling configurations.
+    Parameters
+    ----------
+    configs: dict
+        Sampling configurations, the dictionary has the following keys:
+        * driver: dict
+            Dictionary containing the driver configurations. For more information check the
+            documentation about this configuration file, check the documentation of
+            brainspy.processors.hardware.drivers.ni.setup.NationalInstrumentsSetup
+        * input_data : dict
+            Dictionary containing the information necessary to create the input sampling data.
+            - input_distribution: str
+                It determines the wave shape of the input. Two main options availeble 'sawtooth'
+                and 'sine'. The first option will create saw-like signals, and the second
+                sine-wave signals. Sawtooth signals have more coverage on the edges of the
+                input range.
+            - activation_electrode_no: int
+                Number of activation electrodes in the device that wants to be sampled.
+            - readout_electrode_no : int
+                Number of readout electrodes in the device that wants to be sampled.
+            - input_frequency: list
+                Base frequencies of the input waves that will be created. In order to optimise
+                coverage, irrational numbers are recommended. The list should have the same
+                length as the activation electrode number. E.g., for 7 activation electrodes:
+                input_frequency = [2, 3, 5, 7, 13, 17, 19]
+            - phase : float
+                Horizontal shift of the input signals. It is recommended to have random numbers
+                which are different for the training, validation and test datasets. These
+                numbers will be square rooted and multiplied by a given factor.
+            - factor : float
+                Given factor by which the input frequencies will be multiplied after square
+                rooting them.
+            - amplitude : Optional[list[float]]
+                Amplitude of the generated input wave signal. It is calculated according to the
+                minimum and maximum ranges of each electrode. Where the amplitude value should
+                correspond with (max_range_value - min_range_value) / 2. If no amplitude is
+                given it will be automatically calculated from the driver configurations for
+                activation electrode ranges. If it wants to be manually set, the offset
+                variable should also be included in the dictionary.
+            - offset: Optional[list[float]]
+                Vertical offset of the generated input wave signal. It is calculated according
+                to the minimum and maximum ranges of each electrode. Where the offset value
+                should correspond with (max_range_value + min_range_value) / 2. If no offset
+                is given it will be automatically calculated from the driver configurations for
+                activation electrode ranges. If it wants to be manually set, the offset
+                variable should also be included in the dictionary.
+            - ramp_time: float
+                Time that will be taken before sending each batch to go from zero to the first
+                point of the batch and to zero from the last point of the batch.
+            - batch_time:
+                Time that the sampling of each batch will take.
+            - number_batches: int
+                Number of batches that will be sampled. A default value of 3880 is reccommended.
+
+    Returns
+    ----------
+    dict
+        Sampling configuration dictionary with additional keys as follows:
+            - batch_points: int
+                Number of data points in the signal of a single batch
+            - ramp_points: int
+                Number of data points in the waiting signal between each batch.
+    """
     configs = config_dict["input_data"]
     configs['sampling_frequency'] = config_dict["driver"]['sampling_frequency']
     configs['input_frequency'] = get_frequency(configs)
@@ -98,7 +221,25 @@ def load_configs(config_dict: dict) -> dict:
     return configs
 
 
-def get_frequency(configs: dict) -> float:
+def get_frequency(configs: dict) -> np.array:
+    """
+    Generate input frequency for each electrode.
+
+    Parameters
+    ----------
+    configs: dict
+        Sampling configurations, the dictionary has the following keys:
+            - input_frequency: list
+                Base frequencies of the input waves that will be created. In order to optimise
+                coverage, irrational numbers are recommended. The list should have the same
+                length as the activation electrode number. E.g., for 7 activation electrodes:
+                input_frequency = [2, 3, 5, 7, 13, 17, 19]
+    
+    Returns
+    ---------
+    np.array
+        List of input frequencies for each eletrode.
+    """
     aux = np.array(configs['input_frequency'])[:, np.newaxis]
     return np.sqrt(
         aux[:configs['activation_electrode_no']]) * configs['factor']
@@ -182,14 +323,25 @@ def generate_sinewave(n: int,
                       fs: float,
                       amplitude: float,
                       phase: float = 0) -> np.array:
-    '''
-	Generates a sine wave that can be used for the input data.
-	freq:       Frequencies of the inputs in an one-dimensional array
-	t:          The datapoint(s) index where to generate a sine value (1D array when multiple datapoints are used)
-	amplitude:  Amplitude of the sine wave (Vmax in this case)
-	fs:         Sample frequency of the device
-	phase:      (Optional) phase offset at t=0
-	'''
+    """
+    Generates a sine wave that can be used for the input data.
+
+    Parameters
+    ----------
+    n: int
+        The number of points to generate in the sine wave.
+    fs: float
+        Frequency of the sine wave.
+    amplitude: float
+        Amplitude of the sine wave.
+    phase: Optional[float]
+        Phase offset of sinewave at t=0.
+    
+    Returns
+    ---------
+    np.array
+        Generated sine wave.
+    """
     freq = fs / n
     points = np.linspace(0, 1 / freq, n)
     phases = points * 2 * np.pi * freq

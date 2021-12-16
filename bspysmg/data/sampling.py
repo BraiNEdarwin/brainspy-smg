@@ -260,6 +260,50 @@ class Sampler:
         return header
 
     def init_configs(self) -> Tuple[int, int, dict]:
+        """
+        Initializes the configurations for performing sampling operation. It initializes
+        and returns the number of samples, the batch size and an input dictionary for
+        sampling.
+
+        Returns
+        -------
+        tuple
+            total_number_samples: int
+                The total number of samples to be generated in the input dataset.
+            batch_size: int
+                The batch size to be used for processing the input dataset in batches.
+            input_dict: dict
+                The configurations for sampling operation with following keys:
+                    - activation_electrode_no: int
+                        Number of activation electrodes in the device that wants to be sampled.
+                    - readout_electrode_no : int
+                        Number of readout electrodes in the device that wants to be sampled.
+                    - input_frequency: list
+                        Base frequencies of the input waves that will be created. In order to optimise
+                        coverage, irrational numbers are recommended. The list should have the same
+                        length as the activation electrode number. E.g., for 7 activation electrodes:
+                        input_frequency = [2, 3, 5, 7, 13, 17, 19]
+                    - phase : float
+                        Horizontal shift of the input signals. It is recommended to have random numbers
+                        which are different for the training, validation and test datasets. These
+                        numbers will be square rooted and multiplied by a given factor.
+                    - amplitude : Optional[list[float]]
+                        Amplitude of the generated input wave signal. It is calculated according to the
+                        minimum and maximum ranges of each electrode. Where the amplitude value should
+                        correspond with (max_range_value - min_range_value) / 2. If no amplitude is
+                        given it will be automatically calculated from the driver configurations for
+                        activation electrode ranges. If it wants to be manually set, the offset
+                        variable should also be included in the dictionary.
+                    - offset: Optional[list[float]]
+                        Vertical offset of the generated input wave signal. It is calculated according
+                        to the minimum and maximum ranges of each electrode. Where the offset value
+                        should correspond with (max_range_value + min_range_value) / 2. If no offset
+                        is given it will be automatically calculated from the driver configurations for
+                        activation electrode ranges. If it wants to be manually set, the offset
+                        variable should also be included in the dictionary.
+                    - number_batches: int
+                        Number of batches that will be sampled. A default value of 3880 is reccommended.
+        """
         input_dict, self.generate_inputs = get_input_generator(self.configs)
 
         total_number_samples = input_dict["number_batches"] * input_dict[

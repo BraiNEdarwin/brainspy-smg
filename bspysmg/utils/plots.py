@@ -10,8 +10,7 @@ def plot_error_hist(targets: np.array,
                     save_dir: str,
                     name: str = "error") -> None:
     """
-    Plots and saves error histogram graph for given target and
-    predicted data.
+    Plots and saves error histogram graph for between given target and predicted.
 
     Parameters
     ----------
