@@ -172,7 +172,7 @@ def iv_plot(result: np.array,
             save_plot: bool = None,
             show_plot: bool = False) -> None:
     """
-    Plots IV characteristics and optinally saves the graph
+    Plots IV characteristics and optionally saves the graph
     for a given electrode number.
 
     Parameters

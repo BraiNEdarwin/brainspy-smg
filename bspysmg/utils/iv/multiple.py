@@ -154,13 +154,13 @@ class MultiIVMeasurement():
         """
         if self.input_signal['input_signal_type'] == 'sawtooth':
             input_data = generate_sawtooth_simple(
-                input_range[0], input_range[1], self.configs['shape'],
+                0, input_range, self.configs['shape'],
                 self.input_signal['direction'])
         elif self.input_signal['input_signal_type'] == 'sine':
             input_data = generate_sinewave(
                 self.configs['shape'],
                 self.configs["driver"]['sampling_frequency'],
-                input_range[1])  # Max from the input range
+                input_range)  # Max from the input range
             input_data[-1] = 0
         else:
             print("Specify input_signal type")
