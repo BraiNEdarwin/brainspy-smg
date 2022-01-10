@@ -26,8 +26,7 @@ def get_input_generator(configs: dict) -> Tuple[dict, Callable]:
             - input_frequency: list
                 Base frequencies of the input waves that will be created. In order to optimise
                 coverage, irrational numbers are recommended. The list should have the same
-                length as the activation electrode number. The input frequency list will be
-                square rooted. E.g., for 7 activation electrodes:
+                length as the activation electrode number. E.g., for 7 activation electrodes:
                 input_frequency = [2, 3, 5, 7, 13, 17, 19]
             - phase : float
                 Horizontal shift of the input signals. It is recommended to have random numbers
@@ -129,7 +128,7 @@ def sawtooth_wave(time_points: int, frequency: int, phase: float,
     """
     rads = 2 * np.pi * frequency * time_points + phase
     wave = signal.sawtooth(rads + np.pi / 2, width=0.5)
-    return amplitude * wave + np.outer(offset, np.ones(len(time_points)))
+    return amplitude * wave + np.outer(offset, np.ones(time_points))
 
 
 # def uniform_random_wave(configs):
@@ -169,8 +168,7 @@ def load_configs(config_dict: dict) -> dict:
             - input_frequency: list
                 Base frequencies of the input waves that will be created. In order to optimise
                 coverage, irrational numbers are recommended. The list should have the same
-                length as the activation electrode number. The input frequency list will be
-                square rooted. E.g., for 7 activation electrodes:
+                length as the activation electrode number. E.g., for 7 activation electrodes:
                 input_frequency = [2, 3, 5, 7, 13, 17, 19]
             - phase : float
                 Horizontal shift of the input signals. It is recommended to have random numbers
@@ -234,8 +232,7 @@ def get_frequency(configs: dict) -> np.array:
             - input_frequency: list
                 Base frequencies of the input waves that will be created. In order to optimise
                 coverage, irrational numbers are recommended. The list should have the same
-                length as the activation electrode number. The input frequency list will be
-                square rooted. E.g., for 7 activation electrodes:
+                length as the activation electrode number. E.g., for 7 activation electrodes:
                 input_frequency = [2, 3, 5, 7, 13, 17, 19]
     
     Returns
@@ -314,7 +311,7 @@ def generate_sawtooth_simple(v_low: float,
         v_low = v_high
         v_high = aux
 
-    ramp1 = np.linspace(0, v_low, int((point_no * v_low) / (v_low - v_high)))
+    ramp1 = np.linspace(0, v_low, int((point_no * v_low) / (v_high - v_low)))
     ramp2 = np.linspace(v_low, v_high, point_no)
     ramp3 = np.linspace(v_high, 0, int((point_no * v_high) / (v_high - v_low)))
 
