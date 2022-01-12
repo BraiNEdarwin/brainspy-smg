@@ -47,8 +47,8 @@ def init_seed(configs : dict) -> None:
 def generate_surrogate_model(
         configs : dict,
         custom_model : torch.nn.Module = NeuralNetworkModel,
-        criterion : torch.nn.loss._Loss = MSELoss(),
-        custom_optimizer : torch.optim.Optimizer = Adam(),
+        criterion : torch.nn = MSELoss(),
+        custom_optimizer : torch.optim = Adam,
         main_folder : str = "training_data",
 ) -> None:
     """
@@ -142,8 +142,8 @@ def train_loop(
     model : torch.nn.Module,
     info_dict : dict,
     dataloaders : List[torch.utils.data.DataLoader],
-    criterion : torch.nn.loss._Loss,
-    optimizer : torch.optim.Optimizer,
+    criterion : torch.nn.modules.loss,
+    optimizer : torch.optim,
     epochs : int,
     amplification : float,
     start_epoch : int = 0,
@@ -264,8 +264,8 @@ def train_loop(
 
 def default_train_step(model : torch.nn.Module,
 dataloader : torch.utils.data.DataLoader,
-criterion : torch.nn.loss._Loss,
-optimizer : torch.optim.Optimizer
+criterion : torch.nn.modules.loss,
+optimizer : torch.optim
 ) -> Tuple[torch.nn.Module, float]:
     """
     Performs the training step of a model within a single epoch and returns the
@@ -305,7 +305,7 @@ optimizer : torch.optim.Optimizer
 
 def default_val_step(model : torch.nn.Module,
 dataloader : torch.utils.data.DataLoader,
-criterion : torch.nn.loss._Loss
+criterion : torch.nn.modules.loss
 ) -> float:
     """
     Performs the validation step of a model within a single epoch and returns
@@ -341,7 +341,7 @@ criterion : torch.nn.loss._Loss
 
 def postprocess(dataloader : torch.utils.data.DataLoader,
 model : torch.nn.Module,
-criterion : torch.nn.loss._Loss,
+criterion : torch.nn.modules.loss,
 amplification : float,
 results_dir : str,
 label : str

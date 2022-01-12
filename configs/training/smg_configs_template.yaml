@@ -1,4 +1,4 @@
-results_base_dir: tmp/output/conv_model
+results_base_dir: tmp/output/QuickSetupModel
 hyperparameters:
   epochs: 100
   learning_rate: 1.0e-05
@@ -13,14 +13,14 @@ model_structure:
   D_out: 1
   activation: relu
 data:
-  dataset_paths: ["C:/Users/Unai/Documents/programming/smg/tmp/data/training/TEST/Brains_testing_2021_07_28_082842_train/postprocessed_data.npz",
-                  "C:/Users/Unai/Documents/programming/smg/tmp/data/training/TEST/Brains_testing_2021_07_28_115131_test/postprocessed_data.npz",
-                  "C:/Users/Unai/Documents/programming/smg/tmp/data/training/TEST/Brains_testing_2021_07_28_115131_test/postprocessed_data.npz"]
-  #test_data_path: "C:/Users/Unai/Documents/programming/smg/tmp/data/training/TEST/Brains_testing_2021_07_28_115131_test/postprocessed_data.npz"
-  steps: 3
+  dataset_paths: ["C:/Users/Mohamadreza/Documents/github/brainspy-smg/tmp/data/training/TEST/QuickSetup_2021_12_08_120342_trainig_data/postprocessed_data.npz",
+                  "C:/Users/Mohamadreza/Documents/github/brainspy-smg/tmp/data/training/TEST/QuickSetup_2021_12_08_214701_val/postprocessed_data.npz",
+                  "C:/Users/Mohamadreza/Documents/github/brainspy-smg/tmp/data/training/TEST/QuickSetup_2021_12_09_091602_test/postprocessed_data.npz"]
+  test_data_path: "C:/Users/Mohamadreza/Documents/github/brainspy-smg/tmp/data/training/TEST/QuickSetup_2021_12_09_091602_test/postprocessed_data.npz"
+  steps: 1
   batch_size: 128
   worker_no: 0
   pin_memory: False
-  split_percentages:
-    - 1 # Training data
-    - 0 # Dev/validation data
+  #split_percentages:
+  #  - 0.8 # Training data
+  #  - 0.2 # Dev/validation data

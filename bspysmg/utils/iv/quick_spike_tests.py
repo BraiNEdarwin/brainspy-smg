@@ -17,14 +17,14 @@ def generate_inputs(v_low: float,
     assert (plateau_points >= 1), 'DANGER: too few plateau points might damage the device!'
 
     ramp1 = np.linspace(0, 0.8*v_low, slope_points)
-    plateau1 = np.linspace(0.8*v_low, 0.8*v_low, plateau_points) + 0.02 * np.sin(
-        np.linspace(-2*np.pi,2*np.pi , plateau_points)
-    )
+    plateau1 = np.linspace(0.8*v_low, 0.8*v_low, plateau_points) #+ 0.002 * np.sin(
+    #    np.linspace(-2*np.pi,2*np.pi , plateau_points)
+    #)
     ramp2 = np.linspace(0.8*v_low, 0.8*v_high, slope_points)
 
-    plateau2 = np.linspace(0.8*v_high, 0.8*v_high, plateau_points) + 0.02 * np.sin(
-        np.linspace(-2*np.pi,2*np.pi , plateau_points)
-    )
+    plateau2 = np.linspace(0.8*v_high, 0.8*v_high, plateau_points) #+ 0.002 * np.sin(
+    #    np.linspace(-2*np.pi,2*np.pi , plateau_points)
+    #)
 
     ramp3 = np.linspace(0.8*v_high, 0, slope_points)
 

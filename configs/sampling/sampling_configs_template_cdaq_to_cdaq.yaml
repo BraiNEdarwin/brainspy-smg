@@ -1,22 +1,23 @@
 save_directory: tmp/data/training/TEST
-data_name: Brains_testing
+data_name: QuickSetup
 driver:
   instrument_type: cdaq_to_cdaq
   real_time_rack: False
   instruments_setup: !include instruments/cdaq.yaml # possible options cdaq.yaml, cdaq_rt.yaml, nidaq.yaml, multiple_cdaq.yaml
-  amplification: [28.5]
-  sampling_frequency: 50
-  gain_info: 33.3MOhm
+  amplification: [41]
+  sampling_frequency: 100
+  feedback_resistance: 50_MOhm
+  setup: Quick
 input_data:
   input_distribution: sawtooth
   activation_electrode_no: 7
   readout_electrode_no: 1
   input_frequency: [2, 3, 5, 7, 13, 17, 19]
-  phase: [-0.57, 0.25, -1.54, 2.17, 0.08, 0.15, -0.65]
-  factor: 0.05
+  phase: [0.23, -0.77, -0.62, -0.09, 1.31, -1.08, -1.01] #[-0.57, 0.25, -1.54, 2.17, 0.08, 0.15, -0.65]
+  factor: 0.1 #0.05 #for 50Hz, 10 for 10KHz
   # Amplitude and offset are calculated from the voltage_ranges specified in the driver/instrument_setup configs field.
   # Amplitude: [0.55, 0.95, 0.95, 0.95, 0.95, 0.95, 0.55] # Example
   # Offset: [-0.15,-0.25,-0.25,-0.25,-0.25,-0.25,-0.15] # Example
-  ramp_time: 0.5
-  batch_time: 50
+  ramp_time: 0.25
+  batch_time: 0.25
   number_batches: 1 # Default value: 3880

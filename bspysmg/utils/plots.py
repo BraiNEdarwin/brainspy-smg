@@ -175,6 +175,7 @@ show : bool =False
 
 
 def iv_plot(result : np.array,
+in_voltage : np.array,
 input_electrode : int,
 save_plot : bool =None,
 show_plot : bool =False
@@ -195,8 +196,8 @@ show_plot : bool =False
     show_plot : bool [Optional]
         If set to true, it displays the generated plot.
     """
-    plt.plot(result, label='IV Curve for electrode ' + str(input_electrode))
-    plt.xlabel('Point no.')
+    plt.plot(in_voltage, result, label='IV Curve for electrode ' + str(input_electrode))
+    plt.xlabel('Input voltage') # plt.xlabel('Point no.')
     plt.ylabel('Current (nA)')
     if save_plot is not None:
         plt.savefig(save_plot)

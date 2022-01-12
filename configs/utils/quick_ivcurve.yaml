@@ -9,7 +9,7 @@ input_signal:
 driver:
   instrument_type: cdaq_to_cdaq
   real_time_rack: False # Driver can be local or remote. Remote for the RT NI Rack (Pinky), and local for the regular one (Brains).
-  DAC_update_rate: 1000 # previously known as:"sampling_frequency"
+  DAC_update_rate: 500 # previously known as:"sampling_frequency"
   amplification: 41
   #output_clipping_range: [-4,4] # This value will be multiplied by the amplification value
   instruments_setup: 
@@ -17,12 +17,12 @@ driver:
     trigger_source: cDAQ1/segment1
     activation_instrument: cDAQ1Mod3
     activation_channels: [6,0,1,5,2,4,3] #ao
-    activation_voltage_ranges: [[-0.9,0.5],[-0.3,0.5],[-0.9,0.9],[-1,1],[-0.9,0.6],[-0.5,0.2],[-1,1]] #[[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08]]  
+    activation_voltage_ranges: [[-0.9,0.5],[-0.3,0.5],[-0.9,0.9],[-1,1],[-0.9,0.6],[-0.6,0.3],[-1,1]] #[[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08]]  
     activation_channel_mask: [1,1,1,1,1,1,1]
     readout_instrument: cDAQ1Mod4
     readout_channels: [0] #for actual Quick setup 
 
 # The following Configs are only used for Spike test
-slope_length: 10 # number of points to ramp to the plateau voltage
-plateau_length: 1000 # number of points for plateau 
-frequencies: [100, 5000] # DAC update rate(s), considering ADC sampling rate is fixed (10 kHz)
+slope_length: 20 # number of points to ramp to the plateau voltage
+plateau_length: 20 # number of points for plateau 
+frequencies: [1000] # DAC update rate(s), considering ADC sampling rate is fixed (10 kHz)

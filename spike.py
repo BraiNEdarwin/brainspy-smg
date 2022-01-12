@@ -6,6 +6,7 @@ from brainspy.utils.pytorch import TorchUtils
 from brainspy.utils.waveform import WaveformManager
 from itertools import cycle
 import pickle
+import time
 
 def generate_inputs(ranges, data_input_indices, waveform_mgr: WaveformManager):
     ranges = TorchUtils.format(ranges).double()
@@ -63,7 +64,7 @@ if __name__ == '__main__':
     from brainspy.utils.io import load_configs, create_directory_timestamp
     from brainspy.utils.manager import get_driver
     
-    configs = load_configs('configs/utils/brains_ivcurve_template.yaml')
+    configs = load_configs('configs/utils/spike_configs_template_cdaq_to_cdaq.yaml')
     
     
     waveform_mgr = WaveformManager(configs['waveform'])
@@ -80,9 +81,12 @@ if __name__ == '__main__':
             print('Repetition: '+ str(j))
             configs['driver']['sampling_frequency'] = configs['frequencies'][i]
             driver = get_driver(configs["driver"])
+            
             output = driver.forward_numpy(inputs)
+            
             driver.close_tasks()
             all_outputs[j, i] = output[:, 0].copy()  # It should be changed for allowing multiple outputs
+            time.sleep(2)
         # print('')
     np.savez(os.path.join(data_dir, 'results'), inputs=inputs, outputs=all_outputs, mask=mask, frequencies=configs['frequencies'])
     plot_outputs(all_outputs, configs['frequencies'], data_dir)
@@ -90,3 +94,4 @@ if __name__ == '__main__':
     plt.show()
     plt.close()
     print("Plots saved in: " + data_dir)
+    

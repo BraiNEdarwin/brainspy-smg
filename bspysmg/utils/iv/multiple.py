@@ -25,7 +25,7 @@ class MultiIVMeasurement():
         inputs = {}
         output_array = []
         input_arrays = []
-        for i, exp in enumerate(experiments):
+        for exp in enumerate(experiments):
             output[exp] = {}
             inputs[exp] = {}
             self.devices_in_experiments[exp] = self.configs['devices'].copy()
@@ -87,28 +87,8 @@ class MultiIVMeasurement():
 if __name__ == '__main__':
 
     from brainspy.utils.io import load_configs
-    configs = {}
-    configs['results_base_dir'] = 'tmp/tests/iv'
-    configs['show_plots'] = True
-    configs['devices'] = ["A"]
-    # configs['devices'] = [
-    #     "A", "B", "C", "D", "E"
-    # ]  #["D"]  # To remove devices from this list, set the mask to zero first in the configs.
-    configs['shape'] = 500  # length of the experiment
-    configs['input_signal'] = {}
-    #configs['input_signal']['voltage_range'] = [1.2, 0.5]
-    configs['input_signal'][
-        'input_signal_type'] = 'sawtooth'  # Type of signal to be created in the input. It can either be 'sine' or 'sawtooth'
-    configs['input_signal'][
-        'time_in_seconds'] = 5  # time_in_seconds in seconds
-    configs['input_signal']['direction'] = 'up'
 
-    # @TODO: Create templates for other setups
-    configs['driver'] = load_configs(
-        'configs/utils/brains_ivcurve_template.yaml')
+    configs = load_configs('configs/utils/brains_ivcurve_template.yaml')
 
     test = MultiIVMeasurement(configs)
     test.run_test()
-    #suite = unittest.TestSuite()
-    #suite.addTest(IVtest(configs))
-    #unittest.TextTestRunner().run(suite)

@@ -65,7 +65,7 @@ class MultiIVMeasurement():
                 exp = "IV" + str(exp_index + 1)
                 if exp_index < 7:
                     wm = WaveformManager({'slope_length':0, 'plateau_length': int(10000/self.configs['driver']['DAC_update_rate'])})
-                    y_axis = wm.points_to_plateaus(torch.tensor(inputs[exp_index][:,exp_index])).detach().cpu().numpy()[int(10000/self.configs['driver']['DAC_update_rate']):]
+                    y_axis = wm.points_to_plateaus(torch.tensor(inputs[exp_index][:,exp_index])).detach().cpu().numpy()#[int(10000/self.configs['driver']['DAC_update_rate']):]
                     axs[i, j].plot(y_axis, outputs[exp_index],
                     color=cmap(exp_index))
                     axs[i, j].set_ylabel('output (nA)',
