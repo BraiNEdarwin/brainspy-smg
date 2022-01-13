@@ -44,10 +44,11 @@ def init_seed(configs: dict) -> None:
     configs["seed"] = seed
 
 
-def generate_surrogate_model(
-    configs: dict, custom_model: torch.nn.Module,
-    criterion: torch.nn.MSELoss, custom_optimizer: torch.optim.Optimizer,
-    main_folder: str = "training_data") -> None:
+def generate_surrogate_model(configs: dict,
+                             custom_model: torch.nn.Module,
+                             criterion: torch.nn.MSELoss,
+                             custom_optimizer: torch.optim.Optimizer,
+                             main_folder: str = "training_data") -> None:
     """
     It loads the training and validation datasets from the npz file specified
     in the field data/dataset_paths of the configs dictionary. These npz files
@@ -276,8 +277,8 @@ def train_loop(
         print("\nEpoch: " + str(epoch))
         model, running_loss = default_train_step(model, dataloaders[0],
                                                  criterion, optimizer)
-        running_loss *= amplification
         running_loss = torch.sqrt(running_loss)
+        running_loss *= amplification
         train_losses = torch.cat((train_losses, running_loss.unsqueeze(dim=0)),
                                  dim=0)
         description = "Training loss (RMSE): {:.6f} (nA)\n".format(
@@ -285,8 +286,8 @@ def train_loop(
 
         if dataloaders[1] is not None and len(dataloaders[1]) > 0:
             val_loss = default_val_step(model, dataloaders[1], criterion)
-            val_loss *= amplification
             val_loss = torch.sqrt(val_loss)
+            val_loss *= amplification
             val_losses = torch.cat((val_losses, val_loss.unsqueeze(dim=0)),
                                    dim=0)
             description += "Validation loss (RMSE): {:.6f} (nA)\n".format(
@@ -380,6 +381,7 @@ def default_train_step(
     running_loss /= len(dataloader.dataset)
     return model, running_loss
 
+
 def default_val_step(model: torch.nn.Module,
                      dataloader: torch.utils.data.DataLoader,
                      criterion: torch.nn.MSELoss) -> float:
@@ -460,7 +462,7 @@ def postprocess(dataloader: torch.utils.data.DataLoader,
             running_loss += loss * inputs.shape[0]  # sum up batch loss
 
     running_loss /= len(dataloader.dataset)
-    running_loss = running_loss * amplification
+    running_loss = running_loss * (amplification**2)
 
     print(label.capitalize() +
           " loss (MSE): {:.6f} (nA)".format(running_loss.item()))
