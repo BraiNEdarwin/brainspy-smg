@@ -2,6 +2,9 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
+import torch
+from brainspy.utils.waveform import WaveformManager
+
 
 def plot_error_hist(targets: np.array,
                     prediction: np.array,
@@ -90,7 +93,9 @@ def plot_waves(inputs: np.array, outputs: np.array, input_no: int,
                output_no: int, batch: int, legend: np.array,
                save_directory: str) -> None:
     """
-    Plots and saves input and output waves for the model.
+    Plots and saves input and output waves for the model. Image is overwritten 
+    for each batch and it is used to control what is happening to the device
+    input output relationship for each batch.
 
     Parameters
     ----------
@@ -233,7 +238,11 @@ def multi_iv_plot(configs, inputs, output):
                         masked_idx = sum(
                             configs["driver"]['instruments_setup'][dev]
                             ["activation_channel_mask"][:exp_index + 1]) - 1
-                        axs[i, j].plot(inputs[exp][dev][masked_idx],
+                        # Modifying x-axis
+                        wm = WaveformManager(
+                            {'slope_length':0, 'plateau_length': int(configs['driver']['instruments_setup']['readout_sampling_frequency']/configs['driver']['instruments_setup']['activation_sampling_frequency'])})
+                        temp = wm.points_to_plateaus(torch.tensor(inputs[exp][dev][masked_idx])).detach().cpu().numpy()
+                        axs[i, j].plot(temp,
                                        output[exp][dev],
                                        color=cmap(exp_index))
                         axs[i, j].set_ylabel('output (nA)',
@@ -263,7 +272,9 @@ def multi_iv_plot(configs, inputs, output):
                             masked_idx = sum(
                                 configs["driver"]['instruments_setup'][dev]
                                 ["activation_channel_mask"][:z + 1]) - 1
-                            axs[i, j].plot(inputs[key][dev][masked_idx],
+                            wm = WaveformManager({'slope_length':0, 'plateau_length': int(configs['driver']['instruments_setup']['readout_sampling_frequency']/configs['driver']['instruments_setup']['activation_sampling_frequency'])})
+                            temp =  wm.points_to_plateaus(torch.tensor(inputs[key][dev][masked_idx])).detach().cpu().numpy()[int(configs['driver']['instruments_setup']['readout_sampling_frequency']/configs['driver']['instruments_setup']['activation_sampling_frequency']):]
+                            axs[i, j].plot(temp,
                                            label="IV" + str(z),
                                            color=cmap(z))
                             m += 1
