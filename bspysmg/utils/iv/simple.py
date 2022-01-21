@@ -25,7 +25,7 @@ class IVMeasurement():
                     - cdaq_to_nidaq
                     - simulation_debug
         """
-        self.driver = get_driver(configs)
+        self.driver = get_driver(configs['driver'])
 
     def iv_curve(self,
                  vmax: float,
@@ -89,7 +89,7 @@ if __name__ == '__main__':
     for i in range(7):
         measurement.iv_curve(-0.08,
                              0.08,
-                             point_no=5000,
+                             point_no=1000,
                              input_electrode=i,
                              show_plot=True,
                              close=False)
