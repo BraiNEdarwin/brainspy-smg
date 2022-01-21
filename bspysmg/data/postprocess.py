@@ -139,7 +139,7 @@ def post_process(data_dir: str,
         readout_electrode_no=readout_electrode_no)
 
     batch_length = int(configs["input_data"]["batch_time"] *
-                       configs["driver"]["sampling_frequency"])
+                       configs["driver"]["instruments_setup"]["activation_sampling_frequency"])
     nr_raw_samples = len(outputs)
     print("Number of raw samples: ", nr_raw_samples)
     assert (nr_raw_samples == configs["input_data"]["number_batches"] *

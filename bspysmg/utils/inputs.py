@@ -211,7 +211,14 @@ def load_configs(config_dict: dict) -> dict:
                 Number of data points in the waiting signal between each batch.
     """
     configs = config_dict["input_data"]
-    configs['sampling_frequency'] = config_dict["driver"]['sampling_frequency']
+    assert (
+        config_dict["driver"]["instruments_setup"]["activation_sampling_frequency"] ==
+        config_dict["driver"]["instruments_setup"]["readout_sampling_frequency"] or
+        config_dict['driver']["instruments_setup"]["average_io_point_difference"]
+    ), (
+        "Surrogate Model generation only supports same activation and" +
+        " readout frequencies or averaging.")
+    configs['sampling_frequency'] = config_dict["driver"]["instruments_setup"]["activation_sampling_frequency"]
     configs['input_frequency'] = get_frequency(configs)
     configs['phase'] = np.array(configs['phase'])[:, np.newaxis]
     configs['amplitude'] = configs['amplitude'][:, np.newaxis]
@@ -244,8 +251,9 @@ def get_frequency(configs: dict) -> np.array:
         List of input frequencies for each eletrode.
     """
     aux = np.array(configs['input_frequency'])[:, np.newaxis]
+    # TODO: Check the optimal value for 0.001
     return np.sqrt(
-        aux[:configs['activation_electrode_no']]) * configs['factor']
+        aux[:configs['activation_electrode_no']]) * (0.001 * configs['sampling_frequency'])  # configs['factor']
 
 
 def generate_sawtooth_multiple(input_range, n_points, direction) -> np.array:
