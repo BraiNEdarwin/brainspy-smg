@@ -1,26 +1,46 @@
-save_directory: tmp/data/training/TEST
-data_name: Brains_testing
+save_directory: tmp/data/ # directory path to save the sampled data
+data_name: Brains_testing # Please specify a proper name to your sampling measurement.
+
 driver:
   instrument_type: cdaq_to_cdaq
-  real_time_rack: False
-  inverted_output: True
-  instruments_setup: !include instruments/cdaq.yaml # possible options cdaq.yaml, cdaq_rt.yaml, nidaq.yaml, multiple_cdaq.yaml
-  amplification: [41]
-  #sampling_frequency: 50
-  gain_info: 33.3MOhm
+
+  inverted_output: True # If the amplifier circuitry is inverting amplifier
+
+  instruments_setup: !include instruments/cdaq.yaml # possible options cdaq.yaml, nidaq.yaml, multiple_cdaq.yaml
+
+  amplification: [39.5] # Amplification factor of Amplifier;
+  # Maximum/Minimum measured current: +158/-158 nA
+  # Maximum/Minimum Op Amp. output voltage: +4/-4 V
+  # Amplification equation: abs(Maximum measured current)/abs(Maximum Op. Amp output voltage)
+  # Amplification: 158/4 = 39.5
+  # Note that amplification value should be re-calculated for each setup seperately.
+
+  gain_info: 50MOhm # Feedback resistance of Op. Amp; 
+  #does not take effect on measurements, for documenting purposes.
+
 input_data:
-  input_distribution: sawtooth
-  activation_electrode_no: 7
-  readout_electrode_no: 1
-  input_frequency: [2, 3, 5, 7, 13, 17, 19] # Input frequencies. These need to be prime numbers. They will be square rooted and multiplied by factor.
+  input_distribution: sawtooth # Desired data shape for data sampling.
+
+  activation_electrode_no: 7 # Number of inputs to the device;
+  # activation_electrode_no = #control_electrodes + #input_electrodes
+
+  readout_electrode_no: 1 # Number of output(s) specificed for the device;
+  # Note: Multplie output device requires dedicated PCB and setup configuration.
+
+  input_frequency: [2, 3, 5, 7, 13, 17, 19] # Input frequencies;
+  # These need to be prime numbers. They will be square rooted and multiplied by factor.
+
   phase: [-0.57, 0.25, -1.54, 2.17, 0.08, 0.15, -0.65] # Phase shift in the input signals per activation channel.
-  # factor: 0.05 # 0.001
+
   # Amplitude and offset are calculated from the voltage_ranges specified in the driver/instrument_setup configs field.
   # Amplitude: [0.55, 0.95, 0.95, 0.95, 0.95, 0.95, 0.55] # Example
   # Offset: [-0.15,-0.25,-0.25,-0.25,-0.25,-0.25,-0.15] # Example
+
   ramp_time: 0.5 # Ammount of time used to ramp up to the 
+
   batch_time: 0.5 #50 # Batch time in seconds. This is used to calculate the batch_size (batch_time * sampling_frequency), 
                 # which is, in turn,  used to calculate the total number of samples (total_sample_no * batch_size). 
                 # By default 50, with a sampling frequency of 50 Hz. 
                 # A standard value to calculate this is: 50*50/activation_frequency
+                
   number_batches: 1 # Default value: 3880
