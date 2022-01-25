@@ -86,9 +86,9 @@ if __name__ == '__main__':
     from brainspy.utils.io import load_configs
     configs = load_configs('configs/utils/brains_ivcurve_template_simple.yaml')
     measurement = IVMeasurement(configs)
-    for i in range(7):
-        measurement.iv_curve(-0.08,
-                             0.08,
+    for i in range(1):
+        measurement.iv_curve(-0.5,
+                             0.5,
                              point_no=1000,
                              input_electrode=i,
                              show_plot=True,
