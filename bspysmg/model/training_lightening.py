@@ -40,7 +40,7 @@ def init_seed(configs: dict) -> None:
     configs["seed"] = seed
 
 
-class SurrogateModel(pl.LightningModule):
+class TrainingModel(pl.LightningModule):
     def __init__(self, 
                 model: torch.nn.Module,
                 dataloaders: List[torch.utils.data.Dataloader],
@@ -50,7 +50,7 @@ class SurrogateModel(pl.LightningModule):
                 learning_rate: float = 1e-3,
                 ) -> None:
 
-        super(SurrogateModel, self).__init__()
+        super(TrainingModel, self).__init__()
         self.name = 'custom'
         self.model = model
         self.dataloaders = dataloaders
@@ -100,10 +100,6 @@ class SurrogateModel(pl.LightningModule):
     def forward(self, x):
         x = self.model(x)
         return x
-
-    def training_step_end(self, outputs):
-        self.model.constraint_weights()
-        return outputs
 
     def validation_step(self, batch, batch_idx):
         if self.dataloaders[1] is not None and len(self.dataloaders[1]) > 0:
@@ -216,7 +212,7 @@ def generate_surrogate_model(configs: dict,
     # model.set_info_dict(info_dict)
     model = TorchUtils.format(model)
 
-    model_lightning = SurrogateModel(model,
+    model_lightning = TrainingModel(model,
                                     dataloaders,
                                     criterion,
                                     custom_optimizer,
