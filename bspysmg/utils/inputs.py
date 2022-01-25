@@ -313,7 +313,7 @@ def generate_sawtooth_simple(v_low: float,
         v_low = v_high
         v_high = aux
 
-    ramp1 = np.linspace(0, v_low, int((point_no * v_low) / (v_high - v_low)))
+    ramp1 = np.linspace(0, v_low, int((point_no * v_low) / (v_low - v_high)))
     ramp2 = np.linspace(v_low, v_high, point_no)
     ramp3 = np.linspace(v_high, 0, int((point_no * v_high) / (v_high - v_low)))
 
