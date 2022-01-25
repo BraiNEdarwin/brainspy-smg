@@ -1,55 +1,46 @@
-results_base_dir: 'temp/test/multpleIV'
+results_base_dir: 'temp/test/multpleIV' # directory path to save the results' figures
+
 show_plots: True
-devices: ["A"] #,"B","C","D","E"]
-shape: 1000 # Number of points to be measured
-input_signal:
+
+devices: ["A"] # Name of the devices to be measures;
+# if you are measuring a single device, you can specify the name, for example: devices: ["A"]
+# if you are measuring multiple devices, you can specify the names, for example: ["A", "B"]
+
+shape: 1000 # Number of data points to be measured for the I/V curves;
+# the more the numbers, the longer the measurement time
+
+input_signal: # Type of the signal for measuring I/V curves; 'sawtooth' is recommended.
   input_signal_type: 'sawtooth'
   time_in_seconds: 5
   direction: 'up'
+
 driver:
   instrument_type: cdaq_to_cdaq
-  real_time_rack: False # Driver can be local or remote. Remote for the RT NI Rack (Pinky), and local for the regular one (Brains).
-  amplification: 41
-  inverted_output: True
+
+  amplification: 39.5 # Amplification factor of Amplifier;
+  # Maximum/Minimum measured current: +158/-158 nA
+  # Maximum/Minimum Op Amp. output voltage: +4/-4 V
+  # Amplification equation: abs(Maximum measured current)/abs(Maximum Op. Amp output voltage)
+  # Amplification: 158/4 = 39.5
+  # Note that amplification value should be re-calculated for each setup seperately.
+
+  inverted_output: True # If the amplifier circuitry is inverting amplifier
+
   instruments_setup: 
-    multiple_devices: True
+    multiple_devices: True # If True, device names (e.g., A: ) should be specified
+    # If false, device names should be removed.
+
     trigger_source: cDAQ1/segment1
-    activation_sampling_frequency: 2000
-    readout_sampling_frequency: 10000
-    average_io_point_difference: False
+    activation_sampling_frequency: 2000 # Digital-to-Analogue Converter module update rate
+    readout_sampling_frequency: 10000 # Analogue-to-Digital Converter sampling rate
+    average_io_point_difference: False # Averaging mode of the ADC output;
+    #If true, the oversampled points will be averaged,
+    #If false, the oversampled points will be presented as they are.
+
     A:
       activation_instrument: cDAQ1Mod3
-      activation_channels: [6,0,1,5,2,4,3] #ao
+      activation_channels: [6,0,1,5,2,4,3] # Analogue output channels of DAC
       activation_voltage_ranges: [[-0.9,0.8],[-0.7,1.0],[-0.9,1.1],[-0.8,0.8],[-0.8,0.9],[-0.6,0.5],[-1,1.3]] #[[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08]]  
       activation_channel_mask: [1,1,1,1,1,1,1]
       readout_instrument: cDAQ1Mod4
-      readout_channels: [0]
-    # B:
-    #   activation_instrument: cDAQ1Mod3
-    #   activation_channels: [7,8,9,10,11,12,13] #ao
-    #   activation_voltage_ranges: [[-0.9,0.5],[-0.3,0.5],[-0.9,0.9],[-1,1],[-0.9,0.6],[-0.6,0.3],[-1,1]] #[[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08]]  
-    #   activation_channel_mask: [1,1,1,1,1,1,1]
-    #   readout_instrument: cDAQ1Mod4
-    #   readout_channels: [1]
-    # C:
-    #   activation_instrument: cDAQ1Mod1
-    #   activation_channels: [6,0,1,5,2,4,3] #ao
-    #   activation_voltage_ranges: [[-0.9,0.5],[-0.3,0.5],[-0.9,0.9],[-1,1],[-0.9,0.6],[-0.6,0.3],[-1,1]] #[[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08]]  
-    #   activation_channel_mask: [1,1,1,1,1,1,1]
-    #   readout_instrument: cDAQ1Mod4
-    #   readout_channels: [2]
-    # D:
-    #   activation_instrument: cDAQ1Mod1
-    #   activation_channels: [7,8,9,10,11,12,13] #ao
-    #   activation_voltage_ranges: [[-0.9,0.5],[-0.3,0.5],[-0.9,0.9],[-1,1],[-0.9,0.6],[-0.6,0.3],[-1,1]] #[[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08]]  
-    #   activation_channel_mask: [1,1,1,1,1,1,1]
-    #   readout_instrument: cDAQ1Mod4
-    #   readout_channels: [3]
-    # E:
-    #   activation_instrument: cDAQ1Mod2
-    #   activation_channels: [6,0,1,5,2,4,3] #ao
-    #   activation_voltage_ranges: [[-0.9,0.5],[-0.3,0.5],[-0.9,0.9],[-1,1],[-0.9,0.6],[-0.6,0.3],[-1,1]] #[[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08]]  
-    #   activation_channel_mask: [1,1,1,1,1,1,1]
-    #   readout_instrument: cDAQ1Mod4
-    #   readout_channels: [4]
-    
+      readout_channels: [0] # Analogue input channel(s) of ADC
