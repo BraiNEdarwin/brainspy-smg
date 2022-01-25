@@ -1,8 +1,6 @@
-results_base_dir: tmp/output/conv_model
-hyperparameters:
-  epochs: 100
-  learning_rate: 1.0e-05
-model_structure:
+results_base_dir: tmp/output/conv_model # Path to the directory where output files are saved.
+
+model_structure: # Surrogate model Neural Network model structure;
   hidden_sizes:
     - 90
     - 90
@@ -12,15 +10,26 @@ model_structure:
   D_in: 7
   D_out: 1
   activation: relu
+
+hyperparameters: # Neural Network Hyperparameters for training phase;
+  epochs: 100 # Number of tries on the total training dataset; 
+  # Note: The higher the more accurate model on "Training" dataset
+  # Note: Should be chosen appropriately to prevent "Overfitting"
+  learning_rate: 1.0e-05  # The smaller the learning rate the longer time for the model to be trained
+
 data:
-  dataset_paths: ["C:/Users/Unai/Documents/programming/smg/tmp/data/training/TEST/Brains_testing_2021_07_28_082842_train/postprocessed_data.npz",
-                  "C:/Users/Unai/Documents/programming/smg/tmp/data/training/TEST/Brains_testing_2021_07_28_115131_test/postprocessed_data.npz",
-                  "C:/Users/Unai/Documents/programming/smg/tmp/data/training/TEST/Brains_testing_2021_07_28_115131_test/postprocessed_data.npz"]
-  #test_data_path: "C:/Users/Unai/Documents/programming/smg/tmp/data/training/TEST/Brains_testing_2021_07_28_115131_test/postprocessed_data.npz"
+
+  dataset_paths: ["C:/Users/Mohamadreza/Documents/github/brainspy-smg/collected_data/training/quick_setup/quick_setup_2022_01_21_232808/postprocessed_data.npz",
+                  "C:/Users/Mohamadreza/Documents/github/brainspy-smg/collected_data/val/quick_setup/quick_setup_2022_01_21_232808/postprocessed_data.npz",
+                  "C:/Users/Mohamadreza/Documents/github/brainspy-smg/collected_data/test/quick_setup/quick_setup_2022_01_21_232808/postprocessed_data.npz"]
+  # Paths to the training, validation, and testing data
+  # It is recommended to collect training, validation, and testing data in seperate measurements.                
+                
   steps: 3
   batch_size: 128
   worker_no: 0
   pin_memory: False
-  split_percentages:
+
+  split_percentages: # Default config. where you have collected seperated data for training, validation, and testing data in seperate measurements. 
     - 1 # Training data
     - 0 # Dev/validation data
