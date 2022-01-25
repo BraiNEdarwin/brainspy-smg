@@ -44,11 +44,12 @@ def init_seed(configs: dict) -> None:
     configs["seed"] = seed
 
 
-def generate_surrogate_model(configs: dict,
-                             custom_model: torch.nn.Module,
-                             criterion: torch.nn.MSELoss,
-                             custom_optimizer: torch.optim.Optimizer,
-                             main_folder: str = "training_data") -> None:
+def generate_surrogate_model(
+        configs: dict,
+        custom_model: torch.nn.Module = NeuralNetworkModel,
+        criterion: torch.nn.modules.loss._Loss = MSELoss(),
+        custom_optimizer: torch.optim.Optimizer = Adam,
+        main_folder: str = "training_data") -> None:
     """
     It loads the training and validation datasets from the npz file specified
     in the field data/dataset_paths of the configs dictionary. These npz files
@@ -184,7 +185,7 @@ def train_loop(
     model: torch.nn.Module,
     info_dict: dict,
     dataloaders: List[torch.utils.data.DataLoader],
-    criterion: torch.nn.MSELoss,
+    criterion: torch.nn.modules.loss._Loss,
     optimizer: torch.optim.Optimizer,
     epochs: int,
     amplification: float,
@@ -344,7 +345,7 @@ def train_loop(
 
 def default_train_step(
         model: torch.nn.Module, dataloader: torch.utils.data.DataLoader,
-        criterion: torch.nn.MSELoss,
+        criterion: torch.nn.modules.loss._Loss,
         optimizer: torch.optim.Optimizer) -> Tuple[torch.nn.Module, float]:
     """
     Performs the training step of a model within a single epoch and returns the
@@ -384,7 +385,7 @@ def default_train_step(
 
 def default_val_step(model: torch.nn.Module,
                      dataloader: torch.utils.data.DataLoader,
-                     criterion: torch.nn.MSELoss) -> float:
+                     criterion: torch.nn.modules.loss._Loss) -> float:
     """
     Performs the validation step of a model within a single epoch and returns
     the validation loss.
@@ -418,7 +419,7 @@ def default_val_step(model: torch.nn.Module,
 
 
 def postprocess(dataloader: torch.utils.data.DataLoader,
-                model: torch.nn.Module, criterion: torch.nn.MSELoss,
+                model: torch.nn.Module, criterion: torch.nn.modules.loss._Loss,
                 amplification: float, results_dir: str, label: str) -> float:
     """
     Plots error vs output and error histogram for given dataset and saves it to
