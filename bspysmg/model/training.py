@@ -278,7 +278,7 @@ def train_loop(
         print("\nEpoch: " + str(epoch))
         model, running_loss = default_train_step(model, dataloaders[0],
                                                  criterion, optimizer)
-        running_loss = torch.sqrt(running_loss)
+        running_loss = running_loss**(1 / 2)
         running_loss *= amplification
         train_losses = torch.cat((train_losses, running_loss.unsqueeze(dim=0)),
                                  dim=0)
@@ -287,7 +287,7 @@ def train_loop(
 
         if dataloaders[1] is not None and len(dataloaders[1]) > 0:
             val_loss = default_val_step(model, dataloaders[1], criterion)
-            val_loss = torch.sqrt(val_loss)
+            val_loss = val_loss**(1 / 2)
             val_loss *= amplification
             val_losses = torch.cat((val_losses, val_loss.unsqueeze(dim=0)),
                                    dim=0)
