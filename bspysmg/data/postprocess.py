@@ -1,7 +1,7 @@
 import os
 
 import numpy as np
-
+from datetime import timedelta
 from brainspy.utils.io import load_configs
 from bspysmg.utils.plots import output_hist
 from typing import Tuple
@@ -41,6 +41,8 @@ def get_sampling_data(filename: str, activation_electrode_no: int,
 
 def post_process(data_dir: str,
                  clipping_value="default",
+                 charging_signal_batch_no=40,
+                 reference_signal_batch_no=15,
                  **kwargs) -> Tuple[np.array, np.array, dict]:
     """
     Postprocesses the data, cleans any clipping (optional), and merges data sets if needed. The data
@@ -71,7 +73,10 @@ def post_process(data_dir: str,
                            amplifier). When clipping value set to the values that
                            are clipping, the model will extrapolate the results outside of the clipping
                            range caused by the hardaware setup.
-
+        - charging_signal_batch_no: [int]
+                                    Number of batches that will be used for extracting the charging signal.
+        - reference_signal_batch_no: [int]
+                              Number of batches that will be used for extracting the reference signal.
         - kwargs: Optional kwargs are as follows:
             - list_data: A list of strings indicating directories with postprocessed_data.npz
                          containing input and output data relationships from the device, as well
@@ -138,8 +143,10 @@ def post_process(data_dir: str,
         activation_electrode_no=activation_electrode_no,
         readout_electrode_no=readout_electrode_no)
 
-    batch_length = int(configs["input_data"]["batch_time"] *
-                       configs["driver"]["sampling_frequency"])
+    batch_length = int(
+        configs["input_data"]["batch_time"] *
+        configs["driver"]["instruments_setup"]["activation_sampling_frequency"]
+    )
     nr_raw_samples = len(outputs)
     print("Number of raw samples: ", nr_raw_samples)
     assert (nr_raw_samples == configs["input_data"]["number_batches"] *
@@ -150,24 +157,32 @@ def post_process(data_dir: str,
     print(f"Lower bound input scales: {np.min(inputs,axis=0)}")
     print(f"Upper bound input scales: {np.max(inputs,axis=0)}\n")
     # Get charging signals
-    charging_batches = int(
-        60 * 30 /
-        configs["input_data"]["batch_time"])  # ca. 30 min charging signal
+    # charging_batches = int(
+    #     60 * 30 /
+    #     configs["input_data"]["batch_time"])  # ca. 30 min charging signal
+    print("Charging signal contains " + str(charging_signal_batch_no) +
+          " batches. Total time: " + str(
+              timedelta(seconds=int(charging_signal_batch_no *
+                                    configs['input_data']['batch_time']))))
     save_npz(
         data_dir,
         "charging_signal",
-        inputs[-charging_batches * batch_length:],
-        outputs[-charging_batches * batch_length:],
+        inputs[-charging_signal_batch_no * batch_length:],
+        outputs[-charging_signal_batch_no * batch_length:],
         configs,
     )
-    # Get reference batches
-    refs_batches = int(
-        600 / configs["input_data"]["batch_time"])  # ca. 600s reference signal
+    # # Get reference batches
+    # refs_batches = int(
+    #     600 / configs["input_data"]["batch_time"])  # ca. 600s reference signal
+    print("\nReference signal contains " + str(reference_signal_batch_no) +
+          " batches. Total time: " + str(
+              timedelta(seconds=int(reference_signal_batch_no *
+                                    configs['input_data']['batch_time']))))
     save_npz(
         data_dir,
         "reference_batch",
-        inputs[-refs_batches * batch_length:],
-        outputs[-refs_batches * batch_length:],
+        inputs[-reference_signal_batch_no * batch_length:],
+        outputs[-reference_signal_batch_no * batch_length:],
         configs,
     )
     # Plot samples histogram and save
