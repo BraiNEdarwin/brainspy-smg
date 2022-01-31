@@ -116,7 +116,7 @@ class ConsistencyChecker(Sampler):
         self.repetitions = repetitions
         self.model = model
 
-    def get_data(self) -> Tuple[np.array]:
+    def get_data(self, charge_device=True) -> Tuple[np.array]:
         """
         The main function that implements consistency checking routine. It uses
         the reference data and device's outputs to check if the outputs of device
@@ -157,12 +157,67 @@ class ConsistencyChecker(Sampler):
             model_deviations = deviations.copy()
             model_correlation = correlation.copy()
             model_deviation_chargeup = []
+            if charge_device:
+                self.charge_device(deviation_chargeup,
+                                   model_deviation_chargeup)
+        else:
+            if charge_device:
+                self.charge_device(deviation_chargeup)
+        # Initialize sampling loop
+        for trial in range(self.repetitions):
+            start_trial = time.time()
+            for batch, batch_indices in enumerate(
+                    self.get_batch_indices(self.nr_samples, self.batch_size)):
 
+                # Generate inputs (without ramping)
+                inputs = self.reference_inputs[:, batch_indices]
+                # Get outputs (without ramping; raming is done in the get_batch method)
+                device_outputs = self.sample_batch(inputs)
+                results[trial, batch_indices] = device_outputs
+                # if (batch % 1) == 0:
+                #     self.plot_waves(inputs.T, outputs, batch)
+                if self.model is not None:
+                    model_outputs = self.sample_model_batch(inputs)
+                    model_results[trial, batch_indices] = model_outputs
+            end_trial = time.time()
+            deviations[trial] = np.sqrt(
+                np.mean((results[trial] - self.reference_outputs)**2))
+            correlation[trial] = np.corrcoef(results[trial].T,
+                                             self.reference_outputs.T)[0, 1]
+            print(
+                f'* Consistency check {trial+1}/{self.repetitions} took {end_trial - start_trial :.2f} sec. with {batch+1} batches'
+            )
+            print(
+                f"\tCorr: {correlation[trial]:.2f} ; RMSE Deviation: {deviations[trial]:.2f}"
+            )
+            if self.model is not None:
+                model_deviations[trial] = np.sqrt(
+                    np.mean((results[trial] - model_results[trial])**2))
+                model_correlation[trial] = np.corrcoef(
+                    results[trial].T, model_results[trial].T)[0, 1]
+                print(
+                    f"\tCorr (Model): {model_correlation[trial]:.2f} ; RMSE Deviation (Model): {model_deviations[trial]:.2f}"
+                )
+        self.driver.close_tasks()
+        #self.close_processor()
+
+        np.savez(self.results_filename,
+                 results=results,
+                 deviations=deviations,
+                 correlation=correlation)
+        print(f'Data saved in { self.results_filename}')
+        if self.model is None:
+            return results, deviations, correlation, deviation_chargeup
+        else:
+            return results, deviations, correlation, deviation_chargeup, model_results, model_deviations, model_correlation, model_deviation_chargeup
+
+    def charge_device(self, deviation_chargeup, model_deviation_chargeup=None):
         for batch, batch_indices in enumerate(
                 self.get_batch_indices(len(self.chargingup_outputs),
                                        self.batch_size)):
             # Generate inputs (without ramping)
             inputs = self.chargingup_inputs[:, batch_indices]
+
             # Get outputs (without ramping)
             outputs = self.sample_batch(inputs)
             charging_signal_deviations = np.sqrt(
@@ -172,7 +227,7 @@ class ConsistencyChecker(Sampler):
                 f'\n* Charging up: Batch {batch+1}/{int(len(self.chargingup_outputs)/self.batch_size)}\n\tRMSE deviation of measured device output against original device output: {charging_signal_deviations:.2f} (nA)'
             )
             if self.model is not None:
-                model_outputs = self.get_model_batch(inputs)
+                model_outputs = self.sample_model_batch(inputs)
                 model_charging_signal_deviations = np.sqrt(
                     np.mean((outputs - model_outputs)**2))
                 original_deviation = np.sqrt(
@@ -193,54 +248,10 @@ class ConsistencyChecker(Sampler):
                 plt.plot(outputs, label='Measured output', alpha=0.5)
                 if self.model is not None:
                     plt.plot(model_outputs, label='Model output', alpha=0.5)
-                plt.title(f'Raw comparison of the first batch of signals.')
+                plt.title(f'Charging signal (Batch 0)')
                 plt.legend()
                 plt.savefig(os.path.join(self.results_dir, 'first_batch'))
-        print('\n')
-        # Initialize sampling loop
-        for trial in range(self.repetitions):
-            start_trial = time.time()
-            for batch, batch_indices in enumerate(
-                    self.get_batch_indices(self.nr_samples, self.batch_size)):
-
-                # Generate inputs (without ramping)
-                inputs = self.reference_inputs[:, batch_indices]
-                # Get outputs (without ramping; raming is done in the get_batch method)
-                device_outputs = self.sample_batch(inputs)
-                results[trial, batch_indices] = device_outputs
-                # if (batch % 1) == 0:
-                #     self.plot_waves(inputs.T, outputs, batch)
-                if self.model is not None:
-                    model_outputs = self.get_model_batch(inputs)
-                    model_results[trial, batch_indices] = device_outputs
-            end_trial = time.time()
-            deviations[trial] = np.sqrt(
-                np.mean((results[trial] - self.reference_outputs)**2))
-            correlation[trial] = np.corrcoef(results[trial].T,
-                                             self.reference_outputs.T)[0, 1]
-            print(
-                f'* Consistency check {trial+1}/{self.repetitions} took {end_trial - start_trial :.2f} sec. with {batch+1} batches'
-            )
-            print(
-                f"\tCorr: {correlation[trial]:.2f} ; Deviation: {deviations[trial]:.2f}"
-            )
-            if self.model is not None:
-                model_deviations[trial] = np.sqrt(
-                    np.mean((results[trial] - model_results[trial])**2))
-                model_correlation[trial] = np.corrcoef(
-                    results[trial].T, model_results[trial].T)[0, 1]
-        self.driver.close_tasks()
-        #self.close_processor()
-
-        np.savez(self.results_filename,
-                 results=results,
-                 deviations=deviations,
-                 correlation=correlation)
-        print(f'Data saved in { self.results_filename}')
-        if self.model is None:
-            return results, deviations, correlation, deviation_chargeup
-        else:
-            return results, deviations, correlation, deviation_chargeup, model_results, model_deviations, model_correlation, model_deviation_chargeup
+        print('Finished charging up device. \n')
 
     # def get_batch(self, input_batch):
     #      super(ConsistencyChecker, self).get_batch(input_batch)
@@ -250,7 +261,7 @@ class ConsistencyChecker(Sampler):
     #     # outputs_ramped = self.driver.forward_numpy(batch_ramped.T)
     #     return outputs_device[self.filter_ramp]
 
-    def get_model_batch(self, input_batch: torch.Tensor) -> torch.Tensor:
+    def sample_model_batch(self, input_batch: torch.Tensor) -> torch.Tensor:
         """
         Ramp the input batch (0.5 sec up and down) and format it to Tensor. Ramping is
         required to avoid abrupt changes in the voltage. The input is masked from 0v to
@@ -264,14 +275,15 @@ class ConsistencyChecker(Sampler):
         #outputs_device = super(ConsistencyChecker,self).get_batch(input_batch)
         # outputs_device = super(ConsistencyChecker,self).sample_batch(input_batch)
         # Ramp input batch (0.5 sec up and down) and format it to pytorch
-        batch_ramped = TorchUtils.format(self.ramp_input(input_batch).T)
+        #batch_ramped = TorchUtils.format(self.ramp_input(input_batch).T)
         self.model.eval()
         with torch.no_grad():
-            outputs_ramped = TorchUtils.to_numpy(
-                self.model(batch_ramped))  #.squeeze(0)
-        if len(outputs_ramped.shape) > 1:
-            return outputs_ramped[self.filter_ramp[:, np.newaxis]][:,
-                                                                   np.newaxis]
+            outputs = TorchUtils.to_numpy(
+                self.model(TorchUtils.format(input_batch).T))  #.squeez0e(0)
+        # if len(outputs_ramped.shape) > 1:
+        #     return outputs_ramped[self.filter_ramp[:, np.newaxis]][:,
+        #                                                            np.newaxis]
+        return outputs
 
 
 def consistency_check(main_dir: str,
@@ -279,6 +291,7 @@ def consistency_check(main_dir: str,
                       sampler_configs_name: str = 'sampler_configs.json',
                       reference_batch_name: str = 'reference_batch.npz',
                       charging_signal_name: str = 'charging_signal.npz',
+                      charge_device: bool = True,
                       model: torch.nn.Module = None) -> None:
     """
     This is the driver function used for consistency checking. Consistency checking involves
@@ -303,9 +316,11 @@ def consistency_check(main_dir: str,
     charging_signal_name : str [Optional]
         Name of the file which contains device inputs and outputs. This is the device behaviour
         at present moment. It is a npz file with columns 'inputs' and 'outputs'.
+    charge_device: boolean [Optional]
+        Whether the consistency check should charge up the device with the charging signal or not.
     model : custom model of type torch.nn.Module [Optional]
         Model whose consistency is to be checked. This is a trained neural network model over
-        DNPU measurements and sampled input data. 
+        DNPU measurements and sampled input data.
     """
     sampler = ConsistencyChecker(main_dir,
                                  repetitions=repetitions,
@@ -315,72 +330,88 @@ def consistency_check(main_dir: str,
                                  model=model)
     if model is None:
         outputs, deviations, correlation, deviation_chargeup = sampler.get_data(
-        )
+            charge_device)
     else:
         outputs, deviations, correlation, deviation_chargeup, model_outputs, model_deviations, model_correlation, model_deviation_chargeup = sampler.get_data(
-        )
+            charge_device)
     mean_output = np.mean(outputs, axis=0)
     std_output = np.std(outputs, axis=0)
-    if model is not None:
-        model_mean_output = np.mean(model_outputs, axis=0)
-        model_std_output = np.mean(model_outputs, axis=0)
     plt.figure()
     plt.plot(sampler.reference_outputs,
              'r',
-             label='reference signal',
+             label='Reference signal',
              alpha=0.5)
-    plt.plot(mean_output, 'k', label='mean over repetitions', alpha=0.5)
+    plt.plot(mean_output, 'k', label='Device output (mean)', alpha=0.5)
     plt.plot(mean_output + std_output, ':k', alpha=0.5)
     plt.plot(mean_output - std_output,
              ':k',
-             label='stdev over repetitions',
+             label='Device output (std)',
              alpha=0.5)
     if model is not None:
-        plt.plot(model_mean_output, 'c', label='Model output', alpha=0.5)
+        model_mean_output = np.mean(model_outputs, axis=0)
+        model_std_output = np.std(model_outputs, axis=0)
+        plt.plot(model_mean_output,
+                 'c',
+                 label='Model output (mean)',
+                 alpha=0.5)
         # It could be removed with if model.noise is None
         plt.plot(model_mean_output + model_std_output, ':c', alpha=0.5)
-        plt.plot(model_mean_output + model_std_output,
+        plt.plot(model_mean_output - model_std_output,
                  ":c",
-                 label='Stdev of the model')
-    plt.title(f'Consistency over {sampler.repetitions} trials with same input')
+                 label='Model output (std)')
+    plt.title(f'Reference signal over {sampler.repetitions} trials')
     plt.legend()
     plt.savefig(os.path.join(sampler.results_dir, 'consistency_check'))
 
     plt.figure()
-    plt.plot(mean_output - sampler.reference_outputs,
-             "b",
-             label="mean - reference")
-    plt.plot(mean_output - sampler.reference_outputs + std_output,
-             ":k",
-             label="stdev over repetitions")
-    plt.plot(mean_output - sampler.reference_outputs - std_output, ":k")
-    # if model is not None:
-    #     plt.plot(model_mean_output - sampler.reference_outputs, "c", label)
-    plt.title("Difference Mean Signal and Reference Signal (nA)")
+    plt.hist(np.sqrt((mean_output - sampler.reference_outputs)**2),
+             bins=100,
+             alpha=0.5,
+             label='Device')
+    if model is not None:
+        plt.hist(np.sqrt((model_mean_output - sampler.reference_outputs)**2),
+                 bins=100,
+                 alpha=0.5,
+                 label="Model")
+    plt.title(
+        "Reference Signal\nHistogram of RMSE deviations (nA) from mean over " +
+        str(repetitions) + " trials")
     plt.legend()
-    plt.savefig(os.path.join(sampler.results_dir, 'diff_mean-ref'))
+    # plt.figure()
+    # plt.plot(mean_output - sampler.reference_outputs,
+    #          "b",
+    #          label="Error over mean (Device)", alpha=0.5)
+    # plt.plot(mean_output - sampler.reference_outputs + std_output,
+    #          ":b",
+    #          label="Error over std (Device) ", alpha=0.5)
+    # plt.plot(mean_output - sampler.reference_outputs - std_output, ":b"
+    # , alpha=0.5)
+    # if model is not None:
+    #     plt.plot(model_mean_output - sampler.reference_outputs, "c",
+    #     label="Error over mean (Model)", alpha=0.5)
+    #     plt.plot(model_mean_output - sampler.reference_outputs + model_std_output,
+    #     ":c",
+    #     label="Error over std (Model) ", alpha=0.5)
+    #     plt.plot(model_mean_output - sampler.reference_outputs + model_std_output,
+    #     ":c", alpha=0.5)
 
-    plt.figure()
-    plt.hist(deviations,
-             label="Deviations from the reference signal (nA)",
-             alpha=0.5)
-    if model is not None:
-        plt.hist(model_deviations,
-                 label="Deviations from the model (nA)",
-                 alpha=0.5)
-        plt.title("RMSE Deviations from Reference Signal and model (nA)")
+    # plt.title("Reference Signal (Error)")
+    # plt.legend()
+    # plt.savefig(os.path.join(sampler.results_dir, 'diff_mean-ref'))
+
+    if charge_device:
+        plt.figure()
+        plt.plot(deviation_chargeup, label='Device', alpha=0.5)
+        if model is not None:
+            plt.plot(model_deviation_chargeup,
+                     label='Device vs Model',
+                     alpha=0.5)
+        plt.title("Charging up signal")
+        plt.xlabel("Batch number of signal")
+        plt.ylabel("RMSE Current (nA)")
         plt.legend()
-    else:
-        plt.title("RMSE Deviations from Reference Signal (nA)")
-    plt.savefig(os.path.join(sampler.results_dir, 'hist_deviations'))
-
-    plt.figure()
-    plt.plot(deviation_chargeup, label='Device', alpha=0.5)
-    if model is not None:
-        plt.plot(model_deviation_chargeup, label='Device vs Model', alpha=0.5)
-    plt.title("RMSE deviations (nA) while charging up")
-    plt.savefig(
-        os.path.join(sampler.results_dir, 'deviations_while_charging_up'))
+        plt.savefig(
+            os.path.join(sampler.results_dir, 'deviations_while_charging_up'))
 
     plt.show()
 
