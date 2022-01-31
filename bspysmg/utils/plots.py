@@ -113,7 +113,7 @@ def plot_waves(inputs: np.array, outputs: np.array, input_no: int,
         Name of the file for the graph.
     """
     plt.figure()
-    plt.suptitle(f'Data for NN training in batch {batch}')
+    plt.suptitle(f'I/O data for batch {batch}')
     plt.subplot(211)
     plt.plot(inputs)
     plt.ylabel('Inputs (V)')
