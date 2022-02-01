@@ -168,7 +168,7 @@ class ModelDataset(Dataset):
         print("\n* Loading data from file:\n" + filename)
         # Pickle = True, since it also contains a dictionary.
         with np.load(filename, allow_pickle=True) as data:
-            sampling_configs = data["sampling_configs"]
+            sampling_configs = dict(data["sampling_configs"].tolist())
             inputs = data["inputs"][::steps]
             outputs = data["outputs"][::steps]
             print(
