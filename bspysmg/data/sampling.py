@@ -306,9 +306,8 @@ class Sampler:
         """
         input_dict, self.generate_inputs = get_input_generator(self.configs)
 
-        total_number_samples = input_dict["number_batches"] * input_dict[
-            "sampling_frequency"] * input_dict["batch_time"]
         batch_size = input_dict["sampling_frequency"] * input_dict["batch_time"]
+        total_number_samples = input_dict["number_batches"] * batch_size
 
         # define internal attributes
         self.end_batch = int(input_dict["ramp_points"] +

@@ -239,9 +239,11 @@ def multi_iv_plot(configs, inputs, output):
                             configs["driver"]['instruments_setup'][dev]
                             ["activation_channel_mask"][:exp_index + 1]) - 1
                         # Modifying x-axis
-                        wm = WaveformManager(
-                            {'slope_length':0, 'plateau_length': int(configs['driver']['instruments_setup']['readout_sampling_frequency']/configs['driver']['instruments_setup']['activation_sampling_frequency'])})
-                        temp = wm.points_to_plateaus(torch.tensor(inputs[exp][dev][masked_idx])).detach().cpu().numpy()
+                        temp = inputs[exp][dev][masked_idx]
+                        if not configs['driver']['instruments_setup']['average_io_point_difference']:
+                            wm = WaveformManager(
+                                {'slope_length':0, 'plateau_length': int(configs['driver']['instruments_setup']['readout_sampling_frequency']/configs['driver']['instruments_setup']['activation_sampling_frequency'])})
+                            temp = wm.points_to_plateaus(torch.tensor(inputs[exp][dev][masked_idx])).detach().cpu().numpy()
                         axs[i, j].plot(temp,
                                        output[exp][dev],
                                        color=cmap(exp_index))
@@ -272,8 +274,10 @@ def multi_iv_plot(configs, inputs, output):
                             masked_idx = sum(
                                 configs["driver"]['instruments_setup'][dev]
                                 ["activation_channel_mask"][:z + 1]) - 1
-                            wm = WaveformManager({'slope_length':0, 'plateau_length': int(configs['driver']['instruments_setup']['readout_sampling_frequency']/configs['driver']['instruments_setup']['activation_sampling_frequency'])})
-                            temp =  wm.points_to_plateaus(torch.tensor(inputs[key][dev][masked_idx])).detach().cpu().numpy()[int(configs['driver']['instruments_setup']['readout_sampling_frequency']/configs['driver']['instruments_setup']['activation_sampling_frequency']):]
+                            temp = inputs[key][dev][masked_idx]
+                            if not configs['driver']['instruments_setup']['average_io_point_difference']:
+                                wm = WaveformManager({'slope_length':0, 'plateau_length': int(configs['driver']['instruments_setup']['readout_sampling_frequency']/configs['driver']['instruments_setup']['activation_sampling_frequency'])})
+                                temp =  wm.points_to_plateaus(torch.tensor(inputs[key][dev][masked_idx])).detach().cpu().numpy()[int(configs['driver']['instruments_setup']['readout_sampling_frequency']/configs['driver']['instruments_setup']['activation_sampling_frequency']):]
                             axs[i, j].plot(temp,
                                            label="IV" + str(z),
                                            color=cmap(z))

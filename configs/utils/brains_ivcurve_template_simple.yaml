@@ -27,7 +27,7 @@ driver:
   inverted_output: True # If the amplifier circuitry is inverting amplifier
 
   instruments_setup: 
-    multiple_devices: True # If True, device names (e.g., A: ) should be specified
+    multiple_devices: False # If True, device names (e.g., A: ) should be specified
     # If false, device names should be removed.
 
     trigger_source: cDAQ1/segment1
@@ -36,11 +36,9 @@ driver:
     average_io_point_difference: False # Averaging mode of the ADC output;
     #If true, the oversampled points will be averaged,
     #If false, the oversampled points will be presented as they are.
-
-    A:
-      activation_instrument: cDAQ1Mod3
-      activation_channels: [6,0,1,5,2,4,3] # Analogue output channels of DAC
-      activation_voltage_ranges: [[-0.9,0.8],[-0.7,1.0],[-0.9,1.1],[-0.8,0.8],[-0.8,0.9],[-0.6,0.5],[-1,1.3]] #[[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08]]  
-      activation_channel_mask: [1,1,1,1,1,1,1]
-      readout_instrument: cDAQ1Mod4
-      readout_channels: [0] # Analogue input channel(s) of ADC
+    activation_instrument: cDAQ1Mod3
+    activation_channels: [6,0,1,5,2,4,3] # Analogue output channels of DAC
+    activation_voltage_ranges: [[-0.9,0.8],[-0.7,1.0],[-0.9,1.1],[-0.8,0.8],[-0.8,0.9],[-0.6,0.5],[-1,1.3]] #[[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08]]  
+    activation_channel_mask: [1,1,1,1,1,1,1]
+    readout_instrument: cDAQ1Mod4
+    readout_channels: [0] # Analogue input channel(s) of ADC
