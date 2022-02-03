@@ -5,6 +5,7 @@ import numpy as np
 from brainspy.utils.io import load_configs
 from bspysmg.utils.plots import output_hist
 from typing import Tuple
+from datetime import timedelta
 
 
 def get_sampling_data(filename: str, activation_electrode_no: int,
@@ -143,8 +144,10 @@ def post_process(data_dir: str,
         activation_electrode_no=activation_electrode_no,
         readout_electrode_no=readout_electrode_no)
 
-    batch_length = int(configs["input_data"]["batch_time"] *
-                       configs["driver"]["instruments_setup"]["activation_sampling_frequency"])
+    batch_length = int(
+        configs["input_data"]["batch_time"] *
+        configs["driver"]["instruments_setup"]["activation_sampling_frequency"]
+    )
     nr_raw_samples = len(outputs)
     print("Number of raw samples: ", nr_raw_samples)
     assert (nr_raw_samples == configs["input_data"]["number_batches"] *
