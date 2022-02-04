@@ -319,14 +319,14 @@ def get_dataloaders(
 
         if i > 0:
             amplification_aux = TorchUtils.format(info_dict["sampling_configs"]["driver"]["amplification"])
-            assert torch.eq(amplification_aux, TorchUtils.format(amplification)).all(), (
+            assert torch.eq(amplification_aux, amplification).all(), (
                 "Amplification correction factor should be the same for all datasets."
                 + "Check if all datasets come from the same setup.")
             info_dict[dataset_names[i] +
                       '_sampling_configs'] = dataset.sampling_configs
         else:
             info_dict = get_info_dict(configs, dataset.sampling_configs)
-        amplification = info_dict["sampling_configs"]["driver"]["amplification"]
+        amplification = TorchUtils.format(info_dict["sampling_configs"]["driver"]["amplification"])
         datasets.append(dataset)
 
     # Create dataloaders
