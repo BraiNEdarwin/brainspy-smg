@@ -1,7 +1,5 @@
 import unittest
-import sys
-sys.path.append("C:\\Users\\sriku\\OneDrive\\Documents\\Brains\\Dev\\brainspy-smg\\bspysmg")
-from data import dataset
+from bspysmg.data import dataset
 from brainspy.utils.io import load_configs
 
 class Test_Dataset(unittest.TestCase):
@@ -14,15 +12,15 @@ class Test_Dataset(unittest.TestCase):
         try:
             datasetClass = dataset.ModelDataset("C:\\Users\\sriku\\Downloads\\postprocessed_data.npz", steps=10, tag="train")
         except:
-            self.fail("Failed Execution 1")
+            self.fail("Failed Execution: Steps - 10, Tag - train")
         try:
             datasetClass = dataset.ModelDataset("C:\\Users\\sriku\\Downloads\\postprocessed_data.npz", steps=5, tag="validation")
         except:
-            self.fail("Failed Execution 2")
+            self.fail("Failed Execution: Steps - 5, Tag - validation")
         try:
             datasetClass = dataset.ModelDataset("C:\\Users\\sriku\\Downloads\\postprocessed_data.npz", steps=1, tag="test")
         except:
-            self.fail("Failed Execution 3")
+            self.fail("Failed Execution: Steps - 1, Tag - test")
 
     def test_check_file_exists(self):
         with self.assertRaises(FileNotFoundError):
@@ -51,7 +49,7 @@ class Test_Dataset(unittest.TestCase):
         try:
             dataset.get_dataloaders(configs)
         except:
-            self.fail("Execution Failed")
+            self.fail("Execution Failed: configs_path - configs/training/smg_configs_template.yaml")
         
         with self.assertRaises(AssertionError):
             configs_1 = configs.copy()

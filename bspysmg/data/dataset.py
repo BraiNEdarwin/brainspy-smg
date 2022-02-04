@@ -68,8 +68,8 @@ class ModelDataset(Dataset):
             filename, steps)
         self.targets = (targets /
                         self.sampling_configs["driver"]["amplification"])
-        #self.inputs = TorchUtils.format_tensor(self.inputs)
-        #self.targets = TorchUtils.format_tensor(self.targets)
+        self.inputs = TorchUtils.format(self.inputs)
+        self.targets = TorchUtils.format(self.targets)
         if tag not in ["train", "validation", "test"]:
             raise ValueError("tag should be one of [train, validation, test]")
         self.tag = tag
@@ -318,8 +318,8 @@ def get_dataloaders(
                                tag=dataset_names[i])
 
         if i > 0:
-            amplification_aux = torch.tensor(info_dict["sampling_configs"]["driver"]["amplification"])
-            assert torch.eq(amplification_aux, torch.tensor(amplification)).all(), (
+            amplification_aux = TorchUtils.format(info_dict["sampling_configs"]["driver"]["amplification"])
+            assert torch.eq(amplification_aux, TorchUtils.format(amplification)).all(), (
                 "Amplification correction factor should be the same for all datasets."
                 + "Check if all datasets come from the same setup.")
             info_dict[dataset_names[i] +
