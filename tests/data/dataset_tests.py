@@ -1,4 +1,3 @@
-from distutils.command.config import config
 import unittest
 import sys
 sys.path.append("C:\\Users\\sriku\\OneDrive\\Documents\\Brains\\Dev\\brainspy-smg\\bspysmg")
@@ -15,15 +14,15 @@ class Test_Dataset(unittest.TestCase):
         try:
             datasetClass = dataset.ModelDataset("C:\\Users\\sriku\\Downloads\\postprocessed_data.npz", steps=10, tag="train")
         except:
-            self.fail("Failed Execution")
+            self.fail("Failed Execution 1")
         try:
             datasetClass = dataset.ModelDataset("C:\\Users\\sriku\\Downloads\\postprocessed_data.npz", steps=5, tag="validation")
         except:
-            self.fail("Failed Execution")
+            self.fail("Failed Execution 2")
         try:
             datasetClass = dataset.ModelDataset("C:\\Users\\sriku\\Downloads\\postprocessed_data.npz", steps=1, tag="test")
         except:
-            self.fail("Failed Execution")
+            self.fail("Failed Execution 3")
 
     def test_check_file_exists(self):
         with self.assertRaises(FileNotFoundError):
