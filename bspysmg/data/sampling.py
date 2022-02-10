@@ -91,6 +91,9 @@ class Sampler:
         to the voltage ranges specified in the driver. It stores them into the configuration
         dictionary (input_data/amplitude and input_data/offset).
         """
+        assert isinstance(self.configs['driver']['instruments_setup']['activation_voltage_ranges'], list),"Voltage ranges should be passed as a list"
+        assert self.configs['driver']['instruments_setup']['activation_voltage_ranges'] != [], "Empty array for voltage ranges"
+
         voltage_ranges = np.array(self.configs['driver']['instruments_setup']
                                   ['activation_voltage_ranges'])
         amplitude = (voltage_ranges[:, 1] - voltage_ranges[:, 0]) / 2

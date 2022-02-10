@@ -306,8 +306,9 @@ def get_dataloaders(
     # Load dataset
     # Only training configs will be taken into account for info dict
     # For ranges and etc.
-    assert configs['data']['dataset_paths'] != [], "Empty paths for datasets"
+    assert 'data' in configs and 'dataset_paths' in configs['data']
     assert isinstance(configs['data']['dataset_paths'], list), "Paths for datasets should be passed as a list"
+    assert configs['data']['dataset_paths'] != [], "Empty paths for datasets"
     datasets = []
     info_dict = None
     amplification = None
