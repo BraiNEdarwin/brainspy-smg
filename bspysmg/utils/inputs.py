@@ -221,8 +221,8 @@ def load_configs(config_dict: dict) -> dict:
     configs['sampling_frequency'] = config_dict["driver"]["instruments_setup"]["activation_sampling_frequency"]
     configs['input_frequency'] = get_frequency(configs)
     configs['phase'] = np.array(configs['phase'])[:, np.newaxis]
-    configs['amplitude'] = configs['amplitude'][:, np.newaxis]
-    configs['offset'] = configs['offset'][:, np.newaxis]
+    configs['amplitude'] = np.array(configs['amplitude'])[:, np.newaxis]
+    configs['offset'] = np.array(configs['offset'])[:, np.newaxis]
     configs[
         'batch_points'] = configs['batch_time'] * configs['sampling_frequency']
     configs[

@@ -1,10 +1,9 @@
 import unittest
-from bspysmg.data import sampling
-from bspysmg.data.postprocess import post_process
+from bspysmg.utils import inputs
 
-class Test_Sampling(unittest.TestCase):
+class Test_Inputs(unittest.TestCase):
     def __init__(self, *args, **kwargs) -> None:
-        super(Test_Sampling, self).__init__(*args, **kwargs)
+        super(Test_Inputs, self).__init__(*args, **kwargs)
         self.configs = {}
         self.configs["driver"] = {
             "instrument_type": "cdaq_to_cdaq",
@@ -41,36 +40,14 @@ class Test_Sampling(unittest.TestCase):
 
     def test_empty_inputs(self):
         with self.assertRaises(TypeError):
-            sampler = sampling.Sampler()
-
+            configs, func = inputs.get_input_generator()
+    
     def test_normal_inputs(self):
         CONFIGS = self.configs.copy()
         try:
-            sampler = sampling.Sampler(CONFIGS)
+            configs, func = inputs.get_input_generator(CONFIGS)
         except:
             self.fail("Exeution Failed")
-
-    def test_configs_keys(self):
-
-        with self.assertRaises(KeyError):
-            configs_1 = self.configs.copy()
-            del configs_1['driver']['instruments_setup']
-            sampler = sampling.Sampler(configs_1)
-
-        with self.assertRaises(KeyError):
-            configs_2 = self.configs.copy()
-            del configs_2['driver']['instruments_setup']['activation_voltage_ranges']
-            sampler = sampling.Sampler(configs_2)
-
-        with self.assertRaises(AssertionError):
-            configs_3 = self.configs.copy()
-            configs_3['driver']['instruments_setup']['activation_voltage_ranges'] = 1
-            sampler = sampling.Sampler(configs_3)
-
-        with self.assertRaises(AssertionError):
-            configs_4 = self.configs.copy()
-            configs_4['driver']['instruments_setup']['activation_voltage_ranges'] = []
-            sampler = sampling.Sampler(configs_4)
 
 if __name__ == '__main__':
     unittest.main()
