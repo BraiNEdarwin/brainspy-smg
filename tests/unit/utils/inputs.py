@@ -1,5 +1,7 @@
 import unittest
 from bspysmg.utils import inputs
+import copy
+
 
 class Test_Inputs(unittest.TestCase):
     def __init__(self, *args, **kwargs) -> None:
@@ -38,16 +40,48 @@ class Test_Inputs(unittest.TestCase):
             "offset": [-0.15,-0.25,-0.25,-0.25,-0.25,-0.25,-0.15]
         }
 
+
     def test_empty_inputs(self):
         with self.assertRaises(TypeError):
             configs, func = inputs.get_input_generator()
     
+
     def test_normal_inputs(self):
-        CONFIGS = self.configs.copy()
+        CONFIGS = copy.deepcopy(self.configs)
         try:
             configs, func = inputs.get_input_generator(CONFIGS)
         except:
             self.fail("Exeution Failed")
+
+
+    def test_configs_keys(self):
+        CONFIGS = copy.deepcopy(self.configs)
+
+        with self.assertRaises(KeyError):
+            configs_1 = copy.deepcopy(self.configs)
+            del configs_1['driver']['instruments_setup']
+            configs, func = inputs.get_input_generator(configs_1)
+
+        with self.assertRaises(KeyError):
+            configs_2 = copy.deepcopy(self.configs)
+            del configs_2['driver']['instruments_setup']['activation_sampling_frequency']
+            configs, func = inputs.get_input_generator(configs_2)
+        
+        with self.assertRaises(KeyError):
+            configs_3 = copy.deepcopy(self.configs)
+            del configs_3["input_data"]['phase']
+            configs, func = inputs.get_input_generator(configs_3)
+
+        with self.assertRaises(KeyError):
+            configs_4 = copy.deepcopy(self.configs)
+            del configs_4["input_data"]['amplitude']
+            configs, func = inputs.get_input_generator(configs_4)
+
+        with self.assertRaises(KeyError):
+            configs_5 = copy.deepcopy(self.configs)
+            del configs_5["input_data"]['offset']
+            configs, func = inputs.get_input_generator(configs_5)
+
 
 if __name__ == '__main__':
     unittest.main()

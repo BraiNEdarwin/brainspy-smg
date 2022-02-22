@@ -1,6 +1,8 @@
 import unittest
 from bspysmg.data import sampling
 from bspysmg.data.postprocess import post_process
+import copy
+
 
 class Test_Sampling(unittest.TestCase):
     def __init__(self, *args, **kwargs) -> None:
@@ -44,7 +46,7 @@ class Test_Sampling(unittest.TestCase):
             sampler = sampling.Sampler()
 
     def test_normal_inputs(self):
-        CONFIGS = self.configs.copy()
+        CONFIGS = copy.deepcopy(self.configs)
         try:
             sampler = sampling.Sampler(CONFIGS)
         except:
@@ -53,22 +55,22 @@ class Test_Sampling(unittest.TestCase):
     def test_configs_keys(self):
 
         with self.assertRaises(KeyError):
-            configs_1 = self.configs.copy()
+            configs_1 = copy.deepcopy(self.configs)
             del configs_1['driver']['instruments_setup']
             sampler = sampling.Sampler(configs_1)
 
         with self.assertRaises(KeyError):
-            configs_2 = self.configs.copy()
+            configs_2 = copy.deepcopy(self.configs)
             del configs_2['driver']['instruments_setup']['activation_voltage_ranges']
             sampler = sampling.Sampler(configs_2)
 
         with self.assertRaises(AssertionError):
-            configs_3 = self.configs.copy()
+            configs_3 = copy.deepcopy(self.configs)
             configs_3['driver']['instruments_setup']['activation_voltage_ranges'] = 1
             sampler = sampling.Sampler(configs_3)
 
         with self.assertRaises(AssertionError):
-            configs_4 = self.configs.copy()
+            configs_4 = copy.deepcopy(self.configs)
             configs_4['driver']['instruments_setup']['activation_voltage_ranges'] = []
             sampler = sampling.Sampler(configs_4)
 
