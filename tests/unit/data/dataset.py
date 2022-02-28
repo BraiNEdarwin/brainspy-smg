@@ -50,7 +50,7 @@ class Test_Dataset(unittest.TestCase):
             dataset.get_dataloaders(configs)
         except:
             self.fail("Execution Failed: configs_path - configs/training/smg_configs_template.yaml")
-        
+
         with self.assertRaises(AssertionError):
             configs_1 = configs.copy()
             configs_1["data"]["dataset_paths"] = []
@@ -60,6 +60,16 @@ class Test_Dataset(unittest.TestCase):
             configs_2 = configs.copy()
             configs_2["data"]["dataset_paths"] = "Target"
             dataset.get_dataloaders(configs_2)
-        
+
+        with self.assertRaises(AssertionError):
+            configs_3 = configs.copy()
+            del configs_3["data"]
+            dataset.get_dataloaders(configs_3)
+
+        with self.assertRaises(AssertionError):
+            configs_4 = configs.copy()
+            del configs_4["data"]["dataset_paths"]
+            dataset.get_dataloaders(configs_4)
+
 if __name__ == "__main__":
     unittest.main()
