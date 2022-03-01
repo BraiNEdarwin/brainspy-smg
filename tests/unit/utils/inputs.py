@@ -1,6 +1,7 @@
 import unittest
 from bspysmg.utils import inputs
 import copy
+import numpy as np
 
 
 class Test_Inputs(unittest.TestCase):
@@ -81,6 +82,130 @@ class Test_Inputs(unittest.TestCase):
             configs_5 = copy.deepcopy(self.configs)
             del configs_5["input_data"]['offset']
             configs, func = inputs.get_input_generator(configs_5)
+
+
+    def test_sine_wave(self):
+        with self.assertRaises(TypeError):
+            sine_wave = inputs.sine_wave()
+
+        try:
+            sine_wave = inputs.sine_wave(np.array(range(0)), 0.1, 5, 0.1, 10)
+            sine_wave = inputs.sine_wave(np.array(range(100)), 60, 0, 5, 0)
+            sine_wave = inputs.sine_wave(np.array(range(100)), 0.1, 0, 5, 0)
+            sine_wave = inputs.sine_wave(np.array(range(100)), 0.1, 5, 5, 0)
+            sine_wave = inputs.sine_wave(np.array(range(100)), 0.1, 5, 0.1, 0)
+            sine_wave = inputs.sine_wave(np.array(range(100)), 0.1, 5, 0.1, 10)
+            assert sine_wave.flatten().shape[0] == 100
+        except:
+            self.fail("Failed creating sine_wave")
+
+        with self.assertRaises(TypeError):
+            sine_wave = inputs.sine_wave(list(range(100)), 60, 0, 5, 0)
+
+        with self.assertRaises(TypeError):
+            sine_wave = inputs.sine_wave(100, 60, 0, 5, 0)
+
+        with self.assertRaises(TypeError):
+            sine_wave = inputs.sine_wave(np.array(range(100)), "60", 0, 5, 0)
+
+        with self.assertRaises(TypeError):
+            sine_wave = inputs.sine_wave(np.array(range(100)), 60, "5", 5, 0)
+
+        with self.assertRaises(TypeError):
+            sine_wave = inputs.sine_wave(np.array(range(100)), 60, 0, "5", 0)
+
+        with self.assertRaises(TypeError):
+            sine_wave = inputs.sine_wave(np.array(range(100)), 60, 0, 5, "10")
+
+
+    def test_sawtooth_wave(self):
+        with self.assertRaises(TypeError):
+            sawtooth_wave = inputs.sawtooth_wave()
+
+        try:
+            sawtooth_wave = inputs.sawtooth_wave(np.array(range(100)), 60, 0, 5, 0)
+            sawtooth_wave = inputs.sawtooth_wave(np.array(range(100)), 0.1, 0, 5, 0)
+            sawtooth_wave = inputs.sawtooth_wave(np.array(range(100)), 0.1, 5, 5, 0)
+            sawtooth_wave = inputs.sawtooth_wave(np.array(range(100)), 0.1, 5, 0.1, 0)
+            sawtooth_wave = inputs.sawtooth_wave(np.array(range(100)), 0.1, 5, 0.1, 10)
+            assert sawtooth_wave.flatten().shape[0] == 100
+        except:
+            self.fail("Failed creating sawtooth_wave")
+
+        with self.assertRaises(TypeError):
+            sawtooth_wave = inputs.sawtooth_wave(list(range(100)), 60, 0, 5, 0)
+
+        with self.assertRaises(TypeError):
+            sawtooth_wave = inputs.sawtooth_wave(100, 60, 0, 5, 0)
+
+        with self.assertRaises(TypeError):
+            sawtooth_wave = inputs.sawtooth_wave(np.array(range(100)), "60", 0, 5, 0)
+
+        with self.assertRaises(TypeError):
+            sawtooth_wave = inputs.sawtooth_wave(np.array(range(100)), 60, "5", 5, 0)
+
+        with self.assertRaises(TypeError):
+            sawtooth_wave = inputs.sawtooth_wave(np.array(range(100)), 60, 0, "5", 0)
+
+        with self.assertRaises(TypeError):
+            sawtooth_wave = inputs.sawtooth_wave(np.array(range(100)), 60, 0, 5, "10")
+
+
+    def test_generate_sinewave(self):
+        with self.assertRaises(TypeError):
+            sinewave = inputs.generate_sinewave()
+
+        try:
+            sinewave = inputs.generate_sinewave(100, 60, 5, 0)
+            sinewave = inputs.generate_sinewave(20, 0.1, 5, 0)
+            sinewave = inputs.generate_sinewave(100, 0.1, 5, 5)
+            sinewave = inputs.generate_sinewave(100, 0.1, 5, 0.1)
+            assert sinewave.flatten().shape[0] == 100
+        except:
+            self.fail("Failed creating generate_sinewave")
+
+        with self.assertRaises(ZeroDivisionError):
+            sinewave = inputs.generate_sinewave(0, 60, 0, 5)
+
+        with self.assertRaises(ValueError):
+            sinewave = inputs.generate_sinewave(-10, 60, 0, 5)
+
+        with self.assertRaises(TypeError):
+            sinewave = inputs.generate_sinewave(40.0, 60, 0, 5)
+
+        with self.assertRaises(TypeError):
+            sinewave = inputs.generate_sinewave(np.array(range(100)), 60, 0, 5)
+
+        with self.assertRaises(TypeError):
+            sinewave = inputs.generate_sinewave(100, "60", 0, 5)
+
+        with self.assertRaises(TypeError):
+            sinewave = inputs.generate_sinewave(100, 60, "5", 5)
+
+        with self.assertRaises(TypeError):
+            sinewave = inputs.generate_sinewave(100, 60, 0, "5")
+
+
+    def test_generate_sawtooth_simple(self):
+        with self.assertRaises(TypeError):
+            sawtooth_simple = inputs.generate_sawtooth_simple()
+
+        try:
+            sawtooth_simple = inputs.generate_sawtooth_simple(-5, 5, 100, False)
+            sawtooth_simple = inputs.generate_sawtooth_simple(-5, 5, 100, True)
+            sawtooth_simple = inputs.generate_sawtooth_simple(-6.5, 7.5, 10)
+            assert sawtooth_simple.flatten().shape[0] == 10
+        except:
+            self.fail("Failed creating generate_sinewave")
+
+        with self.assertRaises(ValueError):
+            sawtooth_simple = inputs.generate_sawtooth_simple(5, 15, 20)
+
+        with self.assertRaises(AssertionError):
+            sawtooth_simple = inputs.generate_sawtooth_simple(5, -5, 20)
+
+        with self.assertRaises(AssertionError):
+            sawtooth_simple = inputs.generate_sawtooth_simple(-5, 5, 5)
 
 
 if __name__ == '__main__':
