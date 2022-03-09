@@ -76,16 +76,16 @@ def get_input_generator(configs: dict) -> Tuple[dict, Callable]:
         )
 
 
-def sine_wave(time_points: int, frequency: int, phase: float, amplitude: float,
+def sine_wave(time_points: np.array, frequency: float, phase: float, amplitude: float,
               offset: float) -> np.array:
     """
     Generates a sine wave.
 
     Parameters
     ----------
-    time_points : int
+    time_points : np.array
         Time points to evaluate the function.
-    frequency : int
+    frequency : float
         Frequencies of the inputs.
     phase : float
         Phase offset of sine wave.
@@ -104,16 +104,16 @@ def sine_wave(time_points: int, frequency: int, phase: float, amplitude: float,
                                                 np.ones(len(time_points)))
 
 
-def sawtooth_wave(time_points: int, frequency: int, phase: float,
+def sawtooth_wave(time_points: np.array, frequency: float, phase: float,
                   amplitude: float, offset: float) -> np.array:
     """
     Generates a sawtooth wave.
 
     Parameters
     ----------
-    time_points : int
+    time_points : np.array
         Time points to evaluate the function.
-    frequency : int
+    frequency : float
         Frequencies of the inputs.
     phase : float
         Phase offset of wave.
@@ -314,13 +314,12 @@ def generate_sawtooth_simple(v_low: float,
     np.array
         An array containing the two pointed sawtooth in a single dimension.
     """
+    assert v_low < v_high
     assert point_no % 2 == 0, 'Only an even point number is accepted.'
     point_no = int(point_no / 2)
 
     if up_direction:
-        aux = v_low
-        v_low = v_high
-        v_high = aux
+        v_low, v_high = v_high, v_low
 
     ramp1 = np.linspace(0, v_low, round((point_no * v_low) / (v_low - v_high)))
     ramp2 = np.linspace(v_low, v_high, point_no)
