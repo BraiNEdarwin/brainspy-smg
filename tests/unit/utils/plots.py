@@ -15,7 +15,7 @@ class Test_Plots(unittest.TestCase):
         try:
             plots.plot_error_hist(target, predictions, error, mse, ".")
         except:
-            self.fail("Fail in creating error hist")
+            self.fail("Failed in creating error hist")
         
         with self.assertRaises(AttributeError):
             plots.plot_error_hist(list(target), list(predictions), list(error), mse, ".")
@@ -28,7 +28,6 @@ class Test_Plots(unittest.TestCase):
         
         with self.assertRaises(AssertionError):
             plots.plot_error_hist(target, predictions, error, -1, ".")
-    
 
     def test_error_output(self):
 
@@ -38,7 +37,7 @@ class Test_Plots(unittest.TestCase):
         try:
             plots.plot_error_vs_output(target, error, ".")
         except:
-            self.fail("Fail in creating error hist")
+            self.fail("Failed in creating error vs output hist")
         
         with self.assertRaises(AttributeError):
             plots.plot_error_vs_output(list(target), list(error), ".")
@@ -48,6 +47,24 @@ class Test_Plots(unittest.TestCase):
         
         with self.assertRaises(AssertionError):
             plots.plot_error_vs_output(target, np.array([0]), ".")
+    
+    def test_output_hist(self):
+
+        output = np.random.uniform(0, 1, size=100)
+        
+        try:
+            plots.output_hist(output, ".", 5, True)
+            plots.output_hist(output, ".", 10, False)
+            plots.output_hist(output, ".")
+            plots.output_hist(list(output), ".")
+        except:
+            self.fail("Fail in creating output hist")
+        
+        with self.assertRaises(TypeError):
+            plots.output_hist()
+        
+        with self.assertRaises(TypeError):
+            plots.output_hist(output, ".", 10.1)
         
 
 if __name__ == '__main__':
