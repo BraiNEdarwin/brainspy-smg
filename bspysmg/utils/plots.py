@@ -176,6 +176,7 @@ def output_hist(outputs: np.array,
 
 def iv_plot(result: np.array,
             input_electrode: int,
+            data_dir: str = ".",
             save_plot: bool = None,
             show_plot: bool = False) -> None:
     """
@@ -198,7 +199,7 @@ def iv_plot(result: np.array,
     plt.xlabel('Point no.')
     plt.ylabel('Current (nA)')
     if save_plot is not None:
-        plt.savefig(save_plot)
+        plt.savefig(data_dir + "/iv_plot")
     if show_plot:
         plt.show()
 
