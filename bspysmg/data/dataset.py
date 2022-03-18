@@ -70,6 +70,8 @@ class ModelDataset(Dataset):
                         self.sampling_configs["driver"]["amplification"])
         self.inputs = TorchUtils.format(self.inputs)
         self.targets = TorchUtils.format(self.targets)
+        if tag not in ["train", "validation", "test"]:
+            raise ValueError("tag should be one of [train, validation, test]")
         self.tag = tag
 
         assert len(self.inputs) == len(
@@ -304,6 +306,9 @@ def get_dataloaders(
     # Load dataset
     # Only training configs will be taken into account for info dict
     # For ranges and etc.
+    assert 'data' in configs and 'dataset_paths' in configs['data']
+    assert isinstance(configs['data']['dataset_paths'], list), "Paths for datasets should be passed as a list"
+    assert configs['data']['dataset_paths'] != [], "Empty paths for datasets"
     datasets = []
     info_dict = None
     amplification = None
@@ -314,8 +319,7 @@ def get_dataloaders(
                                tag=dataset_names[i])
 
         if i > 0:
-            amplification_aux = TorchUtils.format(
-                info_dict["sampling_configs"]["driver"]["amplification"])
+            amplification_aux = TorchUtils.format(info_dict["sampling_configs"]["driver"]["amplification"])
             assert torch.eq(amplification_aux, amplification).all(), (
                 "Amplification correction factor should be the same for all datasets."
                 + "Check if all datasets come from the same setup.")
@@ -323,8 +327,7 @@ def get_dataloaders(
                       '_sampling_configs'] = dataset.sampling_configs
         else:
             info_dict = get_info_dict(configs, dataset.sampling_configs)
-        amplification = TorchUtils.format(
-            info_dict["sampling_configs"]["driver"]["amplification"])
+        amplification = TorchUtils.format(info_dict["sampling_configs"]["driver"]["amplification"])
         datasets.append(dataset)
 
     # Create dataloaders
