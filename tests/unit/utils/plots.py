@@ -83,6 +83,22 @@ class Test_Plots(unittest.TestCase):
 
         with self.assertRaises(FileNotFoundError):
             plots.iv_plot(result, 10.1, ",", True)
+    
+    def test_plot_waves(self):
+
+        inp = np.random.uniform(0, 1, size=100)
+        out = np.random.uniform(0, 1, size=100)
+        legend = np.array(["Training", "Training"])
+
+        try:
+            plots.plot_waves(inp, out, 0, 1, 1, legend, "./")
+            plots.plot_waves(inp, out, 0, 1, 1.1, legend, "./")
+            plots.plot_waves(list(inp), list(out), 0, 1, 1.1, legend, "./")
+        except:
+            self.fail("Fail in creating output hist")
+    
+        with self.assertRaises(TypeError):
+            plots.plot_waves()
 
 
 if __name__ == '__main__':
