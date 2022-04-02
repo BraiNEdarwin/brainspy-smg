@@ -1,6 +1,5 @@
 import unittest
 from bspysmg.data import postprocess
-from brainspy.utils.io import load_configs
 
 class Test_PostProcess(unittest.TestCase):
 
