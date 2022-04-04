@@ -30,6 +30,9 @@ def plot_error_hist(targets: np.array,
     name : str [Optional]
         Name of the file for the graph.
     """
+    assert targets.size == prediction.size
+    assert targets.size == error.size
+    assert mse >= 0
     plt.figure()
     plt.title('Predicted vs True values')
     plt.subplot(1, 2, 1)
@@ -71,6 +74,7 @@ def plot_error_vs_output(targets: np.array,
     name : str [Optional]
         Name of the file for the graph.
     """
+    assert targets.size == error.size
     plt.figure()
     plt.plot(targets, error, ".")
     plt.plot(

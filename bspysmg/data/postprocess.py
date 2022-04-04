@@ -42,8 +42,9 @@ def get_sampling_data(filename: str, activation_electrode_no: int,
 
 def post_process(data_dir: str,
                  clipping_value="default",
-                 charging_signal_batch_no=40,
-                 reference_signal_batch_no=15,
+                 charging_signal_batch_no: int=40,
+                 reference_signal_batch_no: int=15,
+                 filename : str="postprocessed_data",
                  **kwargs) -> Tuple[np.array, np.array, dict]:
     """
     Postprocesses the data, cleans any clipping (optional), and merges data sets if needed. The data
@@ -78,6 +79,8 @@ def post_process(data_dir: str,
                                     Number of batches that will be used for extracting the charging signal.
         - reference_signal_batch_no: [int]
                               Number of batches that will be used for extracting the reference signal.
+        - filename: [str]
+                    The name of the file that will be produced after postprocessing. By default: postprocessed_data.npz
         - kwargs: Optional kwargs are as follows:
             - list_data: A list of strings indicating directories with postprocessed_data.npz
                          containing input and output data relationships from the device, as well
@@ -202,7 +205,7 @@ def post_process(data_dir: str,
               (1 - len(outputs) / nr_raw_samples) * 100)
         print("\n")
     # save data
-    save_npz(data_dir, "postprocessed_data", inputs, outputs, configs)
+    save_npz(data_dir, filename, inputs, outputs, configs)
 
     return inputs, outputs, configs
 
@@ -580,8 +583,8 @@ if __name__ == "__main__":
     # import matplotlib
 
     # matplotlib.use('TkAgg')
-    main_dir = "/home/unai/Documents/3-Programming/bspy/smg/tmp/data/training/TEST/17-02-2021/"
-    inputs, outputs, info = post_process(main_dir)
+    main_dir = "C:/Users/Unai/Documents/github/brainspy-smg/tmp/brains_setup/sampling_data_1KSPS_arsenic_test_2022_03_17_171248"
+    inputs, outputs, info = post_process(main_dir, clipping_value=[-114,114], filename="postprocessed_data_clipped")
     # dirs = list(
     #     [
     #         name
