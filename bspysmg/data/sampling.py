@@ -203,7 +203,8 @@ class Sampler:
                            legend, self.configs["save_directory"])
             print(
                 f"Outputs collection for batch {batch} of {input_dict['number_batches']} "
-                + f"took {end_batch - start_batch} sec.")
+                + f"took {end_batch - start_batch} sec."
+                + f"\nExpected time: {((total_number_samples/batch_size)-batch)*(end_batch - start_batch)/3600} hours.\n")
         self.close_driver()
         return self.configs["save_directory"]
 
