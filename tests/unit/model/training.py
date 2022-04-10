@@ -1,10 +1,16 @@
 import unittest
 from bspysmg.model import training
+from brainspy.utils.io import create_directory_timestamp
+from bspysmg.data.dataset import get_dataloaders
+from brainspy.processors.simulation.model import NeuralNetworkModel
+from brainspy.utils.pytorch import TorchUtils
+from torch.optim import Adam
+from torch.nn import MSELoss
 
-class Test_PostProcess(unittest.TestCase):
+class Test_Training(unittest.TestCase):
 
     def __init__(self, *args, **kwargs) -> None:
-        super(Test_PostProcess, self).__init__(*args, **kwargs)
+        super(Test_Training, self).__init__(*args, **kwargs)
         self.configs = {'results_base_dir': '.'}
         self.configs['model_structure'] = {
             'hidden_sizes': [90]*5,
@@ -44,6 +50,129 @@ class Test_PostProcess(unittest.TestCase):
             training.generate_surrogate_model()
         
         training.generate_surrogate_model(self.configs, main_folder='.')
+
+    def test_train_loop(self):
+
+        try:
+            training.init_seed(self.configs)
+            results_dir = create_directory_timestamp(self.configs["results_base_dir"],
+                                                    '.')
+
+            dataloaders, amplification, info_dict = get_dataloaders(self.configs)
+
+            model = NeuralNetworkModel(info_dict["model_structure"])
+            model = TorchUtils.format(model)
+
+            optimizer = Adam(
+                filter(lambda p: p.requires_grad, model.parameters()),
+                lr=self.configs["hyperparameters"]["learning_rate"],
+                betas=(0.9, 0.75),
+            )
+
+            model, performances = training.train_loop(
+                model,
+                info_dict,
+                (dataloaders[0], dataloaders[1]),
+                MSELoss(),
+                optimizer,
+                self.configs["hyperparameters"]["epochs"],
+                amplification,
+                save_dir=results_dir,
+            )
+        except:
+            self.fail("Failed Execution: train_loop()")
+
+    def test_train_step(self):
+
+        try:
+            training.init_seed(self.configs)
+
+            dataloaders, amplification, info_dict = get_dataloaders(self.configs)
+
+            model = NeuralNetworkModel(info_dict["model_structure"])
+            model = TorchUtils.format(model)
+
+            optimizer = Adam(
+                filter(lambda p: p.requires_grad, model.parameters()),
+                lr=self.configs["hyperparameters"]["learning_rate"],
+                betas=(0.9, 0.75),
+            )
+
+            model, running_loss = training.default_train_step(model, dataloaders[0],
+                                                    MSELoss(), optimizer)
+        except:
+            self.fail("Failed Execution: train_step()")
+
+    def test_val_step(self):
+
+        try:
+            training.init_seed(self.configs)
+
+            dataloaders, amplification, info_dict = get_dataloaders(self.configs)
+
+            model = NeuralNetworkModel(info_dict["model_structure"])
+            model = TorchUtils.format(model)
+
+            optimizer = Adam(
+                filter(lambda p: p.requires_grad, model.parameters()),
+                lr=self.configs["hyperparameters"]["learning_rate"],
+                betas=(0.9, 0.75),
+            )
+
+            val_loss = training.default_val_step(model, dataloaders[1],
+                                                    MSELoss())
+        except:
+            self.fail("Failed Execution: val_step()")
+
+    def test_to_device(self):
+        try:
+            dataloaders, amplification, info_dict = get_dataloaders(self.configs)
+            for input, target in dataloaders[0]:
+                input, target = training.to_device(input), training.to_device(target)
+        except:
+            self.fail("Failed Execution: to_device()")
+
+    def test_postprocess():
+        try:
+            training.init_seed(self.configs)
+            results_dir = create_directory_timestamp(self.configs["results_base_dir"],
+                                                    '.')
+
+            dataloaders, amplification, info_dict = get_dataloaders(self.configs)
+
+            model = NeuralNetworkModel(info_dict["model_structure"])
+            model = TorchUtils.format(model)
+
+            optimizer = Adam(
+                filter(lambda p: p.requires_grad, model.parameters()),
+                lr=self.configs["hyperparameters"]["learning_rate"],
+                betas=(0.9, 0.75),
+            )
+
+            model, performances = training.train_loop(
+                model,
+                info_dict,
+                (dataloaders[0], dataloaders[1]),
+                MSELoss(),
+                optimizer,
+                self.configs["hyperparameters"]["epochs"],
+                amplification,
+                save_dir=results_dir,
+            )
+            labels = ["TRAINING", "VALIDATION", "TEST"]
+            for i in range(len(dataloaders)):
+                if dataloaders[i] is not None:
+                    loss = training.postprocess(
+                        dataloaders[i],
+                        model,
+                        MSELoss(),
+                        amplification,
+                        results_dir,
+                        label=labels[i],
+                    )
+        except:
+            self.fail("Failed Execution: postprocess()")
+
 
 if __name__ == "__main__":
     unittest.main()
