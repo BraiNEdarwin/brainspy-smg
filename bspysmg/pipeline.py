@@ -19,6 +19,8 @@ if __name__ == '__main__':
     from bspysmg.data.sampling import Sampler
     from bspysmg.data.postprocess import post_process
     from bspysmg.model.training import generate_surrogate_model
+    import matplotlib
+    matplotlib.use('Agg')
 
     dataset_paths = []
     data_name_base = 'cas_model_new_device_1KSps'
