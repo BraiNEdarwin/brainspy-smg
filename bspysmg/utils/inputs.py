@@ -83,7 +83,7 @@ def sine_wave(time_points: int, frequency: int, phase: float, amplitude: float,
 
     Parameters
     ----------
-    time_points : int
+    time_points : np.array
         Time points to evaluate the function.
     frequency : int
         Frequencies of the inputs.
@@ -111,7 +111,7 @@ def sawtooth_wave(time_points: int, frequency: int, phase: float,
 
     Parameters
     ----------
-    time_points : int
+    time_points : np.array
         Time points to evaluate the function.
     frequency : int
         Frequencies of the inputs.
@@ -234,8 +234,7 @@ def get_frequency(configs: dict) -> np.array:
             - input_frequency: list
                 Base frequencies of the input waves that will be created. In order to optimise
                 coverage, irrational numbers are recommended. The list should have the same
-                length as the activation electrode number. The input frequency list will be
-                square rooted. E.g., for 7 activation electrodes:
+                length as the activation electrode number. E.g., for 7 activation electrodes:
                 input_frequency = [2, 3, 5, 7, 13, 17, 19]
     
     Returns

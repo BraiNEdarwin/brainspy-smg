@@ -324,7 +324,12 @@ class Sampler:
 
     def save_batch(self, *args) -> None:
         """
-            Stores a batch of data on the same IO.dat text comma separated values file.
+        Stores a batch of data on the same IO.dat text comma separated values file.
+        
+        Parameters
+        ----------
+        *args: Tuple[np.array]
+            A set of input and output arrays of a batch which is to be saved.
         """
         if len(args) > 0:
             with open(self.path_to_iodata, '+a') as f:

@@ -90,7 +90,9 @@ def plot_waves(inputs: np.array, outputs: np.array, input_no: int,
                output_no: int, batch: int, legend: np.array,
                save_directory: str) -> None:
     """
-    Plots and saves input and output waves for the model.
+    Plots and saves input and output waves for the model. Image is overwritten 
+    for each batch and it is used to control what is happening to the device
+    input output relationship for each batch.
 
     Parameters
     ----------
@@ -170,7 +172,7 @@ def iv_plot(result: np.array,
             save_plot: bool = None,
             show_plot: bool = False) -> None:
     """
-    Plots IV characteristics and optinally saves the graph
+    Plots IV characteristics and optionally saves the graph
     for a given electrode number.
 
     Parameters

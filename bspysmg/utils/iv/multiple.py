@@ -3,6 +3,7 @@ from brainspy.utils.io import load_configs
 from brainspy.utils.manager import get_driver
 from bspysmg.utils.plots import multi_iv_plot
 from bspysmg.utils.inputs import generate_sawtooth_simple, generate_sinewave
+from typing import List
 
 
 class MultiIVMeasurement():
@@ -126,7 +127,7 @@ class MultiIVMeasurement():
 
         return inputs_array.T
 
-    def gen_input_wfrm(self, input_range: float) -> np.array:
+    def gen_input_wfrm(self, input_range: List[float]) -> np.array:
         """
         Generates input signal to compute the IV response of DNPU device or
         a surrogate model. It uses configs dictionary with the following keys:
@@ -144,8 +145,8 @@ class MultiIVMeasurement():
 
         Parameters
         ----------
-            input_range : float
-                Maximum voltage that the signal will achieve. Minimum voltage is 0.
+            input_range : List[float]
+                Minimum and maximum voltage that the signal will achieve.
 
         Returns
         ----------
