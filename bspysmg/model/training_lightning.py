@@ -17,6 +17,7 @@ import pytorch_lightning as pl
 from pytorch_lightning import seed_everything
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 
+
 def init_seed(configs: dict) -> None:
     """
     Initializes a random seed for training. A random seed is a starting point for pseudorandom
@@ -41,14 +42,15 @@ def init_seed(configs: dict) -> None:
 
 
 class TrainingModel(pl.LightningModule):
-    def __init__(self, 
-                model: torch.nn.Module,
-                dataloaders: List[torch.utils.data.Dataloader],
-                criterion: torch.nn.MSELoss,
-                custom_optimizer: torch.optim.Optimizer,
-                amplification: float,
-                learning_rate: float = 1e-3,
-                ) -> None:
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        dataloaders: List[torch.utils.data.Dataloader],
+        criterion: torch.nn.MSELoss,
+        custom_optimizer: torch.optim.Optimizer,
+        amplification: float,
+        learning_rate: float = 1e-3,
+    ) -> None:
 
         super(TrainingModel, self).__init__()
         self.name = 'custom'
@@ -58,14 +60,15 @@ class TrainingModel(pl.LightningModule):
         self.criterion = criterion
         self.learning_rate = learning_rate
         self.amplification = amplification
-        self.train_losses, self.val_losses = TorchUtils.format([]), TorchUtils.format([])
+        self.train_losses, self.val_losses = TorchUtils.format(
+            []), TorchUtils.format([])
         self.description = ""
 
     def configure_optimizers(self):
-        opt = self.custom_opt(filter(lambda p: p.requires_grad, self.parameters()),
-                            lr=self.learning_rate,
-                            betas=(0.9, 0.75)
-                            )
+        opt = self.custom_opt(filter(lambda p: p.requires_grad,
+                                     self.parameters()),
+                              lr=self.learning_rate,
+                              betas=(0.9, 0.75))
         return opt
 
     def train_dataloader(self):
@@ -91,8 +94,8 @@ class TrainingModel(pl.LightningModule):
 
         running_loss = torch.sqrt(loss)
         running_loss *= self.amplification
-        self.train_losses = torch.cat((self.train_losses, running_loss.unsqueeze(dim=0)),
-                                 dim=0)
+        self.train_losses = torch.cat(
+            (self.train_losses, running_loss.unsqueeze(dim=0)), dim=0)
         self.description = "Training loss (RMSE): {:.6f} (nA)\n".format(
             self.train_losses[-1].item())
         return loss
@@ -108,8 +111,8 @@ class TrainingModel(pl.LightningModule):
             self.log('val_loss', loss, prog_bar=True)
             val_loss = torch.sqrt(loss)
             val_loss *= self.amplification
-            self.val_losses = torch.cat((self.val_losses, val_loss.unsqueeze(dim=0)),
-                                dim=0)
+            self.val_losses = torch.cat(
+                (self.val_losses, val_loss.unsqueeze(dim=0)), dim=0)
             self.description += "Validation loss (RMSE): {:.6f} (nA)\n".format(
                 self.val_losses[-1].item())
             self.log(self.description)
@@ -212,21 +215,18 @@ def generate_surrogate_model(configs: dict,
     # model.set_info_dict(info_dict)
     model = TorchUtils.format(model)
 
-    model_lightning = TrainingModel(model,
-                                    dataloaders,
-                                    criterion,
-                                    custom_optimizer,
-                                    amplification,
-                                    configs["hyperparameters"]["learning_rate"]
-                                    )
+    model_lightning = TrainingModel(
+        model, dataloaders, criterion, custom_optimizer, amplification,
+        configs["hyperparameters"]["learning_rate"])
 
     checkpoint_callback = ModelCheckpoint(monitor='val_loss',
-                                        filename='sample-{val_acc:.3f}',
-                                        mode='min')
+                                          filename='sample-{val_acc:.3f}',
+                                          mode='min')
     earlystopping_callback = EarlyStopping(monitor="val_loss", mode="min")
-    
-    trainer = pl.Trainer(max_epochs=configs["hyperparameters"]["epochs"],
-                        callbacks=[checkpoint_callback, earlystopping_callback])
+
+    trainer = pl.Trainer(
+        max_epochs=configs["hyperparameters"]["epochs"],
+        callbacks=[checkpoint_callback, earlystopping_callback])
 
     trainer.fit(model_lightning)
     performances = model_lightning.get_performance()
