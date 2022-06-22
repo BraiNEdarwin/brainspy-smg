@@ -2,12 +2,14 @@ import os
 import math
 import torch
 
-DATA_NAMES = ['training','validation','test']
+DATA_NAMES = ['training', 'validation', 'test']
+
 
 def get_random_phases(activation_electrode_no=7, first_zero=True):
-    phases = (torch.rand((3,activation_electrode_no)) - 0.5 ) * 720 # Get values between -360 and 360 (degrees)
-    phases *= (math.pi / 180) # convert to radians
-    if first_zero: # Enable the training dataset to have zero phase
+    phases = (torch.rand((3, activation_electrode_no)) -
+              0.5) * 720  # Get values between -360 and 360 (degrees)
+    phases *= (math.pi / 180)  # convert to radians
+    if first_zero:  # Enable the training dataset to have zero phase
         phases[0] *= 0
     return phases.detach().cpu().numpy().tolist()
 
@@ -20,7 +22,7 @@ if __name__ == '__main__':
     from bspysmg.model.training import generate_surrogate_model
 
     dataset_paths = []
-    data_name_base = 'old_boron_doped_high_ranges_'
+    data_name_base = 'custom_model'
     number_batches = [3880,388,388]
     phases = get_random_phases()
 
@@ -44,5 +46,4 @@ if __name__ == '__main__':
             f"max out {outputs.max()} max min {outputs.min()} shape {outputs.shape}"
         )
     smg_configs['data']['dataset_paths'] = dataset_paths
-    generate_surrogate_model(smg_configs)
-        
+    generate_surrogate_model(smg_configs)   
