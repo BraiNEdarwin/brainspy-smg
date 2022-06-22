@@ -1,6 +1,7 @@
 import torch
+import math
 import numpy as np
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, random_split
 from brainspy.utils.pytorch import TorchUtils
 from typing import Tuple, List
 
@@ -282,7 +283,15 @@ def get_dataloaders(
         * data:
         dataset_paths: list[str]
             A list of paths to the Training, Validation and Test datasets, stored as
-            postprocessed_data.npz
+            postprocessed_data.npz. It also supports adding a single training dataset, and splitting
+            it using the configuration split_percentages.
+        split_percentages: list[float] (Optional)
+            When provided together a single dataset path, in the dataset_paths list, this variable
+            allows to split it into training, validation and test datasets by providing the split
+            percentage values. E.g. [0.8, 0.2] will split the training dataset into 80% of the data
+            for training and 20% of the data for validation. Similarly, [0.8, 0.1, 0.1] will split
+            the training dataset into 80%, 10% for validation dataset and 10% for test dataset. Note
+            that all split values in the list should add to 1.
         steps : int
             It allows to skip parts of the data when loading it into memory. The number indicates
             how many items will be skipped in between. By default, step number is one (no values
@@ -307,34 +316,70 @@ def get_dataloaders(
     # Only training configs will be taken into account for info dict
     # For ranges and etc.
     assert 'data' in configs and 'dataset_paths' in configs['data']
-    assert isinstance(configs['data']['dataset_paths'], list), "Paths for datasets should be passed as a list"
+    assert isinstance(configs['data']['dataset_paths'],
+                      list), "Paths for datasets should be passed as a list"
     assert configs['data']['dataset_paths'] != [], "Empty paths for datasets"
     datasets = []
     info_dict = None
     amplification = None
     dataset_names = ['train', 'validation', 'test']
-    for i in range(len(configs['data']['dataset_paths'])):
-        dataset = ModelDataset(configs['data']['dataset_paths'][i],
-                               steps=configs['data']['steps'],
-                               tag=dataset_names[i])
+    if len(configs['data']['dataset_paths']) > 1:
+        for i in range(len(configs['data']['dataset_paths'])):
+            dataset = ModelDataset(configs['data']['dataset_paths'][i],
+                                   steps=configs['data']['steps'],
+                                   tag=dataset_names[i])
 
-        if i > 0:
-            amplification_aux = TorchUtils.format(info_dict["sampling_configs"]["driver"]["amplification"])
-            assert torch.eq(amplification_aux, amplification).all(), (
-                "Amplification correction factor should be the same for all datasets."
-                + "Check if all datasets come from the same setup.")
-            info_dict[dataset_names[i] +
-                      '_sampling_configs'] = dataset.sampling_configs
+            if i > 0:
+                amplification_aux = TorchUtils.format(
+                    info_dict["sampling_configs"]["driver"]["amplification"])
+                assert torch.eq(amplification_aux, amplification).all(), (
+                    "Amplification correction factor should be the same for all datasets."
+                    + "Check if all datasets come from the same setup.")
+                info_dict[dataset_names[i] +
+                          '_sampling_configs'] = dataset.sampling_configs
+            else:
+                info_dict = get_info_dict(configs, dataset.sampling_configs)
+            amplification = TorchUtils.format(
+                info_dict["sampling_configs"]["driver"]["amplification"])
+            datasets.append(dataset)
+    else:
+        dataset = ModelDataset(configs['data']['dataset_paths'][0],
+                               steps=configs['data']['steps'],
+                               tag=dataset_names[0])
+        info_dict = get_info_dict(configs, dataset.sampling_configs)
+        amplification = TorchUtils.format(
+            info_dict["sampling_configs"]["driver"]["amplification"])
+
+        assert sum(
+            configs['data']
+            ['split_percentages']) == 1, "Split percentages should add to one"
+        assert len(configs['data']['split_percentages']) <= 2 and len(
+            configs['data']['split_percentages']
+        ) >= 1, "Split percentage list should only allow from one to three values. For training, validation datasets."
+        if len(configs['data']['split_percentages']) == 1:
+            datasets = [dataset, None]
         else:
-            info_dict = get_info_dict(configs, dataset.sampling_configs)
-        amplification = TorchUtils.format(info_dict["sampling_configs"]["driver"]["amplification"])
-        datasets.append(dataset)
+            train_set_size = math.ceil(
+                configs['data']['split_percentages'][0] * len(dataset))
+            valid_set_size = math.floor(
+                configs['data']['split_percentages'][1] * len(dataset))
+
+            if len(configs['data']['split_percentages']) == 2:
+                datasets = list(
+                    random_split(dataset, [train_set_size, valid_set_size]))
+            else:
+                test_set_size = math.floor(
+                    configs['data']['split_percentages'][2] * len(dataset))
+                datasets = list(
+                    random_split(
+                        dataset,
+                        [train_set_size, valid_set_size, test_set_size]))
 
     # Create dataloaders
     dataloaders = []
     shuffle = [True, False, False]
     for i in range(len(datasets)):
-        if len(datasets[i]) != 0:
+        if len(datasets[i]) != 0 and datasets[i] is not None:
             dataloaders.append(
                 DataLoader(
                     dataset=datasets[i],
