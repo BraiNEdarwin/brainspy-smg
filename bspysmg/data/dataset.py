@@ -7,10 +7,7 @@ from typing import Tuple, List
 
 
 class ModelDataset(Dataset):
-    def __init__(self,
-                 filename: str,
-                 steps: int = 1,
-                 tag: str = 'train') -> None:
+    def __init__(self, filename: str, steps: int = 1) -> None:
         """Initialisation of the dataset. It loads a posprocessed_data.npz file into memory.
         The targets of this file are divided by the amplification correction factor, so that
         data is made setup independent.
@@ -24,8 +21,6 @@ class ModelDataset(Dataset):
             how many items will be skipped in between. By default, step number is one (no values
             are skipped). E.g., if steps = 2, and the inputs are [0, 1, 2, 3, 4, 5, 6]. The only
             inputs taken into account would be: [0, 2, 4, 6].
-        tag : str
-            Name of the dataset. I.e., train, validation or test.
 
         Storage
         ----------
@@ -71,9 +66,6 @@ class ModelDataset(Dataset):
                         self.sampling_configs["driver"]["amplification"])
         self.inputs = TorchUtils.format(self.inputs)
         self.targets = TorchUtils.format(self.targets)
-        if tag not in ["train", "validation", "test"]:
-            raise ValueError("tag should be one of [train, validation, test]")
-        self.tag = tag
 
         assert len(self.inputs) == len(
             self.targets), "Inputs and Outpus have NOT the same length"
@@ -326,8 +318,7 @@ def get_dataloaders(
     if len(configs['data']['dataset_paths']) > 1:
         for i in range(len(configs['data']['dataset_paths'])):
             dataset = ModelDataset(configs['data']['dataset_paths'][i],
-                                   steps=configs['data']['steps'],
-                                   tag=dataset_names[i])
+                                   steps=configs['data']['steps'])
 
             if i > 0:
                 amplification_aux = TorchUtils.format(
@@ -344,8 +335,7 @@ def get_dataloaders(
             datasets.append(dataset)
     else:
         dataset = ModelDataset(configs['data']['dataset_paths'][0],
-                               steps=configs['data']['steps'],
-                               tag=dataset_names[0])
+                               steps=configs['data']['steps'])
         info_dict = get_info_dict(configs, dataset.sampling_configs)
         amplification = TorchUtils.format(
             info_dict["sampling_configs"]["driver"]["amplification"])
@@ -353,7 +343,7 @@ def get_dataloaders(
         assert sum(
             configs['data']
             ['split_percentages']) == 1, "Split percentages should add to one"
-        assert len(configs['data']['split_percentages']) <= 2 and len(
+        assert len(configs['data']['split_percentages']) <= 3 and len(
             configs['data']['split_percentages']
         ) >= 1, "Split percentage list should only allow from one to three values. For training, validation datasets."
         if len(configs['data']['split_percentages']) == 1:
@@ -368,8 +358,7 @@ def get_dataloaders(
                 datasets = list(
                     random_split(dataset, [train_set_size, valid_set_size]))
             else:
-                test_set_size = math.floor(
-                    configs['data']['split_percentages'][2] * len(dataset))
+                test_set_size = len(dataset) - train_set_size - valid_set_size
                 datasets = list(
                     random_split(
                         dataset,
@@ -380,14 +369,15 @@ def get_dataloaders(
     shuffle = [True, False, False]
     for i in range(len(datasets)):
         if len(datasets[i]) != 0 and datasets[i] is not None:
-            dataloaders.append(
-                DataLoader(
-                    dataset=datasets[i],
-                    batch_size=configs["data"]["batch_size"],
-                    num_workers=configs["data"]["worker_no"],
-                    pin_memory=configs["data"]["pin_memory"],
-                    shuffle=shuffle[i],
-                ))
+            dl = DataLoader(
+                dataset=datasets[i],
+                batch_size=configs["data"]["batch_size"],
+                num_workers=configs["data"]["worker_no"],
+                pin_memory=configs["data"]["pin_memory"],
+                shuffle=shuffle[i],
+            )
+            dl.tag = dataset_names[i]
+            dataloaders.append(dl)
         else:
             dataloaders.append(None)
     return dataloaders, amplification, info_dict

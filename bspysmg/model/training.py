@@ -162,7 +162,7 @@ def generate_surrogate_model(
     plt.plot(TorchUtils.to_numpy(performances[0]))
     if len(performances) > 1 and not len(performances[1]) == 0:
         plt.plot(TorchUtils.to_numpy(performances[1]))
-    if dataloaders[-1].dataset.tag == 'test':
+    if dataloaders[-1].tag == 'test':
         plt.plot(np.ones(len(performances[-1])) * TorchUtils.to_numpy(loss))
         plt.title("Training profile /n Test loss : %.6f (nA)" % loss)
     else:
@@ -172,7 +172,7 @@ def generate_surrogate_model(
     plt.xlabel("Epoch no.")
     plt.ylabel("RMSE (nA)")
     plt.savefig(os.path.join(results_dir, "training_profile"))
-    if not dataloaders[-1].dataset.tag == 'train':
+    if not dataloaders[-1].tag == 'train':
         training_data = torch.load(
             os.path.join(results_dir, "training_data.pt"))
         training_data['test_loss'] = loss
@@ -518,5 +518,5 @@ if __name__ == "__main__":
     from brainspy.utils.io import load_configs
 
     configs = load_configs("configs/training/smg_configs_template.yaml")
-    
+
     generate_surrogate_model(configs)
