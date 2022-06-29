@@ -127,7 +127,7 @@ class TrainingModel(pl.LightningModule):
             #     self.val_losses[-1].item())
             #self.log(self.description)
             self.log('loss_epoch', {'val': loss}, on_step=False, on_epoch=True)
-            self.log('loss_epoch_na', {'val': val_loss},
+            self.log('loss_epoch_rmse_na', {'val': val_loss},
                      on_step=False,
                      on_epoch=True)
             self.log('val_loss(nA)', val_loss, prog_bar=True)
@@ -226,6 +226,7 @@ def postprocess(dataloader: torch.utils.data.DataLoader,
 
 if __name__ == "__main__":
     from brainspy.utils.io import load_configs
+    from pytorch_lightning.callbacks import QuantizationAwareTraining
 
     configs = load_configs("configs/training/smg_configs_template.yaml")
     custom_model = NeuralNetworkModel
@@ -253,12 +254,13 @@ if __name__ == "__main__":
     checkpoint_callback = ModelCheckpoint(monitor='val_loss(nA)',
                                           filename='sample-{val_acc:.3f}',
                                           mode='min')
-    earlystopping_callback = EarlyStopping(monitor="val_loss(nA)", mode="min")
+    #earlystopping_callback = EarlyStopping(monitor="val_loss(nA)", mode="min")
 
-    trainer = pl.Trainer(
-        gpus=1,
-        max_epochs=configs["hyperparameters"]["epochs"],
-        callbacks=[checkpoint_callback, earlystopping_callback])
+    trainer = pl.Trainer(gpus=1,
+                         max_epochs=configs["hyperparameters"]["epochs"],
+                         callbacks=[checkpoint_callback]
+                         #, resume_from_checkpoint=''
+                         )
 
     trainer.fit(model_lightning)
     performances = model_lightning.get_performance()
