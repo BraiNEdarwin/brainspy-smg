@@ -76,8 +76,8 @@ def get_input_generator(configs: dict) -> Tuple[dict, Callable]:
         )
 
 
-def sine_wave(time_points: np.array, frequency: float, phase: float, amplitude: float,
-              offset: float) -> np.array:
+def sine_wave(time_points: np.array, frequency: float, phase: float,
+              amplitude: float, offset: float) -> np.array:
     """
     Generates a sine wave.
 
@@ -212,13 +212,15 @@ def load_configs(config_dict: dict) -> dict:
     """
     configs = config_dict["input_data"]
     assert (
-        config_dict["driver"]["instruments_setup"]["activation_sampling_frequency"] ==
-        config_dict["driver"]["instruments_setup"]["readout_sampling_frequency"] or
-        config_dict['driver']["instruments_setup"]["average_io_point_difference"]
-    ), (
-        "Surrogate Model generation only supports same activation and" +
-        " readout frequencies or averaging.")
-    configs['sampling_frequency'] = config_dict["driver"]["instruments_setup"]["activation_sampling_frequency"]
+        config_dict["driver"]["instruments_setup"]
+        ["activation_sampling_frequency"] == config_dict["driver"]
+        ["instruments_setup"]["readout_sampling_frequency"]
+        or config_dict['driver']["instruments_setup"]
+        ["average_io_point_difference"]), (
+            "Surrogate Model generation only supports same activation and" +
+            " readout frequencies or averaging.")
+    configs['sampling_frequency'] = config_dict["driver"]["instruments_setup"][
+        "activation_sampling_frequency"]
     configs['input_frequency'] = get_frequency(configs)
     configs['phase'] = np.array(configs['phase'])[:, np.newaxis]
     configs['amplitude'] = np.array(configs['amplitude'])[:, np.newaxis]
@@ -252,8 +254,8 @@ def get_frequency(configs: dict) -> np.array:
     """
     aux = np.array(configs['input_frequency'])[:, np.newaxis]
     # TODO: Check the optimal value for 0.001
-    return np.sqrt(
-        aux[:configs['activation_electrode_no']]) * (0.001 * configs['sampling_frequency'])  # configs['factor']
+    return np.sqrt(aux[:configs['activation_electrode_no']]) * (
+        0.001 * configs['sampling_frequency'])  # configs['factor']
 
 
 def generate_sawtooth_multiple(input_range, n_points, direction) -> np.array:
@@ -323,7 +325,8 @@ def generate_sawtooth_simple(v_low: float,
 
     ramp1 = np.linspace(0, v_low, round((point_no * v_low) / (v_low - v_high)))
     ramp2 = np.linspace(v_low, v_high, point_no)
-    ramp3 = np.linspace(v_high, 0, round((point_no * v_high) / (v_high - v_low)))
+    ramp3 = np.linspace(v_high, 0, round(
+        (point_no * v_high) / (v_high - v_low)))
 
     result = np.concatenate((ramp1, ramp2, ramp3))
     return result
@@ -357,3 +360,25 @@ def generate_sinewave(n: int,
     phases = points * 2 * np.pi * freq
 
     return np.sin(phases + phase) * amplitude
+
+
+def get_random_phase(activation_electrode_no=7):
+    """
+    Generates a list containing different random phases for each activation electrodes.
+    It can be used before gathering the data, in order to randomize the phase of the
+    input during the data acquisition after one or few sampling batches.
+
+    Parameters
+    ----------
+    activation_electrode_no: int
+        The number of activation electrodes for which the phase will be generated.
+
+    Returns
+    ---------
+    list
+        Generated phases for activation electrodes.
+    """
+    phase = (np.random.rand((activation_electrode_no)) -
+             0.5) * 720  # Get values between -360 and 360 (degrees)
+    phase *= (np.pi / 180)  # convert to radians
+    return phase[:, np.newaxis]  #.tolist()

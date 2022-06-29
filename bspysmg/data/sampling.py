@@ -4,6 +4,7 @@ from bspysmg.utils.inputs import get_input_generator
 from brainspy.utils.io import create_directory_timestamp as mkdir
 from brainspy.utils.io import save_configs
 from bspysmg.utils.plots import plot_waves
+from bspysmg.utils.inputs import get_random_phase
 from more_itertools import grouper
 import matplotlib.pyplot as plt
 import numpy as np
@@ -50,10 +51,12 @@ class Sampler:
                     coverage, irrational numbers are recommended. The list should have the same
                     length as the activation electrode number. E.g., for 7 activation electrodes:
                     input_frequency = [2, 3, 5, 7, 13, 17, 19]
-                - phase : float
-                    Horizontal shift of the input signals. It is recommended to have random numbers
-                    which are different for the training, validation and test datasets. These
-                    numbers will be square rooted and multiplied by a given factor.
+                - random_phase_shift_each : int
+                    The input data for each activation electrode can be shifted horizontally by
+                    changing its phase. This is a randomised process. This variable represents
+                    at how many batched samples the phase will be randomised. This will cover the
+                    input space faster and increase the data quality such that less data is needed.
+                    If the value is 0, no phase shift will be applied.
                 - factor : float
                     Given factor by which the input frequencies will be multiplied after square
                     rooting them.
@@ -78,6 +81,8 @@ class Sampler:
                     Time that the sampling of each batch will take.
                 - number_batches: int
                     Number of batches that will be sampled. A default value of 3880 is reccommended.
+                - randomise_phase_each: int (Optional)
+                    Specifies at how many epochs 
         """
         self.driver = get_driver(configs["driver"])
         self.configs = configs
@@ -91,8 +96,12 @@ class Sampler:
         to the voltage ranges specified in the driver. It stores them into the configuration
         dictionary (input_data/amplitude and input_data/offset).
         """
-        assert isinstance(self.configs['driver']['instruments_setup']['activation_voltage_ranges'], list),"Voltage ranges should be passed as a list"
-        assert self.configs['driver']['instruments_setup']['activation_voltage_ranges'] != [], "Empty array for voltage ranges"
+        assert isinstance(
+            self.configs['driver']['instruments_setup']
+            ['activation_voltage_ranges'],
+            list), "Voltage ranges should be passed as a list"
+        assert self.configs['driver']['instruments_setup'][
+            'activation_voltage_ranges'] != [], "Empty array for voltage ranges"
 
         voltage_ranges = np.array(self.configs['driver']['instruments_setup']
                                   ['activation_voltage_ranges'])
@@ -179,15 +188,19 @@ class Sampler:
         # Initialize sampling loop
         all_time_points = np.arange(
             total_number_samples) / input_dict["sampling_frequency"]
+
+        phase = np.zeros(
+            (self.configs["input_data"]["activation_electrode_no"], 1))
+        phase_randomisation_count = 0
         for batch, batch_indices in enumerate(
                 self.get_batch_indices(total_number_samples, batch_size)):
             start_batch = time.time()
+
             # Generate inputs (without ramping)
             batch += 1
             time_points = all_time_points[batch_indices]
             inputs = self.generate_inputs(time_points,
-                                          input_dict['input_frequency'],
-                                          input_dict['phase'],
+                                          input_dict['input_frequency'], phase,
                                           input_dict['amplitude'],
                                           input_dict['offset'])
             # Get outputs (without ramping)
@@ -203,8 +216,13 @@ class Sampler:
                            legend, self.configs["save_directory"])
             print(
                 f"Outputs collection for batch {batch} of {input_dict['number_batches']} "
-                + f"took {end_batch - start_batch} sec."
-                + f"\nExpected time: {((total_number_samples/batch_size)-batch)*(end_batch - start_batch)/3600} hours.\n")
+                + f"took {end_batch - start_batch} sec.")
+            phase_randomisation_count += 1
+            if input_dict[
+                    'random_phase_shift_each'] >= phase_randomisation_count:
+                phase = get_random_phase(
+                    self.configs["input_data"]["activation_electrode_no"])
+                phase_randomisation_count = 0
         self.close_driver()
         return self.configs["save_directory"]
 
