@@ -1,4 +1,4 @@
-./tests/data/*.png
+*.png
 
 # Visual studio workspace files
 .vscode/*
