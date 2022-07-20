@@ -39,12 +39,14 @@ class Test_PostProcess(unittest.TestCase):
                                   data['outputs'],
                                   clipping_value_range=34)
 
-    def test_type_error_clipping(self):
+    def test_clipping_value_is_none(self):
         data = np.load('tests/data/postprocessed_data.npz')
-        with self.assertRaises(TypeError):
+        try:
             postprocess.clip_data(data['inputs'],
                                   data['outputs'],
                                   clipping_value_range=None)
+        except Exception:
+            self.fail("Failed execution with no clipping value")
 
     def test_post_process(self):
         with self.assertRaises(TypeError):
@@ -60,7 +62,7 @@ class Test_PostProcess(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             inputs, outputs = postprocess.post_process("not_existing_file")
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(AssertionError):
             inputs, output, configs = postprocess.post_process(
                 "tests/data/", [-4, 4], 41.5, 15.1)
 

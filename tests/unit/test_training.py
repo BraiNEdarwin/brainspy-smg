@@ -19,17 +19,17 @@ class Test_Training(unittest.TestCase):
             'activation': 'relu'
         }
         self.configs['hyperparameters'] = {
-            'epochs': 5,
+            'epochs': 2,
             'learning_rate': 1.0e-05
         }
         self.configs['data'] = {
             'dataset_paths': [
-                "tests/unit/data/testing_postprocessed_data.npz",
-                "tests/unit/data/testing_postprocessed_data.npz",
-                "tests/unit/data/testing_postprocessed_data.npz"
+                "tests/data/postprocessed_data.npz",
+                "tests/data/postprocessed_data.npz",
+                "tests/data/postprocessed_data.npz"
             ],
             'steps':
-            3,
+            4,
             'batch_size':
             128,
             'worker_no':
@@ -78,15 +78,44 @@ class Test_Training(unittest.TestCase):
 
             model, performances = training.train_loop(
                 model,
-                info_dict,
-                (dataloaders[0], dataloaders[1]),
+                info_dict, (dataloaders[0], dataloaders[1]),
                 MSELoss(),
                 optimizer,
                 self.configs["hyperparameters"]["epochs"],
                 amplification,
-                save_dir=results_dir,
+                save_dir=results_dir)
+        except Exception:
+            self.fail("Failed Execution: train_loop()")
+
+    def test_train_loop_no_early_stopping(self):
+
+        try:
+            training.init_seed(self.configs)
+            results_dir = create_directory_timestamp(
+                self.configs["results_base_dir"], '.')
+
+            dataloaders, amplification, info_dict = get_dataloaders(
+                self.configs)
+
+            model = NeuralNetworkModel(info_dict["model_structure"])
+            model = TorchUtils.format(model)
+
+            optimizer = Adam(
+                filter(lambda p: p.requires_grad, model.parameters()),
+                lr=self.configs["hyperparameters"]["learning_rate"],
+                betas=(0.9, 0.75),
             )
-        except:
+
+            model, performances = training.train_loop(
+                model,
+                info_dict, (dataloaders[0], None, None),
+                MSELoss(),
+                optimizer,
+                self.configs["hyperparameters"]["epochs"],
+                amplification,
+                early_stopping=False,
+                save_dir=results_dir)
+        except Exception:
             self.fail("Failed Execution: train_loop()")
 
     def test_train_step(self):
