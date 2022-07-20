@@ -489,16 +489,16 @@ def clip_data(inputs: np.array, outputs: np.array,
         Array containing all the outputs of the device obtained during sampling, except for those
         values for which its corresponding output is above and below the specified clipping range.
     """
-    print(
-        f"\nClipping data outside range {clipping_value_range[0]} and {clipping_value_range[1]}"
-    )
+
     mean_output = np.mean(outputs, axis=1)
+
     # Get cropping mask
     if type(clipping_value_range) is list:
         cropping_mask = (mean_output < clipping_value_range[1]) * (
             mean_output > clipping_value_range[0])
-    elif type(clipping_value_range) is float:
-        cropping_mask = np.abs(mean_output) < clipping_value_range
+        print(
+            f"\nClipping data outside range {clipping_value_range[0]} and {clipping_value_range[1]}"
+        )
     else:
         TypeError(
             f"Clipping value not recognized! Must be list with lower and upper bound or float, was {type(clipping_value_range)}"
@@ -509,31 +509,30 @@ def clip_data(inputs: np.array, outputs: np.array,
     return inputs, outputs
 
 
-def merge_postprocessed_data(file_names,
-                             output_file_name='merged_postprocessed_data.npz'):
-    """[summary]
+# def merge_postprocessed_data(file_names,
+#                              output_file_name='merged_postprocessed_data.npz'):
+#     """[summary]
 
-    Parameters
-    ----------
-    file_names : [type]
-        [description]
-    output_file_name : str, optional
-        [description], by default 'merged_postprocessed_data.npz'
+#     Parameters
+#     ----------
+#     file_names : [type]
+#         [description]
+#     output_file_name : str, optional
+#         [description], by default 'merged_postprocessed_data.npz'
 
-    Example
-    ----------
-    file_names = ['tmp/data/training/Brains_testing_2020_09_04_182557/postprocessed_data.npz',
-     'tmp/data/training/Brains_testing_2020_09_11_093200/postprocessed_data.npz']
-    merge_postprocessed_data(file_names)
-    """
-    ref_data = dict(np.load(file_names[0], allow_pickle='True'))
-    for i in range(1, len(file_names)):
-        data = np.load(file_names[i])
-        for key in list(data):
-            if key != 'info':
-                ref_data[key] = np.append(ref_data[key], data[key], axis=0)
-    np.savez(output_file_name, **ref_data)
-
+#     Example
+#     ----------
+#     file_names = ['tmp/data/training/Brains_testing_2020_09_04_182557/postprocessed_data.npz',
+#      'tmp/data/training/Brains_testing_2020_09_11_093200/postprocessed_data.npz']
+#     merge_postprocessed_data(file_names)
+#     """
+#     ref_data = dict(np.load(file_names[0], allow_pickle='True'))
+#     for i in range(1, len(file_names)):
+#         data = np.load(file_names[i])
+#         for key in list(data):
+#             if key != 'info':
+#                 ref_data[key] = np.append(ref_data[key], data[key], axis=0)
+#     np.savez(output_file_name, **ref_data)
 
 # def data_merger(main_dir, activation_electrode_no=7, readout_electrode_no=1):
 #     # EXAMPLE
@@ -585,23 +584,23 @@ def merge_postprocessed_data(file_names,
 #              outputs=output_results[limit:],
 #              info=info)
 
-if __name__ == "__main__":
-    # import matplotlib
+#if __name__ == "__main__":
+# import matplotlib
 
-    # matplotlib.use('TkAgg')
-    main_dir = "C:/Users/Unai/Documents/github/brainspy-smg/tmp/brains_setup/sampling_data_1KSPS_arsenic_test_2022_03_17_171248"
-    inputs, outputs, info = post_process(main_dir,
-                                         clipping_value=[-114, 114],
-                                         filename="postprocessed_data_clipped")
-    # dirs = list(
-    #     [
-    #         name
-    #         for name in os.listdir(main_dir)
-    #         if os.path.isdir(os.path.join(main_dir, name)) and not name.startswith(".")
-    #     ]
-    # )
+# matplotlib.use('TkAgg')
+# main_dir = "C:/Users/Unai/Documents/github/brainspy-smg/tmp/brains_setup/sampling_data_1KSPS_arsenic_test_2022_03_17_171248"
+# inputs, outputs, info = post_process(main_dir,
+#                                      clipping_value=[-114, 114],
+#                                      filename="postprocessed_data_clipped")
+# dirs = list(
+#     [
+#         name
+#         for name in os.listdir(main_dir)
+#         if os.path.isdir(os.path.join(main_dir, name)) and not name.startswith(".")
+#     ]
+# )
 
-    # assert len(dirs) > 0
-    # for i in range(len(dirs)):
-    # inputs, outputs, info = post_process(main_dir)
-    # output_hist(outputs, os.path.join(main_dir, dirs[i]), bins=1000, show=True)
+# assert len(dirs) > 0
+# for i in range(len(dirs)):
+# inputs, outputs, info = post_process(main_dir)
+# output_hist(outputs, os.path.join(main_dir, dirs[i]), bins=1000, show=True)
