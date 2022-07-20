@@ -368,7 +368,7 @@ def get_dataloaders(
     dataloaders = []
     shuffle = [True, False, False]
     for i in range(len(datasets)):
-        if len(datasets[i]) != 0 and datasets[i] is not None:
+        if datasets[i] is not None and len(datasets[i]) != 0:
             dl = DataLoader(
                 dataset=datasets[i],
                 batch_size=configs["data"]["batch_size"],
