@@ -4,7 +4,6 @@ import numpy as np
 
 
 class Test_Plots(unittest.TestCase):
-
     def test_error_hist(self):
 
         target = np.random.uniform(0, 1, size=100)
@@ -16,16 +15,17 @@ class Test_Plots(unittest.TestCase):
             plots.plot_error_hist(target, predictions, error, mse, ".")
         except:
             self.fail("Failed in creating error hist")
-        
+
         with self.assertRaises(AttributeError):
-            plots.plot_error_hist(list(target), list(predictions), list(error), mse, ".")
-        
+            plots.plot_error_hist(list(target), list(predictions), list(error),
+                                  mse, ".")
+
         with self.assertRaises(TypeError):
             plots.plot_error_hist()
-        
+
         with self.assertRaises(AssertionError):
             plots.plot_error_hist(target, predictions, np.array([0]), mse, ".")
-        
+
         with self.assertRaises(AssertionError):
             plots.plot_error_hist(target, predictions, error, -1, ".")
 
@@ -38,13 +38,13 @@ class Test_Plots(unittest.TestCase):
             plots.plot_error_vs_output(target, error, ".")
         except:
             self.fail("Failed in creating error vs output hist")
-        
+
         with self.assertRaises(AttributeError):
             plots.plot_error_vs_output(list(target), list(error), ".")
-        
+
         with self.assertRaises(TypeError):
             plots.plot_error_vs_output()
-        
+
         with self.assertRaises(AssertionError):
             plots.plot_error_vs_output(target, np.array([0]), ".")
 
@@ -75,9 +75,9 @@ class Test_Plots(unittest.TestCase):
             plots.iv_plot(result, 10, ".", False)
             plots.iv_plot(result, 1.1, ".", True)
             plots.iv_plot(list(result), 2, ".", True, True)
-        except:
+        except Exception:
             self.fail("Fail in creating IV curve.")
-        
+
         with self.assertRaises(TypeError):
             plots.iv_plot()
 
