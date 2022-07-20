@@ -34,7 +34,14 @@ def get_sampling_data(filename: str, activation_electrode_no: int,
     """
     print("\nLoading file: " + filename)
     print("This may take some time. Please wait.\n")
+    assert type(activation_electrode_no
+                ) is int, "Activation electrode number expected to be int"
+    assert type(readout_electrode_no
+                ) is int, "Readout electrode number expected to be int"
     data = np.loadtxt(filename)
+    assert data.shape[1] == (
+        activation_electrode_no + readout_electrode_no
+    ), "Data from the file has a different electrode configuration. Check the activation electrode no and the readout electrode no"
     inputs = data[:, :activation_electrode_no]
     outputs = data[:, -readout_electrode_no:]
     return inputs, outputs
@@ -42,9 +49,9 @@ def get_sampling_data(filename: str, activation_electrode_no: int,
 
 def post_process(data_dir: str,
                  clipping_value="default",
-                 charging_signal_batch_no: int=40,
-                 reference_signal_batch_no: int=15,
-                 filename : str="postprocessed_data",
+                 charging_signal_batch_no: int = 40,
+                 reference_signal_batch_no: int = 15,
+                 filename: str = "postprocessed_data",
                  **kwargs) -> Tuple[np.array, np.array, dict]:
     """
     Postprocesses the data, cleans any clipping (optional), and merges data sets if needed. The data
@@ -584,7 +591,9 @@ if __name__ == "__main__":
 
     # matplotlib.use('TkAgg')
     main_dir = "C:/Users/Unai/Documents/github/brainspy-smg/tmp/brains_setup/sampling_data_1KSPS_arsenic_test_2022_03_17_171248"
-    inputs, outputs, info = post_process(main_dir, clipping_value=[-114,114], filename="postprocessed_data_clipped")
+    inputs, outputs, info = post_process(main_dir,
+                                         clipping_value=[-114, 114],
+                                         filename="postprocessed_data_clipped")
     # dirs = list(
     #     [
     #         name
