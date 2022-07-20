@@ -133,6 +133,11 @@ def post_process(data_dir: str,
                     readout.
 
     """
+    assert type(charging_signal_batch_no
+                ) is int, "charging_signal_batch_no should be an integer"
+    assert type(reference_signal_batch_no
+                ) is int, "reference_signal_batch_no should be an integer"
+    assert data_dir is not None
     configs = load_configs(os.path.join(data_dir, "sampler_configs.json"))
     activation_electrode_no = configs["input_data"]["activation_electrode_no"]
     readout_electrode_no = configs["input_data"]["readout_electrode_no"]
@@ -499,14 +504,15 @@ def clip_data(inputs: np.array, outputs: np.array,
         print(
             f"\nClipping data outside range {clipping_value_range[0]} and {clipping_value_range[1]}"
         )
+        outputs = outputs[cropping_mask]
+        inputs = inputs[cropping_mask, :]
+        return inputs, outputs
+    elif clipping_value_range is None:
+        return inputs, outputs
     else:
-        TypeError(
+        raise TypeError(
             f"Clipping value not recognized! Must be list with lower and upper bound or float, was {type(clipping_value_range)}"
         )
-
-    outputs = outputs[cropping_mask]
-    inputs = inputs[cropping_mask, :]
-    return inputs, outputs
 
 
 # def merge_postprocessed_data(file_names,
