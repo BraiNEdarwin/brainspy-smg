@@ -317,22 +317,25 @@ def get_dataloaders(
     dataset_names = ['train', 'validation', 'test']
     if len(configs['data']['dataset_paths']) > 1:
         for i in range(len(configs['data']['dataset_paths'])):
-            dataset = ModelDataset(configs['data']['dataset_paths'][i],
-                                   steps=configs['data']['steps'])
+            if configs['data']['dataset_paths'][i] is not None:
+                dataset = ModelDataset(configs['data']['dataset_paths'][i],
+                                       steps=configs['data']['steps'])
 
-            if i > 0:
-                amplification_aux = TorchUtils.format(
+                if i > 0:
+                    amplification_aux = TorchUtils.format(
+                        info_dict["sampling_configs"]["driver"]
+                        ["amplification"])
+                    assert torch.eq(amplification_aux, amplification).all(), (
+                        "Amplification correction factor should be the same for all datasets."
+                        + "Check if all datasets come from the same setup.")
+                    info_dict[dataset_names[i] +
+                              '_sampling_configs'] = dataset.sampling_configs
+                else:
+                    info_dict = get_info_dict(configs,
+                                              dataset.sampling_configs)
+                amplification = TorchUtils.format(
                     info_dict["sampling_configs"]["driver"]["amplification"])
-                assert torch.eq(amplification_aux, amplification).all(), (
-                    "Amplification correction factor should be the same for all datasets."
-                    + "Check if all datasets come from the same setup.")
-                info_dict[dataset_names[i] +
-                          '_sampling_configs'] = dataset.sampling_configs
-            else:
-                info_dict = get_info_dict(configs, dataset.sampling_configs)
-            amplification = TorchUtils.format(
-                info_dict["sampling_configs"]["driver"]["amplification"])
-            datasets.append(dataset)
+                datasets.append(dataset)
     else:
         dataset = ModelDataset(configs['data']['dataset_paths'][0],
                                steps=configs['data']['steps'])
