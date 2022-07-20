@@ -138,16 +138,16 @@ def post_process(data_dir: str,
     readout_electrode_no = configs["input_data"]["readout_electrode_no"]
 
     # If the data comes from multiple sources. Merge them first.
-    if "list_data" in kwargs.keys():
-        inputs, outputs, configs = data_merger(
-            data_dir,
-            kwargs["list_data"],
-            activation_electrode_no=activation_electrode_no,
-            readout_electrode_no=readout_electrode_no)
-    elif len(kwargs.keys()) > 0:
-        assert (
-            False
-        ), f"{list(kwargs.keys())} not recognized! kwargs must be list_data"
+    # if "list_data" in kwargs.keys():
+    #     inputs, outputs, configs = data_merger(
+    #         data_dir,
+    #         kwargs["list_data"],
+    #         activation_electrode_no=activation_electrode_no,
+    #         readout_electrode_no=readout_electrode_no)
+    # elif len(kwargs.keys()) > 0:
+    #     assert (
+    #         False
+    #     ), f"{list(kwargs.keys())} not recognized! kwargs must be list_data"
 
     inputs, outputs = get_sampling_data(
         os.path.join(data_dir, "IO.dat"),
@@ -535,56 +535,55 @@ def merge_postprocessed_data(file_names,
     np.savez(output_file_name, **ref_data)
 
 
-def data_merger(main_dir, activation_electrode_no=7, readout_electrode_no=1):
-    # EXAMPLE
-    #  main_dir = "tmp/output/model_nips"
-    # The post_process function should have a clipping value which is in an amplified scale.
-    # E.g., for an amplitude of 100 -> 345.5
-    # process_multiple(main_dir)
-    shape = 0
-    dirs = list([
-        name for name in os.listdir(main_dir)
-        if os.path.isdir(os.path.join(main_dir, name))
-        and not name.startswith('.')
-    ])
+# def data_merger(main_dir, activation_electrode_no=7, readout_electrode_no=1):
+#     # EXAMPLE
+#     #  main_dir = "tmp/output/model_nips"
+#     # The post_process function should have a clipping value which is in an amplified scale.
+#     # E.g., for an amplitude of 100 -> 345.5
+#     # process_multiple(main_dir)
+#     shape = 0
+#     dirs = list([
+#         name for name in os.listdir(main_dir)
+#         if os.path.isdir(os.path.join(main_dir, name))
+#         and not name.startswith('.')
+#     ])
 
-    assert len(dirs) > 0
-    for i in range(len(dirs)):
-        shape += np.load(os.path.join(main_dir, dirs[i],
-                                      'postprocessed_data.npz'),
-                         allow_pickle=True)['inputs'].shape[0]
+#     assert len(dirs) > 0
+#     for i in range(len(dirs)):
+#         shape += np.load(os.path.join(main_dir, dirs[i],
+#                                       'postprocessed_data.npz'),
+#                          allow_pickle=True)['inputs'].shape[0]
 
-    input_results = np.zeros([shape, activation_electrode_no])
-    output_results = np.zeros([shape, readout_electrode_no])
-    previous_shape = 0
-    for i in range(len(dirs)):
-        data = np.load(os.path.join(main_dir, dirs[i],
-                                    'postprocessed_data.npz'),
-                       allow_pickle=True)
-        current_shape = previous_shape + data['inputs'].shape[0]
-        input_results[previous_shape:current_shape] = data['inputs']
-        output_results[previous_shape:current_shape] = data['outputs']
-        previous_shape = current_shape
-        info = data['info']
+#     input_results = np.zeros([shape, activation_electrode_no])
+#     output_results = np.zeros([shape, readout_electrode_no])
+#     previous_shape = 0
+#     for i in range(len(dirs)):
+#         data = np.load(os.path.join(main_dir, dirs[i],
+#                                     'postprocessed_data.npz'),
+#                        allow_pickle=True)
+#         current_shape = previous_shape + data['inputs'].shape[0]
+#         input_results[previous_shape:current_shape] = data['inputs']
+#         output_results[previous_shape:current_shape] = data['outputs']
+#         previous_shape = current_shape
+#         info = data['info']
 
-    info = dict(np.ndenumerate(info))[()]
-    info['input_data']['input_distribution'] = 'mixed'
-    info['input_data']['phase'] = 'mixed'
-    index = np.random.permutation(np.arange(shape))
-    input_results = input_results[index]
-    output_results = output_results[index]
+#     info = dict(np.ndenumerate(info))[()]
+#     info['input_data']['input_distribution'] = 'mixed'
+#     info['input_data']['phase'] = 'mixed'
+#     index = np.random.permutation(np.arange(shape))
+#     input_results = input_results[index]
+#     output_results = output_results[index]
 
-    limit = int(shape * 0.75)
+#     limit = int(shape * 0.75)
 
-    np.savez(os.path.join(main_dir, 'training_data'),
-             inputs=input_results[:limit],
-             outputs=output_results[:limit],
-             info=info)
-    np.savez(os.path.join(main_dir, 'test_data'),
-             inputs=input_results[limit:],
-             outputs=output_results[limit:],
-             info=info)
-
+#     np.savez(os.path.join(main_dir, 'training_data'),
+#              inputs=input_results[:limit],
+#              outputs=output_results[:limit],
+#              info=info)
+#     np.savez(os.path.join(main_dir, 'test_data'),
+#              inputs=input_results[limit:],
+#              outputs=output_results[limit:],
+#              info=info)
 
 if __name__ == "__main__":
     # import matplotlib
