@@ -60,7 +60,7 @@ class Test_Dataset(unittest.TestCase):
             )
 
     def test_get_dataloaders_two_paths(self):
-        configs = load_configs("configs/training/smg_configs_template.yaml")
+        configs = load_configs("tests/data/smg_configs_template.yaml")
         configs["data"]["dataset_paths"] = [
             "tests/data/postprocessed_data.npz"
         ] * 2
@@ -71,7 +71,7 @@ class Test_Dataset(unittest.TestCase):
                 "Execution Failed: for two dataset paths (train and val)")
 
     def test_get_dataloaders_one_path(self):
-        configs = load_configs("configs/training/smg_configs_template.yaml")
+        configs = load_configs("tests/data/smg_configs_template.yaml")
         configs["data"]["dataset_paths"] = [
             "tests/data/postprocessed_data.npz"
         ]
@@ -81,7 +81,7 @@ class Test_Dataset(unittest.TestCase):
             self.fail("Execution Failed: for a single dataset path (train)")
 
     def test_get_dataloaders_one_path_one_split(self):
-        configs = load_configs("configs/training/smg_configs_template.yaml")
+        configs = load_configs("tests/data/smg_configs_template.yaml")
         configs["data"]["dataset_paths"] = [
             "tests/data/postprocessed_data.npz"
         ]
@@ -92,7 +92,7 @@ class Test_Dataset(unittest.TestCase):
             self.fail("Execution Failed: for a single dataset path (train)")
 
     def test_get_dataloaders_one_path_two_split(self):
-        configs = load_configs("configs/training/smg_configs_template.yaml")
+        configs = load_configs("tests/data/smg_configs_template.yaml")
         configs["data"]["dataset_paths"] = [
             "tests/data/postprocessed_data.npz"
         ]
@@ -112,7 +112,8 @@ class Test_Dataset(unittest.TestCase):
         except Exception:
             self.fail("Execution Failed: for a single dataset path (train)")
 
-     def test_get_dataloaders_assertions(self):
+    def test_get_dataloaders_assertions(self):
+        configs = load_configs("tests/data/smg_configs_template.yaml")
         with self.assertRaises(AssertionError):
             configs_1 = configs.copy()
             configs_1["data"]["dataset_paths"] = []

@@ -1,4 +1,5 @@
 import unittest
+import numpy as np
 from bspysmg.data import postprocess
 
 
@@ -26,6 +27,24 @@ class Test_PostProcess(unittest.TestCase):
         with self.assertRaises(AssertionError):
             inputs, outputs = postprocess.get_sampling_data(
                 "tests/data/IO.dat", 3.1, 1.2)
+
+        with self.assertRaises(AssertionError):
+            inputs, outputs = postprocess.get_sampling_data(
+                "tests/data/IO.dat", 6.1, 1.9)
+
+    def test_type_error_clipping(self):
+        data = np.load('tests/data/postprocessed_data.npz')
+        with self.assertRaises(TypeError):
+            postprocess.clip_data(data['inputs'],
+                                  data['outputs'],
+                                  clipping_value_range=34)
+
+    def test_type_error_clipping(self):
+        data = np.load('tests/data/postprocessed_data.npz')
+        with self.assertRaises(TypeError):
+            postprocess.clip_data(data['inputs'],
+                                  data['outputs'],
+                                  clipping_value_range=None)
 
     def test_post_process(self):
         with self.assertRaises(TypeError):
