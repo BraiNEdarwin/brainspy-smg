@@ -1,4 +1,7 @@
 *.png
+*.npz
+._20*
+tests/data/*
 
 # Visual studio workspace files
 .vscode/*
