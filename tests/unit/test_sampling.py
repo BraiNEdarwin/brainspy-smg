@@ -72,7 +72,7 @@ class Test_Sampling(unittest.TestCase):
                          "Hardware test is skipped for simulation setup.")
     def test_configs_keys(self):
 
-        with self.assertRaises(KeyError):
+        with self.assertRaises(AssertionError):
             configs_1 = copy.deepcopy(self.configs)
             del configs_1['driver']['instruments_setup']
             sampling.Sampler(configs_1)

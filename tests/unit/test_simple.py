@@ -58,4 +58,7 @@ class Test_Simple(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    import bspysmg
+
+    bspysmg.TEST_MODE = 'HARDWARE_CDAQ'
     unittest.main()
