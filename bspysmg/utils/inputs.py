@@ -72,7 +72,7 @@ def get_input_generator(configs: dict) -> Tuple[dict, Callable]:
     #         'Uniform random wave generator not available')
     else:
         raise NotImplementedError(
-            f"Input wave array type {configs['input_distribution']} not recognized"
+            f"Input wave array type {configs['input_data']['input_distribution']} not recognized"
         )
 
 
@@ -258,11 +258,32 @@ def get_frequency(configs: dict) -> np.array:
         0.001 * configs['sampling_frequency'])  # configs['factor']
 
 
-def generate_sawtooth_multiple(input_range, n_points, direction) -> np.array:
+def generate_sawtooth_multiple(input_range,
+                               n_points,
+                               up_direction=True) -> np.array:
+    """Generates a simple sawtooth for a single channel (electrode). It goes from zero to a certain
+    point (v_low), from that point to another point (v_max), and from that last point to zero again.
+    The direction can be inverted using up_direction=True so that the sawtooth goes from zero to 
+    v_max, from v_max to v_min, and from v_min to zero.
 
+    Parameters
+    ----------
+    input_range : linst
+        Minimum and maximum voltages that the sawtooth will achieve.
+    n_points : int
+        Number of points that the sawtooth will have.
+    up_direction : bool, optional
+        Direction of the sawtooth. If true, the sawtooth will go first up and then down. 
+        If False, the sawtooth will go first down and then up. By default False.
+
+    Returns
+    -------
+    np.array
+        An array containing the two pointed sawtooth in a single dimension.
+    """
     n_points = n_points / 2
 
-    if direction == "up":
+    if up_direction:
         Input1 = np.linspace(
             0, input_range[0],
             int((n_points * input_range[0]) /
@@ -272,7 +293,7 @@ def generate_sawtooth_multiple(input_range, n_points, direction) -> np.array:
             input_range[1], 0,
             int((n_points * input_range[1]) /
                 (input_range[1] - input_range[0])))
-    elif direction == "down":
+    else:
         Input1 = np.linspace(
             0, input_range[1],
             int((n_points * input_range[1]) /
@@ -282,8 +303,6 @@ def generate_sawtooth_multiple(input_range, n_points, direction) -> np.array:
             input_range[0], 0,
             int((n_points * input_range[0]) /
                 (input_range[0] - input_range[1])))
-    else:
-        print('Specify the sweep direction')
     result = np.concatenate((Input1, Input2, Input3))
     if not (result.shape[0] == int(n_points * 2)):
         result = np.concatenate((result, np.array([0])))
