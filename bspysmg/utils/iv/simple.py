@@ -7,10 +7,12 @@ from bspysmg.utils.inputs import generate_sawtooth_simple
 from brainspy.processors.processor import Processor
 from brainspy.utils.pytorch import TorchUtils
 import torch
+import collections
 
 
 class IVMeasurement():
-    def __init__(self, configs: dict) -> None:
+    def __init__(self, configs: dict, info: dict = None,
+        model_state_dict: collections.OrderedDict = None) -> None:
         """
         Initializes the driver for which IV curve is to be plotted. It uses a config dict to
         initialize the driver. The driver can be the DNPU device itself (on chip training) or
@@ -29,9 +31,7 @@ class IVMeasurement():
                     - cdaq_to_nidaq
                     - simulation_debug
         """
-        a = torch.load(configs['driver']['model_data_path'])
-        self.driver = TorchUtils.format(
-            Processor(configs['driver'], a['info'], a['model_state_dict']))
+        self.driver = Processor(configs, info, model_state_dict)
 
     def iv_curve(self,
                  vmax: float,
@@ -117,8 +117,8 @@ class IVMeasurement():
 #     import matplotlib.pyplot as plt
 #     configs = load_configs('configs/utils/brains_ivcurve_template_simple.yaml')
 
-#     configs = load_configs('configs/utils/brains_ivcurve_template.yaml')
-#     configs['driver'] = get_node_configs()
+#     #configs = load_configs('configs/utils/brains_ivcurve_template.yaml')
+#     #configs['driver'] = get_node_configs()
 
 #     measurement = IVMeasurement(configs)
 #     fig, axs = plt.subplots(2, 4)
@@ -141,8 +141,7 @@ class IVMeasurement():
 #         axs[j, i - (j * 4)].set_xlabel('Voltage (V)')
 #         axs[j, i - (j * 4)].set_ylabel('Current (nA)')
 
-#     if save_plot is not None:
-#         plt.savefig(data_dir + "/iv_plot")
-#     if show_plot:
-#         plt.show()
+#     #plt.savefig(data_dir + "/iv_plot")
+
+#     plt.show()
 #     #measurement.driver.close_tasks()
