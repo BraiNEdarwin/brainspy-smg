@@ -11,7 +11,7 @@ from torch.nn import MSELoss
 class Test_Training(unittest.TestCase):
     def __init__(self, *args, **kwargs) -> None:
         super(Test_Training, self).__init__(*args, **kwargs)
-        self.configs = {'results_base_dir': '.'}
+        self.configs = {'results_base_dir': 'tests/data'}
         self.configs['model_structure'] = {
             'hidden_sizes': [90] * 5,
             'D_in': 7,
@@ -55,14 +55,14 @@ class Test_Training(unittest.TestCase):
         with self.assertRaises(TypeError):
             training.generate_surrogate_model()
 
-        training.generate_surrogate_model(self.configs, main_folder='.')
+        training.generate_surrogate_model(self.configs, main_folder='tests/data')
 
     def test_train_loop(self):
 
         try:
             training.init_seed(self.configs)
             results_dir = create_directory_timestamp(
-                self.configs["results_base_dir"], '.')
+                self.configs["results_base_dir"], 'tests/data')
 
             dataloaders, amplification, info_dict = get_dataloaders(
                 self.configs)
@@ -92,7 +92,7 @@ class Test_Training(unittest.TestCase):
         try:
             training.init_seed(self.configs)
             results_dir = create_directory_timestamp(
-                self.configs["results_base_dir"], '.')
+                self.configs["results_base_dir"], 'tests/data')
 
             dataloaders, amplification, info_dict = get_dataloaders(
                 self.configs)
@@ -176,7 +176,7 @@ class Test_Training(unittest.TestCase):
         try:
             training.init_seed(self.configs)
             results_dir = create_directory_timestamp(
-                self.configs["results_base_dir"], '.')
+                self.configs["results_base_dir"], 'tests/data')
 
             dataloaders, amplification, info_dict = get_dataloaders(
                 self.configs)
