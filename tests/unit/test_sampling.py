@@ -24,8 +24,12 @@ class Test_Sampling(unittest.TestCase):
                          "Hardware test is skipped for simulation setup.")
     def test_normal_inputs(self):
         CONFIGS = copy.deepcopy(self.configs)
+        CONFIGS['input_data']['number_batches'] = 2
+        CONFIGS['input_data']['batch_time'] = 0.1
+        CONFIGS['save_directory'] = 'tests/data/sampling'
         try:
             sampler = sampling.Sampler(CONFIGS)
+            sampler.sample()
             sampler.close_driver()
         except Exception:
             self.fail("Exeution Failed")
@@ -63,6 +67,14 @@ class Test_Sampling(unittest.TestCase):
             sampler = sampling.Sampler(configs_4)
             sampler.close_driver()
 
-
+    def test_get_header(self):
+        configs = copy.deepcopy(self.configs)
+        sampler = sampling.Sampler(configs)
+        in_length = 7
+        out_length = 7
+        header = sampler.get_header(in_length,out_length)
+        split_header = header.split(',')
+        self.assertEqual(len(split_header) ,(in_length + out_length))
+        sampler.close_driver()
 if __name__ == '__main__':
     unittest.main()

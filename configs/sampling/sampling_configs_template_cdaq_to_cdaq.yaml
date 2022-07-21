@@ -30,6 +30,7 @@ setup_insights:
 
 
 input_data:
+
   input_distribution: sawtooth # Desired data shape for data sampling.
 
   activation_electrode_no: 7 # Number of inputs to the device;
@@ -40,9 +41,11 @@ input_data:
 
   input_frequency: [2, 3, 5, 7, 13, 17, 19] # Input frequencies;
   # These need to be prime numbers. They will be square rooted and multiplied by factor.
-
+  
+  random_phase_shift_each: 1
   phase: [-1.9869,  0.6518,  5.7237, -1.3900,  4.1251, -1.5166, -5.2384] # Phase shift in the input signals per activation channel.
-
+  
+  
   # Amplitude and offset are calculated from the voltage_ranges specified in the driver/instrument_setup configs field.
   # Amplitude: [0.55, 0.95, 0.95, 0.95, 0.95, 0.95, 0.55] # Example
   # Offset: [-0.15,-0.25,-0.25,-0.25,-0.25,-0.25,-0.15] # Example
