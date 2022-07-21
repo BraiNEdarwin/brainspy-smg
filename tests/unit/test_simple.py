@@ -18,6 +18,20 @@ class Test_Simple(unittest.TestCase):
 
         try:
             measurement = simple.IVMeasurement(self.configs)
+            measurement.iv_curve(
+             measurement.driver.get_voltage_ranges()[0, 0].item(),
+             measurement.driver.get_voltage_ranges()[0, 1].item(),
+             point_no=10,
+             input_electrode=0,
+             show_plot=True,
+             close=False)
+            measurement.iv_curve(
+             measurement.driver.get_voltage_ranges()[1, 0].item(),
+             measurement.driver.get_voltage_ranges()[1, 1].item(),
+             point_no=10,
+             input_electrode=1,
+             show_plot=True,
+             close=True)
         except Exception:
             self.fail("Failed in creating error hist")
 

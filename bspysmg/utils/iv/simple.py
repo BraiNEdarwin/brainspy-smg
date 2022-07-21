@@ -82,7 +82,7 @@ class IVMeasurement():
             vmax, vmin, point_no, up_direction)
         result = self.driver(TorchUtils.format(data.T))
         if close:
-            self.driver.close_tasks()
+            self.driver.close()
         # iv_plot(TorchUtils.to_numpy(result),
         #         data[input_electrode],
         #         input_electrode,
