@@ -75,73 +75,10 @@ class IVMeasurement():
             result : np.array
                 IV response of device or surrogate model.
         """
-        # activation_electrode_no = len(
-        #     self.driver.configs['instruments_setup']['activation_channels'])
         data = np.zeros((self.driver.get_activation_electrode_no(), point_no))
         data[input_electrode] = generate_sawtooth_simple(
             vmax, vmin, point_no, up_direction)
         result = self.driver(TorchUtils.format(data.T))
         if close:
             self.driver.close()
-        # iv_plot(TorchUtils.to_numpy(result),
-        #         data[input_electrode],
-        #         input_electrode,
-        #         save_plot=save_plot,
-        #         show_plot=show_plot)
         return data[input_electrode], result
-
-
-# def get_node_configs():
-#     configs = {}
-#     configs[
-#         'model_data_path'] = "/home/unai/Documents/3-Programming/nanoai/edge_detection/edge_detection_lightning/tmp/model/training_data_without_clipping.pt"
-#     #configs['track_running_stats'] = False
-#     configs["processor_type"] = "simulation"
-#     # configs["input_indices"] = [2, 3]
-#     configs["electrode_effects"] = {}
-#     # configs["electrode_effects"]["amplification"] = [28.5]
-#     # configs["electrode_effects"]["clipping_value"] = [-300, 300]
-#     # configs["electrode_effects"]["noise"] = {}
-#     # configs["electrode_effects"]["noise"]["type"] = "gaussian"
-#     # configs["electrode_effects"]["noise"]["variance"] = 0.6533523201942444
-#     configs["driver"] = {}
-#     configs["waveform"] = {}
-#     configs["waveform"]["plateau_length"] = 1
-#     configs["waveform"]["slope_length"] = 0
-#     return configs
-
-# if __name__ == '__main__':
-
-#     from brainspy.utils.io import load_configs
-#     from brainspy.utils.pytorch import TorchUtils
-#     import matplotlib.pyplot as plt
-#     configs = load_configs('configs/utils/brains_ivcurve_template_simple.yaml')
-
-#     #configs = load_configs('configs/utils/brains_ivcurve_template.yaml')
-#     #configs['driver'] = get_node_configs()
-
-#     measurement = IVMeasurement(configs)
-#     fig, axs = plt.subplots(2, 4)
-#     j = 0
-#     on = True
-#     for i in range(7):
-#         if i > 3 and on:
-#             j += 1
-#             on = False
-#         inputs, outputs = measurement.iv_curve(
-#             measurement.driver.get_voltage_ranges()[i, 0].item(),
-#             measurement.driver.get_voltage_ranges()[i, 1].item(),
-#             point_no=1000,
-#             input_electrode=i,
-#             show_plot=True,
-#             close=False)
-#         axs[j, i - (j * 4)].plot(inputs,
-#                                  TorchUtils.to_numpy(outputs),
-#                                  label='IV Curve for electrode ' + str(i))
-#         axs[j, i - (j * 4)].set_xlabel('Voltage (V)')
-#         axs[j, i - (j * 4)].set_ylabel('Current (nA)')
-
-#     #plt.savefig(data_dir + "/iv_plot")
-
-#     plt.show()
-#     #measurement.driver.close_tasks()
