@@ -2,7 +2,7 @@ import unittest
 from bspysmg.utils import plots
 import numpy as np
 import matplotlib.pyplot as plt
-
+from brainspy.utils.io import load_configs
 
 class Test_Plots(unittest.TestCase):
     def test_error_hist(self):
@@ -108,6 +108,18 @@ class Test_Plots(unittest.TestCase):
         with self.assertRaises(TypeError):
             plots.plot_waves()
         plt.close("all")
+
+    def test_multiple_plots(self):
+        configs = load_configs(
+            'configs/utils/brains_ivcurve_template.yaml')
+        inputs = load_configs('tests/data/ins.yaml')
+        output = load_configs('tests/data/outs.yaml')
+        configs['driver']['instruments_setup']['activation_sampling_frequency'] = 100
+        configs['driver']['instruments_setup']['readout_sampling_frequency'] = 100
+        configs['driver']['instruments_setup']['average_io_point_difference'] = True
+        plots.multi_iv_plot(configs, inputs, output, show_plot=False)
+        configs['driver']['instruments_setup']['average_io_point_difference'] = False
+        plots.multi_iv_plot(configs, inputs, output, show_plot=False)
 
 
 if __name__ == '__main__':

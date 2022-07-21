@@ -207,7 +207,7 @@ def iv_plot(result: np.array,
         plt.show()
 
 
-def multi_iv_plot(configs, inputs, output):
+def multi_iv_plot(configs, inputs, output, save_plot=None, show_plot=True):
     """
     Plots the IV curve of several devices in one plot. Devices can be the DNPU
     device or a surrogate model.
@@ -228,6 +228,11 @@ def multi_iv_plot(configs, inputs, output):
         Dictionary containing the list of input signal waves for each device.
     outputs : dict
         Dictionary containing the list of output currents for each device.
+    save_plot : str or None
+        If None, the plot will not be saved, if a string provided, the plot will
+        be saved at the specified dir.
+    show_plot: boolean
+        Whether to show the plot or not.
     """
     ylabeldist = -10
     electrode_id = 0
@@ -325,4 +330,7 @@ def multi_iv_plot(configs, inputs, output):
                     axs[i, j].yaxis.grid(True)
                     axs[i, j].legend()
     plt.subplots_adjust(hspace=0.3, wspace=0.35)
-    plt.show()
+    if save_plot is not None:
+        plt.savefig(save_plot)
+    if show_plot:
+        plt.show()
