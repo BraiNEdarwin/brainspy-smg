@@ -1,4 +1,5 @@
 import unittest
+from bspysmg import TEST_MODE
 from bspysmg.data import sampling
 from bspysmg.data.postprocess import post_process
 import copy
@@ -49,17 +50,26 @@ class Test_Sampling(unittest.TestCase):
             "offset": [-0.15, -0.25, -0.25, -0.25, -0.25, -0.25, -0.15]
         }
 
+    @unittest.skipUnless(TEST_MODE == "HARDWARE_CDAQ"
+                         or TEST_MODE == "HARDWARE_NIDAQ",
+                         "Hardware test is skipped for simulation setup.")
     def test_empty_inputs(self):
         with self.assertRaises(TypeError):
             sampling.Sampler()
 
+    @unittest.skipUnless(TEST_MODE == "HARDWARE_CDAQ"
+                         or TEST_MODE == "HARDWARE_NIDAQ",
+                         "Hardware test is skipped for simulation setup.")
     def test_normal_inputs(self):
         CONFIGS = copy.deepcopy(self.configs)
         try:
             sampling.Sampler(CONFIGS)
-        except:
+        except Exception:
             self.fail("Exeution Failed")
 
+    @unittest.skipUnless(TEST_MODE == "HARDWARE_CDAQ"
+                         or TEST_MODE == "HARDWARE_NIDAQ",
+                         "Hardware test is skipped for simulation setup.")
     def test_configs_keys(self):
 
         with self.assertRaises(KeyError):

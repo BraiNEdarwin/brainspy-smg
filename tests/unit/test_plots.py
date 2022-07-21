@@ -1,6 +1,7 @@
 import unittest
 from bspysmg.utils import plots
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class Test_Plots(unittest.TestCase):
@@ -28,6 +29,7 @@ class Test_Plots(unittest.TestCase):
 
         with self.assertRaises(AssertionError):
             plots.plot_error_hist(target, predictions, error, -1, ".")
+        plt.close("all")
 
     def test_error_output(self):
 
@@ -47,13 +49,14 @@ class Test_Plots(unittest.TestCase):
 
         with self.assertRaises(AssertionError):
             plots.plot_error_vs_output(target, np.array([0]), ".")
+        plt.close("all")
 
     def test_output_hist(self):
 
         output = np.random.uniform(0, 1, size=100)
 
         try:
-            plots.output_hist(output, ".", 5, True)
+            plots.output_hist(output, ".", 5)
             plots.output_hist(output, ".", 10, False)
             plots.output_hist(output, ".")
             plots.output_hist(list(output), ".")
@@ -65,24 +68,29 @@ class Test_Plots(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             plots.output_hist(output, ".", 10.1)
+        plt.close("all")
 
     def test_iv_plot(self):
 
-        result = np.random.uniform(0, 1, size=100)
+        inputs = np.random.randn(100, 7)
+        result = np.random.randn(100, 1)
 
         try:
-            plots.iv_plot(result, 5)
-            plots.iv_plot(result, 10, ".", False)
-            plots.iv_plot(result, 1.1, ".", True)
-            plots.iv_plot(list(result), 2, ".", True, True)
+            plots.iv_plot(result=result, inputs=inputs, input_electrode=1)
+            #plots.iv_plot(inputs, result, ".", True)
+            #plots.iv_plot(list(result), 2, ".", True, True)
         except Exception:
             self.fail("Fail in creating IV curve.")
 
         with self.assertRaises(TypeError):
             plots.iv_plot()
 
-        with self.assertRaises(FileNotFoundError):
-            plots.iv_plot(result, 10.1, ",", True)
+        with self.assertRaises(TypeError):
+            plots.iv_plot(result, 5)
+
+        with self.assertRaises(ValueError):
+            plots.iv_plot(result, 10.1, ",")
+        plt.close("all")
 
     def test_plot_waves(self):
 
@@ -99,6 +107,7 @@ class Test_Plots(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             plots.plot_waves()
+        plt.close("all")
 
 
 if __name__ == '__main__':
