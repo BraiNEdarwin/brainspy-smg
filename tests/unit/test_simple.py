@@ -7,7 +7,9 @@ from brainspy.utils.io import load_configs
 class Test_Simple(unittest.TestCase):
     def __init__(self, *args, **kwargs) -> None:
         super(Test_Simple, self).__init__(*args, **kwargs)
-        self.configs = load_configs("configs/utils/brains_ivcurve_template_simple_cdaq_to_cdaq.yaml")
+        import os 
+        print(os.getcwd())
+        self.configs = load_configs("configs/utils/brains_ivcurve_template_simple.yaml")
 
     @unittest.skipUnless(TEST_MODE == "HARDWARE_CDAQ"
                          or TEST_MODE == "HARDWARE_NIDAQ",
