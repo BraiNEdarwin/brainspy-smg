@@ -7,22 +7,39 @@ average_io_point_difference: True # Averaging mode of the ADC output;
 # Note: For generating a surrogate mode, this option MUST be true,
 # regardless of DAC/ADC sampling rates.
 
-activation_sampling_frequency: 1000 # Digital-to-Analogue Converter module update rate
+activation_sampling_frequency: 5000 # Digital-to-Analogue Converter module update rate
+multiple_devices: False
 readout_sampling_frequency: 10000 # Analogue-to-Digital Converter sampling rate
 
-trigger_source: cDAQ1/segment1
-activation_instrument: cDAQ1Mod3
+trigger_source: cDAQ2/segment1
+activation_instrument: cDAQ2Mod3
 
-activation_channels: [0,2,5,3,4,6,1] # Analogue output channels of DAC
+activation_channels: [0,6,1,3,5,2,4] # Analogue output channels of DAC
 
-activation_voltage_ranges: [[-0.55,0.325],[-0.95,0.55],[-1,0.6],[-1,0.6],[-1,0.6],[-0.95,0.55],[-0.55,0.325]]
+activation_voltage_ranges: [
+        # [-0.45,0.45], # 0
+        # [-1.1,0.8], # 6
+        # [-1,1], # 1
+        # [-1,1], # 3
+        # [-1,1], # 5
+        # [-1.1,1.35], # 2 
+        # [-0.7,0.35], # 4
+         [-0.46 ,  0.48],
+         [-1.35 ,  1 ],
+         [-1.4   ,  1.2],
+         [-1.4   ,  1.45], # Lets leave this for now
+         [-1.4   ,  0.9  ],
+         [-1.4 ,  1.5],
+         [-1.2 ,  0.3]
+        ] 
+        #[[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08]]  
 # Note: Activation voltage ranges SHOULD be fine tune for a better surrogate model.
 # Please modify them accoring to a sample batch
 # Desired sample batch should NOT contain clipping (positive and negative current values)
 # Desired sample batch should have a balanced current distribution
 
 activation_channel_mask: [1,1,1,1,1,1,1]
-readout_instrument: cDAQ1Mod4
+readout_instrument: cDAQ2Mod1
 
 readout_channels: [0] # Analogue input channel(s) of ADC
 
