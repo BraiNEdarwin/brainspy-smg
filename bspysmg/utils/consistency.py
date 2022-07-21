@@ -17,7 +17,8 @@ class ConsistencyChecker(Sampler):
                  sampler_configs_name: str = 'sampler_configs.json',
                  reference_batch_name: str = 'reference_batch.npz',
                  charging_signal_name: str = 'charging_signal.npz',
-                 model: torch.nn.Module = None) -> None:
+                 model: torch.nn.Module = None,
+                 show_plots: bool = True) -> None:
         """
         Initializes dataset and directory to save results for consistency checking
         experiment of a model. This function uses sampler config files and already
@@ -211,7 +212,7 @@ class ConsistencyChecker(Sampler):
         else:
             return results, deviations, correlation, deviation_chargeup, model_results, model_deviations, model_correlation, model_deviation_chargeup
 
-    def charge_device(self, deviation_chargeup, model_deviation_chargeup=None):
+    def charge_device(self, deviation_chargeup, model_deviation_chargeup=None, show_plots=True):
         for batch, batch_indices in enumerate(
                 self.get_batch_indices(len(self.chargingup_outputs),
                                        self.batch_size)):
@@ -292,7 +293,8 @@ def consistency_check(main_dir: str,
                       reference_batch_name: str = 'reference_batch.npz',
                       charging_signal_name: str = 'charging_signal.npz',
                       charge_device: bool = True,
-                      model: torch.nn.Module = None) -> None:
+                      model: torch.nn.Module = None,
+                      show_plots = True) -> None:
     """
     This is the driver function used for consistency checking. Consistency checking involves
     checking how DNPU device is behaving at present moment against how it was before
@@ -412,36 +414,64 @@ def consistency_check(main_dir: str,
         plt.legend()
         plt.savefig(
             os.path.join(sampler.results_dir, 'deviations_while_charging_up'))
+    if show_plots:
+        plt.show()
 
-    plt.show()
 
+# if __name__ == '__main__':
+#     import torch
+#     from brainspy.processors.processor import Processor
+#     from brainspy.utils.pytorch import TorchUtils
 
-if __name__ == '__main__':
-    import torch
-    from brainspy.processors.processor import Processor
-    from brainspy.utils.pytorch import TorchUtils
+#     configs = {}
+#     configs["processor_type"] = "simulation"
+#     # configs["input_indices"] = [2, 3]
+#     configs["electrode_effects"] = {}
+#     # configs["electrode_effects"]["amplification"] = [1]
+#     # configs["electrode_effects"]["output_clipping"] = [-114, 114]
+#     # configs["electrode_effects"]["noise"] = {}
+#     # configs["electrode_effects"]["noise"]["noise_type"] = "gaussian"
+#     # configs["electrode_effects"]["noise"]["variance"] = 0.6533523201942444
+#     configs["driver"] = {}
+#     configs["waveform"] = {}
+#     configs["waveform"]["plateau_length"] = 1
+#     configs["waveform"]["slope_length"] = 0
 
-    configs = {}
-    configs["processor_type"] = "simulation"
-    # configs["input_indices"] = [2, 3]
-    configs["electrode_effects"] = {}
-    # configs["electrode_effects"]["amplification"] = [1]
-    # configs["electrode_effects"]["output_clipping"] = [-114, 114]
-    # configs["electrode_effects"]["noise"] = {}
-    # configs["electrode_effects"]["noise"]["noise_type"] = "gaussian"
-    # configs["electrode_effects"]["noise"]["variance"] = 0.6533523201942444
-    configs["driver"] = {}
-    configs["waveform"] = {}
-    configs["waveform"]["plateau_length"] = 1
-    configs["waveform"]["slope_length"] = 0
+#     # model_data = torch.load(
+#     #     'C:/Users/Unai/Documents/programming/smg/tmp/output/conv_model/training_data_2021_07_19_143513/training_data.pt'
+#     # )
 
-    model_data = torch.load(
-        'C:/Users/Unai/Documents/programming/smg/tmp/output/conv_model/training_data_2021_07_19_143513/training_data.pt'
-    )
-    model = Processor(configs, model_data['info'],
-                      model_data['model_state_dict'])
-    model = TorchUtils.format(model)
-    consistency_check(
-        'C:/Users/Unai/Documents/programming/smg/tmp/data/training/TEST/Brains_testing_2021_07_16_093337',
-        repetitions=10,
-        model=model)
+#     configs = {}
+#     configs['processor_type'] = 'simulation'
+#     configs["waveform"] = {}
+#     configs["waveform"]["plateau_length"] = 1 #10
+#     configs["waveform"]["slope_length"] = 0 #30
+
+#     model_data = {}
+#     model_data["info"] = {}
+#     model_data["info"]["model_structure"] = {
+#         "hidden_sizes": [90, 90, 90],
+#         "D_in": 7,
+#         "D_out": 1,
+#         "activation": "relu",
+#     }
+#     model_data["info"]['electrode_info'] = {}
+#     model_data["info"]['electrode_info']['electrode_no'] = 8
+#     model_data["info"]['electrode_info']['activation_electrodes'] = {}
+#     model_data["info"]['electrode_info']['activation_electrodes']['electrode_no'] = 7
+#     model_data["info"]['electrode_info']['activation_electrodes'][
+#             'voltage_ranges'] = np.array([[-0.55, 0.325], [-0.95, 0.55],
+#                                           [-1., 0.6], [-1., 0.6], [-1., 0.6],
+#                                           [-0.95, 0.55], [-0.55, 0.325]])
+#     model_data["info"]['electrode_info']['output_electrodes'] = {}
+#     model_data["info"]['electrode_info']['output_electrodes']['electrode_no'] = 1
+#     model_data["info"]['electrode_info']['output_electrodes']['amplification'] = [28.5]
+#     model_data["info"]['electrode_info']['output_electrodes']['clipping_value'] = None
+
+#     model = Processor(configs, model_data['info'])#,
+#                       #model_data['model_state_dict'])
+#     model = TorchUtils.format(model)
+#     consistency_check(
+#         'tests/data/',
+#         repetitions=1,
+#         model=model)

@@ -43,7 +43,7 @@ driver:
     multiple_devices: false
     readout_channels:
     - 0
-    readout_instrument: cDAQ2Mod4
+    readout_instrument: cDAQ2Mod1
     readout_sampling_frequency: 10000
     trigger_source: cDAQ2/segment1
   inverted_output: true
