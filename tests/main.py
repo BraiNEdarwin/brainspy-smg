@@ -7,7 +7,6 @@ import unittest
 import bspysmg
 
 if __name__ == "__main__":
-    #from HtmlTestRunner import HTMLTestRunner
     from datetime import datetime
     import matplotlib
     matplotlib.use('Agg')
