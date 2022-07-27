@@ -11,13 +11,13 @@ shape: 1000 # Number of data points to be measured for the I/V curves;
 
 input_signal: # Type of the signal for measuring I/V curves; 'sawtooth' is recommended.
   input_signal_type: 'sawtooth'
-  time_in_seconds: 5
+  time_in_seconds: 0.2
   direction: 'up'
 
 driver:
   instrument_type: cdaq_to_cdaq
 
-  amplification: 39.5 # Amplification factor of Amplifier;
+  amplification: [39.5] # Amplification factor of Amplifier;
   # Maximum/Minimum measured current: +158/-158 nA
   # Maximum/Minimum Op Amp. output voltage: +4/-4 V
   # Amplification equation: abs(Maximum measured current)/abs(Maximum Op. Amp output voltage)
@@ -30,17 +30,32 @@ driver:
     multiple_devices: True # If True, device names (e.g., A: ) should be specified
     # If false, device names should be removed.
 
-    trigger_source: cDAQ1/segment1
-    activation_sampling_frequency: 2000 # Digital-to-Analogue Converter module update rate
+    trigger_source: cDAQ2/segment1
+    activation_sampling_frequency: 5000 # Digital-to-Analogue Converter module update rate
     readout_sampling_frequency: 10000 # Analogue-to-Digital Converter sampling rate
-    average_io_point_difference: False # Averaging mode of the ADC output;
+    average_io_point_difference: True # Averaging mode of the ADC output;
     #If true, the oversampled points will be averaged,
     #If false, the oversampled points will be presented as they are.
 
     A:
-      activation_instrument: cDAQ1Mod3
-      activation_channels: [6,0,1,5,2,4,3] # Analogue output channels of DAC
-      activation_voltage_ranges: [[-0.9,0.8],[-0.7,1.0],[-0.9,1.1],[-0.8,0.8],[-0.8,0.9],[-0.6,0.5],[-1,1.3]] #[[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08]]  
+      activation_instrument: cDAQ2Mod3
+      activation_channels: [0,6,1,3,5,2,4] # [6,0,1,5,2,4,3] # Analogue output channels of DAC
+      activation_voltage_ranges: [
+        # [-0.45,0.45], # 0
+        # [-1.1,0.8], # 6
+        # [-1.15,1], # 1
+        # [-1.15,1], # 3
+        # [-1.15,1], # 5
+        # [-1.1,1.35], # 2 
+        # [-0.7,0.35], # 4
+         [-0.46 ,  0.48],
+         [-1.35 ,  1 ],
+         [-1.4   ,  1.2],
+         [-1.4   ,  1.45], # Lets leave this for now
+         [-1.4   ,  0.9  ],
+         [-1.4 ,  1.5],
+         [-1.2 ,  0.3]
+        ] 
       activation_channel_mask: [1,1,1,1,1,1,1]
-      readout_instrument: cDAQ1Mod4
+      readout_instrument: cDAQ2Mod1
       readout_channels: [0] # Analogue input channel(s) of ADC

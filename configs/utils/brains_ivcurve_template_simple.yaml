@@ -17,8 +17,8 @@ input_signal: # Type of the signal for measuring I/V curves; 'sawtooth' is recom
 processor_type : "cdaq_to_cdaq"
 electrode_effects : {}
 waveform: 
-  slope_length: 0
-  plateau_length: 1
+  slope_length: 10
+  plateau_length: 5
 driver:
   instrument_type: cdaq_to_cdaq
 
