@@ -211,20 +211,32 @@ def load_configs(config_dict: dict) -> dict:
                 Number of data points in the waiting signal between each batch.
     """
     configs = config_dict["input_data"]
+    
     assert (
-        config_dict["driver"]["instruments_setup"]
-        ["activation_sampling_frequency"] == config_dict["driver"]
-        ["instruments_setup"]["readout_sampling_frequency"]
-        or config_dict['driver']["instruments_setup"]
+        config_dict['driver']["instruments_setup"]
         ["average_io_point_difference"]), (
-            "Surrogate Model generation only supports same activation and" +
-            " readout frequencies or averaging.")
+            "Surrogate Model generation only supports when averaging_io_point_difference is true.")
     configs['sampling_frequency'] = config_dict["driver"]["instruments_setup"][
         "activation_sampling_frequency"]
+    
+    assert 'input_frequency' in configs, "Input frequency bases for the generated wave should be specified"
+    assert type(configs['input_frequency']) is list, "Input frequency for the generated wave should be a list containing irrational frequencies per activation electrode"
+   
     configs['input_frequency'] = get_frequency(configs)
-    #configs['phase'] = np.array(configs['phase'])[:, np.newaxis]
+
+    assert 'amplitude' in configs
+    assert type(configs['amplitude']) is list
     configs['amplitude'] = np.array(configs['amplitude'])[:, np.newaxis]
+
+    assert 'offset' in configs
+    assert type(configs['offset']) is list
     configs['offset'] = np.array(configs['offset'])[:, np.newaxis]
+
+    assert 'batch_time' in configs
+    assert 'ramp_time' in configs
+    assert 'sampling_frequency' in configs
+    assert type(configs['batch_time']) is int or type(configs['batch_time']) is float
+
     configs[
         'batch_points'] = configs['batch_time'] * configs['sampling_frequency']
     configs[

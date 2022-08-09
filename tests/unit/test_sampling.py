@@ -35,44 +35,47 @@ class Test_Sampling(unittest.TestCase):
             self.fail("Exeution Failed")
         #sampler.close_driver()
 
+    # @unittest.skipUnless(TEST_MODE == "HARDWARE_CDAQ"
+    #                      or TEST_MODE == "HARDWARE_NIDAQ",
+    #                      "Hardware test is skipped for simulation setup.")
+    # def test_configs_keys(self):
+
+    #     with self.assertRaises(AssertionError):
+    #         configs_1 = copy.deepcopy(self.configs)
+    #         del configs_1['driver']['instruments_setup']
+    #         sampler = sampling.Sampler(configs_1)
+    #         sampler.close_driver()
+
+    #     with self.assertRaises(AssertionError) :
+    #         configs_2 = copy.deepcopy(self.configs)
+    #         del configs_2['driver']['instruments_setup'][
+    #             'activation_voltage_ranges']
+    #         sampler = sampling.Sampler(configs_2)
+    #         sampler.close_driver()
+
+    #     with self.assertRaises(AssertionError):
+    #         configs_3 = copy.deepcopy(self.configs)
+    #         configs_3['driver']['instruments_setup'][
+    #             'activation_voltage_ranges'] = 1
+    #         sampler = sampling.Sampler(configs_3)
+    #         sampler.close_driver()
+
+    #     with self.assertRaises(AssertionError):
+    #         configs_4 = copy.deepcopy(self.configs)
+    #         configs_4['driver']['instruments_setup'][
+    #             'activation_voltage_ranges'] = []
+    #         sampler = sampling.Sampler(configs_4)
+    #         sampler.close_driver()
+
     @unittest.skipUnless(TEST_MODE == "HARDWARE_CDAQ"
                          or TEST_MODE == "HARDWARE_NIDAQ",
                          "Hardware test is skipped for simulation setup.")
-    def test_configs_keys(self):
-
-        with self.assertRaises(AssertionError):
-            configs_1 = copy.deepcopy(self.configs)
-            del configs_1['driver']['instruments_setup']
-            sampler = sampling.Sampler(configs_1)
-            sampler.close_driver()
-
-        with self.assertRaises(AssertionError) :
-            configs_2 = copy.deepcopy(self.configs)
-            del configs_2['driver']['instruments_setup'][
-                'activation_voltage_ranges']
-            sampler = sampling.Sampler(configs_2)
-            sampler.close_driver()
-
-        with self.assertRaises(AssertionError):
-            configs_3 = copy.deepcopy(self.configs)
-            configs_3['driver']['instruments_setup'][
-                'activation_voltage_ranges'] = 1
-            sampler = sampling.Sampler(configs_3)
-            sampler.close_driver()
-
-        with self.assertRaises(AssertionError):
-            configs_4 = copy.deepcopy(self.configs)
-            configs_4['driver']['instruments_setup'][
-                'activation_voltage_ranges'] = []
-            sampler = sampling.Sampler(configs_4)
-            sampler.close_driver()
-
     def test_get_header(self):
         configs = copy.deepcopy(self.configs)
         sampler = sampling.Sampler(configs)
         in_length = 7
         out_length = 7
-        header = sampler.get_header(in_length,out_length)
+        header = sampler.get_header(in_length, out_length)
         split_header = header.split(',')
         self.assertEqual(len(split_header) ,(in_length + out_length))
         sampler.close_driver()
