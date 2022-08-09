@@ -19,9 +19,8 @@ hyperparameters: # Neural Network Hyperparameters for training phase;
 
 data:
 
-  dataset_paths: ["C:/Users/Mohamadreza/Documents/github/brainspy-smg/collected_data/training/quick_setup/quick_setup_2022_01_21_232808/postprocessed_data.npz",
-                  "C:/Users/Mohamadreza/Documents/github/brainspy-smg/collected_data/val/quick_setup/quick_setup_2022_01_21_232808/postprocessed_data.npz",
-                  "C:/Users/Mohamadreza/Documents/github/brainspy-smg/collected_data/test/quick_setup/quick_setup_2022_01_21_232808/postprocessed_data.npz"]
+  dataset_paths: ["C:/Users/Unai/Documents/programming/smg/tmp/data/training/TEST/Brains_testing_2021_07_16_093337/postprocessed_data.npz",
+                  "C:/Users/Unai/Documents/programming/smg/tmp/data/training/TEST/Brains_testing_2021_07_16_093337/postprocessed_data.npz"]
   # Paths to the training, validation, and testing data
   # It is recommended to collect training, validation, and testing data in seperate measurements.                
                 
