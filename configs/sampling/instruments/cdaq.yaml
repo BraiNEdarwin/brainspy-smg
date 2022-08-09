@@ -11,10 +11,10 @@ activation_sampling_frequency: 5000 # Digital-to-Analogue Converter module updat
 multiple_devices: False
 readout_sampling_frequency: 10000 # Analogue-to-Digital Converter sampling rate
 
-trigger_source: cDAQ2/segment1
-activation_instrument: cDAQ2Mod3
+trigger_source: cDAQ2
+activation_instrument: cDAQ2Mod2
 
-activation_channels: [0,6,1,3,5,2,4] # Analogue output channels of DAC
+activation_channels: [6, 0, 7, 5, 2, 4, 3] # Analogue output channels of DAC
 
 activation_voltage_ranges: [
         # [-0.45,0.45], # 0
@@ -39,7 +39,7 @@ activation_voltage_ranges: [
 # Desired sample batch should have a balanced current distribution
 
 activation_channel_mask: [1,1,1,1,1,1,1]
-readout_instrument: cDAQ2Mod1
+readout_instrument: cDAQ2Mod8
 
 readout_channels: [0] # Analogue input channel(s) of ADC
 

@@ -49,7 +49,6 @@ class Test_Consistency(unittest.TestCase):
                     repetitions=1,
                     charge_device=True,
                     show_plots=False)
-            #consistency.consistency_check()
         except Exception:
             self.fail("Not possible to run consistency check")
 
@@ -59,7 +58,7 @@ class Test_Consistency(unittest.TestCase):
         model = Processor(self.device_configs, self.model_data['info'])
         model = TorchUtils.format(model)
         try:
-            consistency.consistency_check('tests/data/',
+            consistency.consistency_check('tests/data',
                     repetitions=1,
                     charge_device=True,
                     show_plots=False,

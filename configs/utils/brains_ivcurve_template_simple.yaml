@@ -35,13 +35,13 @@ driver:
     multiple_devices: False # If True, device names (e.g., A: ) should be specified
     # If false, device names should be removed.
 
-    trigger_source: cDAQ2/segment1
+    trigger_source: cDAQ2
     activation_sampling_frequency: 5000 # Digital-to-Analogue Converter module update rate
     readout_sampling_frequency: 10000 # Analogue-to-Digital Converter sampling rate
     average_io_point_difference: True # Averaging mode of the ADC output;
     #If true, the oversampled points will be averaged,
     #If false, the oversampled points will be presented as they are.
-    activation_instrument: cDAQ2Mod3
+    activation_instrument: cDAQ2Mod2
     activation_channels: [0,6,1,3,5,2,4] # [6,0,1,5,2,4,3] # Analogue output channels of DAC
     activation_voltage_ranges: [
         # [-0.45,0.45], # 0
@@ -60,5 +60,5 @@ driver:
          [-1.2 ,  0.3]
         ] 
     activation_channel_mask: [1,1,1,1,1,1,1]
-    readout_instrument: cDAQ2Mod1
+    readout_instrument: cDAQ2Mod8
     readout_channels: [0] # Analogue input channel(s) of ADC

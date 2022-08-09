@@ -225,11 +225,9 @@ def load_configs(config_dict: dict) -> dict:
     configs['input_frequency'] = get_frequency(configs)
 
     assert 'amplitude' in configs
-    assert type(configs['amplitude']) is list
     configs['amplitude'] = np.array(configs['amplitude'])[:, np.newaxis]
 
     assert 'offset' in configs
-    assert type(configs['offset']) is list
     configs['offset'] = np.array(configs['offset'])[:, np.newaxis]
 
     assert 'batch_time' in configs

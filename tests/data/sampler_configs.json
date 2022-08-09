@@ -22,7 +22,7 @@ driver:
     - 2
     - 4
     - 3
-    activation_instrument: cDAQ2Mod3
+    activation_instrument: cDAQ2Mod2
     activation_sampling_frequency: 100
     activation_voltage_ranges:
     - - -1
@@ -43,9 +43,9 @@ driver:
     multiple_devices: false
     readout_channels:
     - 0
-    readout_instrument: cDAQ2Mod1
+    readout_instrument: cDAQ2Mod8
     readout_sampling_frequency: 10000
-    trigger_source: cDAQ2/segment1
+    trigger_source: cDAQ2
   inverted_output: true
   max_ramping_time_seconds: 0.001
   offset: 1

@@ -1,0 +1,33 @@
+results_base_dir: 'temp/test/multpleIV'
+show_plots: True
+devices: ["A"] # "A","B","C","D","E"
+shape: 1000 # Point no.
+input_signal:
+  input_signal_type: 'sawtooth'
+  time_in_seconds: 5
+  direction: 'up'
+driver:
+  instrument_type: cdaq_to_cdaq
+  real_time_rack: False # Driver can be local or remote. Remote for the RT NI Rack (Pinky), and local for the regular one (Brains).
+  #DAC_update_rate: 5000 # previously known as:"sampling_frequency"
+  amplification: 41
+  inverted_output: True
+  #output_clipping_range: [-4,4] # This value will be multiplied by the amplification value
+  instruments_setup:  !include ../sampling/instruments/cdaq.yaml
+    # multiple_devices: True
+    # trigger_source: cDAQ1/segment1
+    # average_io_point_difference: True
+    # activation_sampling_frequency: 1000
+    # readout_sampling_frequency: 10000
+    # A:
+    #   activation_instrument: cDAQ1Mod3
+    #   activation_channels: [6,0,1,5,2,4,3] #ao
+    #   activation_voltage_ranges: [[-0.8,0.7],[-0.3,0.6],[-0.9,0.9],[-1,1],[-0.7,0.8],[-0.5,0.35],[-1,1.2]] #[[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08],[-0.08,0.08]]  
+    #   activation_channel_mask: [1,1,1,1,1,1,1]
+    #   readout_instrument: cDAQ1Mod4
+    #   readout_channels: [0] #for actual Quick setup 
+
+# The following Configs are only used for Spike test
+slope_length: 20 # number of points to ramp to the plateau voltage
+plateau_length: 20 # number of points for plateau 
+frequencies: [100, 3000, 10000] # DAC update rate(s), considering ADC sampling rate is fixed (10 kHz)

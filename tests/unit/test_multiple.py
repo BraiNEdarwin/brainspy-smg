@@ -14,7 +14,6 @@ class Test_Multiple(unittest.TestCase):
                          or TEST_MODE == "HARDWARE_NIDAQ",
                          "Hardware test is skipped for simulation setup.")
     def test_init(self):
-
         try:
             self.configs['driver']['instruments_setup']['A']['activation_channel_mask'] = [1,1,1,1,1,1,1]
             measurement = multiple.MultiIVMeasurement(self.configs)
