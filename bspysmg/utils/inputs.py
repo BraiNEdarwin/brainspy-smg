@@ -220,7 +220,7 @@ def load_configs(config_dict: dict) -> dict:
         " readout frequencies or averaging.")
     configs['sampling_frequency'] = config_dict["driver"]["instruments_setup"]["activation_sampling_frequency"]
     configs['input_frequency'] = get_frequency(configs)
-    configs['phase'] = np.array(configs['phase'])[:, np.newaxis]
+    #configs['phase'] = np.array(configs['phase'])[:, np.newaxis]
     configs['amplitude'] = np.array(configs['amplitude'])[:, np.newaxis]
     configs['offset'] = np.array(configs['offset'])[:, np.newaxis]
     configs[
@@ -357,3 +357,24 @@ def generate_sinewave(n: int,
     phases = points * 2 * np.pi * freq
 
     return np.sin(phases + phase) * amplitude
+
+def get_random_phase(activation_electrode_no=7):
+    """
+    Generates a list containing different random phases for each activation electrodes.
+    It can be used before gathering the data, in order to randomize the phase of the 
+    input during the data acquisition after one or few sampling batches.
+
+    Parameters
+    ----------
+    activation_electrode_no: int
+        The number of activation electrodes for which the phase will be generated.
+
+    Returns
+    ---------
+    list
+        Generated phases for activation electrodes.
+    """
+    phase = (np.random.rand((activation_electrode_no)) -
+             0.5) * 720  # Get values between -360 and 360 (degrees)
+    phase *= (np.pi / 180)  # convert to radians
+    return phase[:,np.newaxis] #.tolist()
