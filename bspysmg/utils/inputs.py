@@ -72,12 +72,12 @@ def get_input_generator(configs: dict) -> Tuple[dict, Callable]:
     #         'Uniform random wave generator not available')
     else:
         raise NotImplementedError(
-            f"Input wave array type {configs['input_distribution']} not recognized"
+            f"Input wave array type {configs['input_data']['input_distribution']} not recognized"
         )
 
 
-def sine_wave(time_points: np.array, frequency: float, phase: float, amplitude: float,
-              offset: float) -> np.array:
+def sine_wave(time_points: np.array, frequency: float, phase: float,
+              amplitude: float, offset: float) -> np.array:
     """
     Generates a sine wave.
 
@@ -212,13 +212,15 @@ def load_configs(config_dict: dict) -> dict:
     """
     configs = config_dict["input_data"]
     assert (
-        config_dict["driver"]["instruments_setup"]["activation_sampling_frequency"] ==
-        config_dict["driver"]["instruments_setup"]["readout_sampling_frequency"] or
-        config_dict['driver']["instruments_setup"]["average_io_point_difference"]
-    ), (
-        "Surrogate Model generation only supports same activation and" +
-        " readout frequencies or averaging.")
-    configs['sampling_frequency'] = config_dict["driver"]["instruments_setup"]["activation_sampling_frequency"]
+        config_dict["driver"]["instruments_setup"]
+        ["activation_sampling_frequency"] == config_dict["driver"]
+        ["instruments_setup"]["readout_sampling_frequency"]
+        or config_dict['driver']["instruments_setup"]
+        ["average_io_point_difference"]), (
+            "Surrogate Model generation only supports same activation and" +
+            " readout frequencies or averaging.")
+    configs['sampling_frequency'] = config_dict["driver"]["instruments_setup"][
+        "activation_sampling_frequency"]
     configs['input_frequency'] = get_frequency(configs)
     #configs['phase'] = np.array(configs['phase'])[:, np.newaxis]
     configs['amplitude'] = np.array(configs['amplitude'])[:, np.newaxis]
@@ -252,15 +254,36 @@ def get_frequency(configs: dict) -> np.array:
     """
     aux = np.array(configs['input_frequency'])[:, np.newaxis]
     # TODO: Check the optimal value for 0.001
-    return np.sqrt(
-        aux[:configs['activation_electrode_no']]) * (0.001 * configs['sampling_frequency'])  # configs['factor']
+    return np.sqrt(aux[:configs['activation_electrode_no']]) * (
+        0.001 * configs['sampling_frequency'])  # configs['factor']
 
 
-def generate_sawtooth_multiple(input_range, n_points, direction) -> np.array:
+def generate_sawtooth_multiple(input_range,
+                               n_points,
+                               up_direction=True) -> np.array:
+    """Generates a simple sawtooth for a single channel (electrode). It goes from zero to a certain
+    point (v_low), from that point to another point (v_max), and from that last point to zero again.
+    The direction can be inverted using up_direction=True so that the sawtooth goes from zero to 
+    v_max, from v_max to v_min, and from v_min to zero.
 
+    Parameters
+    ----------
+    input_range : linst
+        Minimum and maximum voltages that the sawtooth will achieve.
+    n_points : int
+        Number of points that the sawtooth will have.
+    up_direction : bool, optional
+        Direction of the sawtooth. If true, the sawtooth will go first up and then down. 
+        If False, the sawtooth will go first down and then up. By default False.
+
+    Returns
+    -------
+    np.array
+        An array containing the two pointed sawtooth in a single dimension.
+    """
     n_points = n_points / 2
 
-    if direction == "up":
+    if up_direction:
         Input1 = np.linspace(
             0, input_range[0],
             int((n_points * input_range[0]) /
@@ -270,7 +293,7 @@ def generate_sawtooth_multiple(input_range, n_points, direction) -> np.array:
             input_range[1], 0,
             int((n_points * input_range[1]) /
                 (input_range[1] - input_range[0])))
-    elif direction == "down":
+    else:
         Input1 = np.linspace(
             0, input_range[1],
             int((n_points * input_range[1]) /
@@ -280,8 +303,6 @@ def generate_sawtooth_multiple(input_range, n_points, direction) -> np.array:
             input_range[0], 0,
             int((n_points * input_range[0]) /
                 (input_range[0] - input_range[1])))
-    else:
-        print('Specify the sweep direction')
     result = np.concatenate((Input1, Input2, Input3))
     if not (result.shape[0] == int(n_points * 2)):
         result = np.concatenate((result, np.array([0])))
@@ -323,7 +344,8 @@ def generate_sawtooth_simple(v_low: float,
 
     ramp1 = np.linspace(0, v_low, round((point_no * v_low) / (v_low - v_high)))
     ramp2 = np.linspace(v_low, v_high, point_no)
-    ramp3 = np.linspace(v_high, 0, round((point_no * v_high) / (v_high - v_low)))
+    ramp3 = np.linspace(v_high, 0, round(
+        (point_no * v_high) / (v_high - v_low)))
 
     result = np.concatenate((ramp1, ramp2, ramp3))
     return result
@@ -361,7 +383,7 @@ def generate_sinewave(n: int,
 def get_random_phase(activation_electrode_no=7):
     """
     Generates a list containing different random phases for each activation electrodes.
-    It can be used before gathering the data, in order to randomize the phase of the 
+    It can be used before gathering the data, in order to randomize the phase of the
     input during the data acquisition after one or few sampling batches.
 
     Parameters
@@ -377,4 +399,5 @@ def get_random_phase(activation_electrode_no=7):
     phase = (np.random.rand((activation_electrode_no)) -
              0.5) * 720  # Get values between -360 and 360 (degrees)
     phase *= (np.pi / 180)  # convert to radians
-    return phase[:,np.newaxis] #.tolist()
+    return phase[:, np.newaxis]  #.tolist()
+

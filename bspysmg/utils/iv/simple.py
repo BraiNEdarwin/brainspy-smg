@@ -4,9 +4,15 @@ from brainspy.utils.manager import get_driver
 from bspysmg.utils.plots import iv_plot
 from bspysmg.utils.inputs import generate_sawtooth_simple
 
+from brainspy.processors.processor import Processor
+from brainspy.utils.pytorch import TorchUtils
+import torch
+import collections
+
 
 class IVMeasurement():
-    def __init__(self, configs: dict) -> None:
+    def __init__(self, configs: dict, info: dict = None,
+        model_state_dict: collections.OrderedDict = None) -> None:
         """
         Initializes the driver for which IV curve is to be plotted. It uses a config dict to
         initialize the driver. The driver can be the DNPU device itself (on chip training) or
@@ -25,7 +31,7 @@ class IVMeasurement():
                     - cdaq_to_nidaq
                     - simulation_debug
         """
-        self.driver = get_driver(configs['driver'])
+        self.driver = Processor(configs, info, model_state_dict)
 
     def iv_curve(self,
                  vmax: float,
@@ -69,28 +75,10 @@ class IVMeasurement():
             result : np.array
                 IV response of device or surrogate model.
         """
-        activation_electrode_no = len(
-            self.driver.configs['instruments_setup']['activation_channels'])
-        data = np.zeros((activation_electrode_no, point_no))
+        data = np.zeros((self.driver.get_activation_electrode_no(), point_no))
         data[input_electrode] = generate_sawtooth_simple(
             vmax, vmin, point_no, up_direction)
-        result = self.driver.forward_numpy(data.T)
+        result = self.driver(TorchUtils.format(data.T))
         if close:
-            self.driver.close_tasks()
-        iv_plot(result, input_electrode, save_plot, show_plot)
-        return result
-
-
-if __name__ == '__main__':
-
-    from brainspy.utils.io import load_configs
-    configs = load_configs('configs/utils/brains_ivcurve_template_simple.yaml')
-    measurement = IVMeasurement(configs)
-    for i in range(1):
-        measurement.iv_curve(-0.5,
-                             0.5,
-                             point_no=1000,
-                             input_electrode=i,
-                             show_plot=True,
-                             close=False)
-    measurement.driver.close_tasks()
+            self.driver.close()
+        return data[input_electrode], result

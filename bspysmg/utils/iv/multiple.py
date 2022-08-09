@@ -1,12 +1,12 @@
 import numpy as np
-from brainspy.utils.io import load_configs
+from brainspy.utils.pytorch import TorchUtils
 from brainspy.utils.manager import get_driver
-from bspysmg.utils.plots import multi_iv_plot
+from brainspy.utils.transforms import linear_transform
 from bspysmg.utils.inputs import generate_sawtooth_simple, generate_sinewave
 
 
 class MultiIVMeasurement():
-    def __init__(self, configs: dict) -> None:
+    def __init__(self, configs: dict, save_plot=None, show_plot=True) -> None:
         """
         Initializes the drivers for which IV curve is to be plotted. It uses a config dict to
         initialize the driver. The drivers can be the DNPU device itself (on chip training) or
@@ -31,15 +31,14 @@ class MultiIVMeasurement():
         """
         self.configs = configs
         self.input_signal = self.configs['input_signal']
-        self.index_prog = {}
-        self.index_prog["all"] = 0
-        for dev in self.configs['devices']:
-            self.index_prog[dev] = 0
+        self.driver = get_driver(self.configs['driver'])
 
     def run_test(
             self,
-            experiments=["IV1", "IV2", "IV3", "IV4", "IV5", "IV6",
-                         "IV7"]) -> None:
+            experiments=["IV1", "IV2", "IV3", 
+                         "IV4", "IV5", "IV6",
+                         "IV7"], 
+            close_driver: bool =True) -> None:
         """
         Generates the IV response of devices to a sawtooth or sine wave and shows it
         on the screen. It uses configs dictionary with the following keys:
@@ -50,15 +49,20 @@ class MultiIVMeasurement():
         - driver: dict
             It contains the configurations for each device in the experiment which
             are defined in the devices list.
+        - close_driver: boolean
+            Whether to close the driver or not after running the IV curve.
         """
         # save(mode='configs', path=self.configs['results_base_dir'], filename='test_configs.json', overwrite=self.configs['overwrite_results'], data=self.configs)
 
-        self.driver = get_driver(self.configs['driver'])
         self.devices_in_experiments = {}
         output = {}
         inputs = {}
         output_array = []
         input_arrays = []
+        self.index_prog = {}
+        self.index_prog["all"] = 0
+        for dev in self.configs['devices']:
+            self.index_prog[dev] = 0
         for i, exp in enumerate(experiments):
             output[exp] = {}
             inputs[exp] = {}
@@ -68,8 +72,11 @@ class MultiIVMeasurement():
 
             for j, dev in enumerate(self.configs['devices']):
                 output[exp][dev] = output_array[:, j]
-        self.driver.close_tasks()
-        multi_iv_plot(configs, inputs, output)
+        self.index_prog["all"] = 0
+        if close_driver:
+            self.driver.close_tasks()
+        
+        return self.configs, inputs, output
 
     def create_input_arrays(self, inputs_dict: dict) -> np.array:
         """
@@ -156,24 +163,13 @@ class MultiIVMeasurement():
             input_data = generate_sawtooth_simple(
                 input_range[0], input_range[1], self.configs['shape'],
                 self.input_signal['direction'])
-        elif self.input_signal['input_signal_type'] == 'sine':
+        else:
             input_data = generate_sinewave(
                 self.configs['shape'],
-                self.configs["driver"]['sampling_frequency'],
-                input_range[1])  # Max from the input range
+                self.configs['driver']['instruments_setup']['activation_sampling_frequency'],
+                amplitude=1)  # Max from the input range
+            
+            input_data = linear_transform(input_range[0], input_range[1], -1, 1, input_data )
             input_data[-1] = 0
-        else:
-            print("Specify input_signal type")
-
+            input_data[0] = 0
         return input_data
-
-
-if __name__ == '__main__':
-
-    from brainspy.utils.io import load_configs
-
-    configs = load_configs(
-        'configs/utils/brains_ivcurve_template.yaml')
-
-    test = MultiIVMeasurement(configs)
-    test.run_test()

@@ -6,7 +6,6 @@ from brainspy.utils.io import save_configs
 from bspysmg.utils.plots import plot_waves
 from bspysmg.utils.inputs import get_random_phase
 from more_itertools import grouper
-import matplotlib.pyplot as plt
 import numpy as np
 import time
 import os
@@ -189,7 +188,8 @@ class Sampler:
         all_time_points = np.arange(
             total_number_samples) / input_dict["sampling_frequency"]
 
-        phase = np.zeros((self.configs["input_data"]["activation_electrode_no"], 1))
+        phase = np.zeros(
+            (self.configs["input_data"]["activation_electrode_no"], 1))
         phase_randomisation_count = 0
         for batch, batch_indices in enumerate(
                 self.get_batch_indices(total_number_samples, batch_size)):
@@ -374,29 +374,5 @@ class Sampler:
         """
         Adequately closes the connection to the drivers.
         """
-        try:
-            self.driver.close_tasks()
-            print('Instrument task closed')
-        except AttributeError:
-            print(
-                'There is no closing function for the current driver configuration. Skipping.'
-            )
-
-
-if __name__ == '__main__':
-    import matplotlib
-    matplotlib.use('Agg')
-    from brainspy.utils.io import load_configs
-    from bspysmg.data.postprocess import post_process
-
-    CONFIGS = load_configs(
-        'configs/sampling/sampling_configs_template_cdaq_to_cdaq.yaml')
-    sampler = Sampler(CONFIGS)
-    path_to_data = sampler.sample()
-
-    INPUTS, OUTPUTS, INFO_DICT = post_process(path_to_data,
-                                              clipping_value=None)
-    print(
-        f"max out {OUTPUTS.max()} max min {OUTPUTS.min()} shape {OUTPUTS.shape}"
-    )
-    plt.show()
+        self.driver.close_tasks()
+        print('Instrument task closed')

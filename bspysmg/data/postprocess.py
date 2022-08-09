@@ -34,7 +34,14 @@ def get_sampling_data(filename: str, activation_electrode_no: int,
     """
     print("\nLoading file: " + filename)
     print("This may take some time. Please wait.\n")
+    assert type(activation_electrode_no
+                ) is int, "Activation electrode number expected to be int"
+    assert type(readout_electrode_no
+                ) is int, "Readout electrode number expected to be int"
     data = np.loadtxt(filename)
+    assert data.shape[1] == (
+        activation_electrode_no + readout_electrode_no
+    ), "Data from the file has a different electrode configuration. Check the activation electrode no and the readout electrode no"
     inputs = data[:, :activation_electrode_no]
     outputs = data[:, -readout_electrode_no:]
     return inputs, outputs
@@ -42,9 +49,9 @@ def get_sampling_data(filename: str, activation_electrode_no: int,
 
 def post_process(data_dir: str,
                  clipping_value="default",
-                 charging_signal_batch_no: int=40,
-                 reference_signal_batch_no: int=15,
-                 filename : str="postprocessed_data",
+                 charging_signal_batch_no: int = 40,
+                 reference_signal_batch_no: int = 15,
+                 filename: str = "postprocessed_data",
                  **kwargs) -> Tuple[np.array, np.array, dict]:
     """
     Postprocesses the data, cleans any clipping (optional), and merges data sets if needed. The data
@@ -126,21 +133,26 @@ def post_process(data_dir: str,
                     readout.
 
     """
+    assert type(charging_signal_batch_no
+                ) is int, "charging_signal_batch_no should be an integer"
+    assert type(reference_signal_batch_no
+                ) is int, "reference_signal_batch_no should be an integer"
+    assert data_dir is not None
     configs = load_configs(os.path.join(data_dir, "sampler_configs.json"))
     activation_electrode_no = configs["input_data"]["activation_electrode_no"]
     readout_electrode_no = configs["input_data"]["readout_electrode_no"]
 
     # If the data comes from multiple sources. Merge them first.
-    if "list_data" in kwargs.keys():
-        inputs, outputs, configs = data_merger(
-            data_dir,
-            kwargs["list_data"],
-            activation_electrode_no=activation_electrode_no,
-            readout_electrode_no=readout_electrode_no)
-    elif len(kwargs.keys()) > 0:
-        assert (
-            False
-        ), f"{list(kwargs.keys())} not recognized! kwargs must be list_data"
+    # if "list_data" in kwargs.keys():
+    #     inputs, outputs, configs = data_merger(
+    #         data_dir,
+    #         kwargs["list_data"],
+    #         activation_electrode_no=activation_electrode_no,
+    #         readout_electrode_no=readout_electrode_no)
+    # elif len(kwargs.keys()) > 0:
+    #     assert (
+    #         False
+    #     ), f"{list(kwargs.keys())} not recognized! kwargs must be list_data"
 
     inputs, outputs = get_sampling_data(
         os.path.join(data_dir, "IO.dat"),
@@ -482,118 +494,119 @@ def clip_data(inputs: np.array, outputs: np.array,
         Array containing all the outputs of the device obtained during sampling, except for those
         values for which its corresponding output is above and below the specified clipping range.
     """
-    print(
-        f"\nClipping data outside range {clipping_value_range[0]} and {clipping_value_range[1]}"
-    )
+
     mean_output = np.mean(outputs, axis=1)
+
     # Get cropping mask
     if type(clipping_value_range) is list:
         cropping_mask = (mean_output < clipping_value_range[1]) * (
             mean_output > clipping_value_range[0])
-    elif type(clipping_value_range) is float:
-        cropping_mask = np.abs(mean_output) < clipping_value_range
+        print(
+            f"\nClipping data outside range {clipping_value_range[0]} and {clipping_value_range[1]}"
+        )
+        outputs = outputs[cropping_mask]
+        inputs = inputs[cropping_mask, :]
+        return inputs, outputs
+    elif clipping_value_range is None:
+        return inputs, outputs
     else:
-        TypeError(
+        raise TypeError(
             f"Clipping value not recognized! Must be list with lower and upper bound or float, was {type(clipping_value_range)}"
         )
 
-    outputs = outputs[cropping_mask]
-    inputs = inputs[cropping_mask, :]
-    return inputs, outputs
 
+# def merge_postprocessed_data(file_names,
+#                              output_file_name='merged_postprocessed_data.npz'):
+#     """[summary]
 
-def merge_postprocessed_data(file_names,
-                             output_file_name='merged_postprocessed_data.npz'):
-    """[summary]
+#     Parameters
+#     ----------
+#     file_names : [type]
+#         [description]
+#     output_file_name : str, optional
+#         [description], by default 'merged_postprocessed_data.npz'
 
-    Parameters
-    ----------
-    file_names : [type]
-        [description]
-    output_file_name : str, optional
-        [description], by default 'merged_postprocessed_data.npz'
+#     Example
+#     ----------
+#     file_names = ['tmp/data/training/Brains_testing_2020_09_04_182557/postprocessed_data.npz',
+#      'tmp/data/training/Brains_testing_2020_09_11_093200/postprocessed_data.npz']
+#     merge_postprocessed_data(file_names)
+#     """
+#     ref_data = dict(np.load(file_names[0], allow_pickle='True'))
+#     for i in range(1, len(file_names)):
+#         data = np.load(file_names[i])
+#         for key in list(data):
+#             if key != 'info':
+#                 ref_data[key] = np.append(ref_data[key], data[key], axis=0)
+#     np.savez(output_file_name, **ref_data)
 
-    Example
-    ----------
-    file_names = ['tmp/data/training/Brains_testing_2020_09_04_182557/postprocessed_data.npz',
-     'tmp/data/training/Brains_testing_2020_09_11_093200/postprocessed_data.npz']
-    merge_postprocessed_data(file_names)
-    """
-    ref_data = dict(np.load(file_names[0], allow_pickle='True'))
-    for i in range(1, len(file_names)):
-        data = np.load(file_names[i])
-        for key in list(data):
-            if key != 'info':
-                ref_data[key] = np.append(ref_data[key], data[key], axis=0)
-    np.savez(output_file_name, **ref_data)
+# def data_merger(main_dir, activation_electrode_no=7, readout_electrode_no=1):
+#     # EXAMPLE
+#     #  main_dir = "tmp/output/model_nips"
+#     # The post_process function should have a clipping value which is in an amplified scale.
+#     # E.g., for an amplitude of 100 -> 345.5
+#     # process_multiple(main_dir)
+#     shape = 0
+#     dirs = list([
+#         name for name in os.listdir(main_dir)
+#         if os.path.isdir(os.path.join(main_dir, name))
+#         and not name.startswith('.')
+#     ])
 
+#     assert len(dirs) > 0
+#     for i in range(len(dirs)):
+#         shape += np.load(os.path.join(main_dir, dirs[i],
+#                                       'postprocessed_data.npz'),
+#                          allow_pickle=True)['inputs'].shape[0]
 
-def data_merger(main_dir, activation_electrode_no=7, readout_electrode_no=1):
-    # EXAMPLE
-    #  main_dir = "tmp/output/model_nips"
-    # The post_process function should have a clipping value which is in an amplified scale.
-    # E.g., for an amplitude of 100 -> 345.5
-    # process_multiple(main_dir)
-    shape = 0
-    dirs = list([
-        name for name in os.listdir(main_dir)
-        if os.path.isdir(os.path.join(main_dir, name))
-        and not name.startswith('.')
-    ])
+#     input_results = np.zeros([shape, activation_electrode_no])
+#     output_results = np.zeros([shape, readout_electrode_no])
+#     previous_shape = 0
+#     for i in range(len(dirs)):
+#         data = np.load(os.path.join(main_dir, dirs[i],
+#                                     'postprocessed_data.npz'),
+#                        allow_pickle=True)
+#         current_shape = previous_shape + data['inputs'].shape[0]
+#         input_results[previous_shape:current_shape] = data['inputs']
+#         output_results[previous_shape:current_shape] = data['outputs']
+#         previous_shape = current_shape
+#         info = data['info']
 
-    assert len(dirs) > 0
-    for i in range(len(dirs)):
-        shape += np.load(os.path.join(main_dir, dirs[i],
-                                      'postprocessed_data.npz'),
-                         allow_pickle=True)['inputs'].shape[0]
+#     info = dict(np.ndenumerate(info))[()]
+#     info['input_data']['input_distribution'] = 'mixed'
+#     info['input_data']['phase'] = 'mixed'
+#     index = np.random.permutation(np.arange(shape))
+#     input_results = input_results[index]
+#     output_results = output_results[index]
 
-    input_results = np.zeros([shape, activation_electrode_no])
-    output_results = np.zeros([shape, readout_electrode_no])
-    previous_shape = 0
-    for i in range(len(dirs)):
-        data = np.load(os.path.join(main_dir, dirs[i],
-                                    'postprocessed_data.npz'),
-                       allow_pickle=True)
-        current_shape = previous_shape + data['inputs'].shape[0]
-        input_results[previous_shape:current_shape] = data['inputs']
-        output_results[previous_shape:current_shape] = data['outputs']
-        previous_shape = current_shape
-        info = data['info']
+#     limit = int(shape * 0.75)
 
-    info = dict(np.ndenumerate(info))[()]
-    info['input_data']['input_distribution'] = 'mixed'
-    info['input_data']['phase'] = 'mixed'
-    index = np.random.permutation(np.arange(shape))
-    input_results = input_results[index]
-    output_results = output_results[index]
+#     np.savez(os.path.join(main_dir, 'training_data'),
+#              inputs=input_results[:limit],
+#              outputs=output_results[:limit],
+#              info=info)
+#     np.savez(os.path.join(main_dir, 'test_data'),
+#              inputs=input_results[limit:],
+#              outputs=output_results[limit:],
+#              info=info)
 
-    limit = int(shape * 0.75)
+#if __name__ == "__main__":
+# import matplotlib
 
-    np.savez(os.path.join(main_dir, 'training_data'),
-             inputs=input_results[:limit],
-             outputs=output_results[:limit],
-             info=info)
-    np.savez(os.path.join(main_dir, 'test_data'),
-             inputs=input_results[limit:],
-             outputs=output_results[limit:],
-             info=info)
+# matplotlib.use('TkAgg')
+# main_dir = "C:/Users/Unai/Documents/github/brainspy-smg/tmp/brains_setup/sampling_data_1KSPS_arsenic_test_2022_03_17_171248"
+# inputs, outputs, info = post_process(main_dir,
+#                                      clipping_value=[-114, 114],
+#                                      filename="postprocessed_data_clipped")
+# dirs = list(
+#     [
+#         name
+#         for name in os.listdir(main_dir)
+#         if os.path.isdir(os.path.join(main_dir, name)) and not name.startswith(".")
+#     ]
+# )
 
-
-if __name__ == "__main__":
-    # import matplotlib
-
-    # matplotlib.use('TkAgg')
-    main_dir = "C:/Users/Unai/Documents/github/brainspy-smg/tmp/brains_setup/sampling_data_1KSPS_arsenic_test_2022_03_17_171248"
-    inputs, outputs, info = post_process(main_dir, clipping_value=[-114,114], filename="postprocessed_data_clipped")
-    # dirs = list(
-    #     [
-    #         name
-    #         for name in os.listdir(main_dir)
-    #         if os.path.isdir(os.path.join(main_dir, name)) and not name.startswith(".")
-    #     ]
-    # )
-
-    # assert len(dirs) > 0
-    # for i in range(len(dirs)):
-    # inputs, outputs, info = post_process(main_dir)
-    # output_hist(outputs, os.path.join(main_dir, dirs[i]), bins=1000, show=True)
+# assert len(dirs) > 0
+# for i in range(len(dirs)):
+# inputs, outputs, info = post_process(main_dir)
+# output_hist(outputs, os.path.join(main_dir, dirs[i]), bins=1000, show=True)
