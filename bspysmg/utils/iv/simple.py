@@ -81,4 +81,4 @@ class IVMeasurement():
         result = self.driver(TorchUtils.format(data.T))
         if close:
             self.driver.close()
-        return data[input_electrode], result
+        return data[input_electrode], result.detach().cpu().numpy()
