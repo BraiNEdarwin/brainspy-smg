@@ -134,7 +134,7 @@ def generate_surrogate_model(
     )
 
     # Whole training loop
-    model, performances = train_loop(
+    model, performances, _ = train_loop(
         model,
         info_dict,
         (dataloaders[0], dataloaders[1]),
@@ -265,8 +265,12 @@ def train_loop(
 
     Returns
     -------
-    tuple
-        Trained model and a list of training loss and validation loss.
+    model
+        Trained model
+    losses
+        list of training loss and validation loss.
+    saved_dir
+        directory where the model was saved
     """
     if start_epoch > 0:
         start_epoch += 1
@@ -340,7 +344,7 @@ def train_loop(
             os.path.join(save_dir, "training_data.pt"),
         )
 
-    return model, [train_losses, val_losses]
+    return model, [train_losses, val_losses], save_dir
 
 
 def default_train_step(

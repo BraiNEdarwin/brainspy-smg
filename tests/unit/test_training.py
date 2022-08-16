@@ -76,7 +76,7 @@ class Test_Training(unittest.TestCase):
                 betas=(0.9, 0.75),
             )
 
-            model, performances = training.train_loop(
+            model, performances,_ = training.train_loop(
                 model,
                 info_dict, (dataloaders[0], dataloaders[1]),
                 MSELoss(),
@@ -106,7 +106,7 @@ class Test_Training(unittest.TestCase):
                 betas=(0.9, 0.75),
             )
 
-            model, performances = training.train_loop(
+            model, performances, _ = training.train_loop(
                 model,
                 info_dict, (dataloaders[0], None, None),
                 MSELoss(),
@@ -190,7 +190,7 @@ class Test_Training(unittest.TestCase):
                 betas=(0.9, 0.75),
             )
 
-            model, performances = training.train_loop(
+            model, performances, _ = training.train_loop(
                 model,
                 info_dict,
                 (dataloaders[0], dataloaders[1]),
