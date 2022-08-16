@@ -204,8 +204,8 @@ class Sampler:
             time_points = all_time_points[batch_indices]
             inputs = self.generate_inputs(time_points,
                                           input_dict['input_frequency_numpy'], phase,
-                                          input_dict['amplitude'],
-                                          input_dict['offset'])
+                                          input_dict['amplitude_numpy'],
+                                          input_dict['offset_numpy'])
             # Get outputs (without ramping)
             outputs = self.sample_batch(inputs)
             self.save_batch(inputs.T, outputs)

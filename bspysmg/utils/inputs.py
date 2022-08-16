@@ -225,10 +225,10 @@ def load_configs(config_dict: dict) -> dict:
     configs['input_frequency_numpy'] = get_frequency(configs)
 
     assert 'amplitude' in configs
-    configs['amplitude'] = np.array(configs['amplitude'])[:, np.newaxis]
+    configs['amplitude_numpy'] = np.array(configs['amplitude'])[:, np.newaxis]
 
     assert 'offset' in configs
-    configs['offset'] = np.array(configs['offset'])[:, np.newaxis]
+    configs['offset_numpy'] = np.array(configs['offset'])[:, np.newaxis]
 
     assert 'batch_time' in configs
     assert 'ramp_time' in configs
