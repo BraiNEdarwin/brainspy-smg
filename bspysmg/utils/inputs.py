@@ -220,7 +220,7 @@ def load_configs(config_dict: dict) -> dict:
         "activation_sampling_frequency"]
     
     assert 'input_frequency' in configs, "Input frequency bases for the generated wave should be specified"
-    assert type(configs['input_frequency']) is list, "Input frequency for the generated wave should be a list containing irrational frequencies per activation electrode"
+    assert type(configs['input_frequency']) is list or type(configs['input_frequency']) is np.ndarray, "Input frequency for the generated wave should be a list containing irrational frequencies per activation electrode"
    
     configs['input_frequency'] = get_frequency(configs)
 
