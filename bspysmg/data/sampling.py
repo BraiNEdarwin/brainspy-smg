@@ -219,7 +219,7 @@ class Sampler:
                            legend, self.configs["save_directory"])
             print(
                 f"Outputs collection for batch {batch} of {input_dict['number_batches']} "
-                + f"took {end_batch - start_batch} sec.")
+                + f"took {end_batch - start_batch} sec. Estimated time left: "+convert(batch, input_dict['number_batches'], (end_batch - start_batch)) )
             phase_randomisation_count += 1
             if input_dict[
                     'random_phase_shift_each'] >= phase_randomisation_count:
@@ -380,3 +380,25 @@ class Sampler:
         """
         self.driver.close_tasks()
         print('Instrument task closed')
+
+def convert(num_batches, total_batches, time_taken):
+    """
+    Converts the number of batches and the last time taken for measuring them into
+    a string containing an estimation of the time left in HH:MM:SS format.
+
+    Parameters
+     ----------
+     num_batches: int
+        Number of batches that have been already sampled.
+     total_batches:int
+        Total batches that will be sampled.
+     time_taken: float
+        Time that the last measurement has taken.
+    Return
+     ----------
+     str: A string containing the time left in HH:MM:SS
+    """
+    seconds = (total_batches - num_batches) * time_taken
+    min, sec = divmod(seconds, 60)
+    hour, min = divmod(min, 60)
+    return "%d:%02d:%02d" % (hour, min, sec)
