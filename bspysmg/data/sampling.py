@@ -203,7 +203,7 @@ class Sampler:
             batch += 1
             time_points = all_time_points[batch_indices]
             inputs = self.generate_inputs(time_points,
-                                          input_dict['input_frequency'], phase,
+                                          input_dict['input_frequency_numpy'], phase,
                                           input_dict['amplitude'],
                                           input_dict['offset'])
             # Get outputs (without ramping)
