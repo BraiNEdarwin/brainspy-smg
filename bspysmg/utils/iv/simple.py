@@ -31,7 +31,7 @@ class IVMeasurement():
                     - cdaq_to_nidaq
                     - simulation_debug
         """
-        self.driver = Processor(configs, info, model_state_dict)
+        self.driver = TorchUtils.format(Processor(configs, info, model_state_dict))
 
     def iv_curve(self,
                  vmax: float,

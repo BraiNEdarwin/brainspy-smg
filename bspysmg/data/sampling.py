@@ -187,9 +187,13 @@ class Sampler:
         # Initialize sampling loop
         all_time_points = np.arange(
             total_number_samples) / input_dict["sampling_frequency"]
-
-        phase = np.zeros(
-            (self.configs["input_data"]["activation_electrode_no"], 1))
+        if 'phase' in self.configs['input_data']:
+            phase = np.array(self.configs['input_data']['phase'])
+            if len(phase.shape) == 1:
+                phase = phase[:,np.newaxis]
+        else:
+            phase = np.zeros(
+                (self.configs["input_data"]["activation_electrode_no"], 1))
         phase_randomisation_count = 0
         for batch, batch_indices in enumerate(
                 self.get_batch_indices(total_number_samples, batch_size)):
