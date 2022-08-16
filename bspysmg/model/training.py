@@ -111,6 +111,11 @@ def generate_surrogate_model(
         Optimization method used to train the model which decreases model's loss.
     save_dir : string [Optional]
         Name of the path where the trained model is to be saved.
+    
+    Return
+    ------
+    saved_dir: str 
+        Directory where the surrogate model was saved.
     """
     # Initialise seed and create data directories
     init_seed(configs)
@@ -134,7 +139,7 @@ def generate_surrogate_model(
     )
 
     # Whole training loop
-    model, performances, _ = train_loop(
+    model, performances, saved_dir = train_loop(
         model,
         info_dict,
         (dataloaders[0], dataloaders[1]),
@@ -179,6 +184,7 @@ def generate_surrogate_model(
         torch.save(training_data, os.path.join(results_dir,
                                                "training_data.pt"))
     # print("Model saved in :" + results_dir)
+    return saved_dir
 
 
 def train_loop(
