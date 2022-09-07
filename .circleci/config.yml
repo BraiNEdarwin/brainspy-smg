@@ -20,9 +20,9 @@ jobs:
             python3 -m pip install --upgrade pip
             pip install -r requirements.txt
       # Step 3: run linter and tests
-      # - run:
-      #     name: run tests
-      #     command: |
-      #       . venv/bin/activate
-      #       python -m coverage run -m unittest
-      #       coverage report -m
+       - run:
+           name: run tests
+           command: |
+             . venv/bin/activate
+             python -m coverage run -m unittest
+             coverage report -m
