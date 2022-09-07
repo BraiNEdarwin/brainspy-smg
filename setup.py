@@ -11,5 +11,8 @@ setup(
     author_email="u.alegre@utwente.nl",
     license="GPL-3.0",
     packages=find_packages(),
+    install_requires=[
+        'scipy~=1.5.4'
+    ],
     zip_safe=False,
 )

@@ -9,3 +9,4 @@ tqdm~=4.63
 unittest2==1.1.0
 coverage==6.4
 PyYAML==6.0
+scipy~=1.5
