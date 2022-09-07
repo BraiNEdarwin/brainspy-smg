@@ -12,7 +12,7 @@ setup(
     license="GPL-3.0",
     packages=find_packages(),
     install_requires=[
-        'scipy~=1.5.4'
+        'scipy~=1.5.4','more_itertools==8.6.0'
     ],
     zip_safe=False,
 )

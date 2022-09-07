@@ -10,3 +10,4 @@ unittest2==1.1.0
 coverage==6.4
 PyYAML==6.0
 scipy~=1.5
+more_itertools==8.6.0
