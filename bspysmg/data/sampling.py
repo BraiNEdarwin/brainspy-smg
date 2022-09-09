@@ -81,7 +81,7 @@ class Sampler:
                 - number_batches: int
                     Number of batches that will be sampled. A default value of 3880 is reccommended.
                 - randomise_phase_each: int (Optional)
-                    Specifies at how many epochs 
+                    Specifies at how many epochs the phases will be randomly generated again. 
         """
         self.driver = get_driver(configs["driver"])
         self.configs = configs
