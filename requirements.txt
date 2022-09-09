@@ -1,3 +1,3 @@
-brainspy~=1.0
+brainspy==1.0.1
 scipy~=1.5
 more_itertools==8.6.0
