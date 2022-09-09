@@ -1,18 +1,29 @@
 from setuptools import setup, find_packages
 
+with open("README.md", "r") as f:
+    long_description = f.read()
+
 setup(
     name="brainspy-smg",
     version="1.0.0",
     description=
-    "Automatisation for creating neural-network based surrogate models of boron-doped silicon chips.",
-    url="https://github.com/BraiNEdarwin/brainspy-smg",
-    author=
-    "This has adopted part of the BRAINS skynet repository code, which has been cleaned and refactored. The maintainers of the code are Hans-Christian Ruiz Euler and Unai Alegre Ibarra.",
+    "A python package to support research on different nano-scale materials for creating hardware accelerators in the context of deep neural networks.",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    keywords=['pytorch', 'nano', 'material', 'hardware acceleration', 'deep neural networks', 'surrogate model', 'twin device'],	
+    author="Unai Alegre-Ibarra et al.",
     author_email="u.alegre@utwente.nl",
     license="GPL-3.0",
-    packages=find_packages(),
-    install_requires=[
-        'scipy~=1.5.4','more_itertools==8.6.0'
-    ],
+    python_requires='==3.9.1',
+    install_requires=["scipy~=1.5", "more_itertools==8.6.0"],
+    packages=find_packages(exclude=["tests"]),
+    url="https://github.com/BraiNEdarwin/brainspy-smg",
     zip_safe=False,
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Topic :: Scientific/Engineering :: Artificial Intelligence',
+        'Intended Audience :: Science/Research',
+        'Programming Language :: Python :: 3.9',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'
+    ]
 )
