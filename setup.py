@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="brainspy-smg",
-    version="1.0.1",
+    version="1.0.2",
     description=
     "A python package to support research on different nano-scale materials for creating hardware accelerators in the context of deep neural networks.",
     long_description=long_description,
