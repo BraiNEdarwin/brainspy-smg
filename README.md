@@ -1,4 +1,4 @@
-# brainspy-smg
+# brainspy-smg [![CircleCI](https://dl.circleci.com/status-badge/img/gh/BraiNEdarwin/brainspy-smg/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/BraiNEdarwin/brainspy-smg/tree/master) [![Tools](https://img.shields.io/badge/brains-py-darkblue.svg)](https://github.com/BraiNEdarwin/brains-py) [![Theory](https://img.shields.io/badge/brainspy-tasks-lightblue.svg)](https://github.com/BraiNEdarwin/brainspy-tasks)
 
 Automatised generation of deep neural-network based surrogate models of multi-terminal nano-electronic devices, particularly it is focused on dopant-network processing units (DNPUs) [1]. The library provides support for the whole life-cycle of a surrogate model:
 
@@ -9,7 +9,7 @@ Automatised generation of deep neural-network based surrogate models of multi-te
 
 
 
-[![Tools](https://img.shields.io/badge/brains-py-darkblue.svg)](https://github.com/BraiNEdarwin/brainspy-smg)[![Theory](https://img.shields.io/badge/brainspy-tasks-lightblue.svg)](https://github.com/BraiNEdarwin/brainspy-tasks)
+
 
 ## 1. Instructions
 
