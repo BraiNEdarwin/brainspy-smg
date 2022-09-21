@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="brainspy-smg",
-    version="1.0.4",
+    version="1.0.5",
     description=
     "A python package to support research on different nano-scale materials for creating hardware accelerators in the context of deep neural networks.",
     long_description=long_description,
@@ -14,7 +14,7 @@ setup(
     author="Unai Alegre-Ibarra et al.",
     author_email="u.alegre@utwente.nl",
     license="GPL-3.0",
-    python_requires='==3.9',
+    #python_requires='==3.9',
     install_requires=["brainspy", "scipy~=1.5", "more_itertools==8.6.0"],
     packages=find_packages(exclude=["tests"]),
     url="https://github.com/BraiNEdarwin/brainspy-smg",
