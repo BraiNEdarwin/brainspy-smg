@@ -1,3 +1,6 @@
+"""
+File containing functions for training a surrogate model in pytorch taking into account the error in nano amperes.
+"""
 import os
 import torch
 import matplotlib.pyplot as plt
@@ -71,7 +74,7 @@ def generate_surrogate_model(
 
     2. seed: int
     Sets the seed for generating random numbers to a non-deterministic random number.
-    
+
     3. hyperparameters:
     epochs: int
     learning_rate: float

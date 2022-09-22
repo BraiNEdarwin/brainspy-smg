@@ -1,3 +1,6 @@
+"""
+File containing a class for measuring IV curves on multiple devices PCBs.
+"""
 import numpy as np
 from brainspy.utils.io import load_configs
 from brainspy.utils.manager import get_driver

@@ -1,3 +1,6 @@
+"""
+File containing a class for measuring IV curves on a single device (or surrogate model).
+"""
 import numpy as np
 from brainspy.utils.pytorch import TorchUtils
 from brainspy.utils.manager import get_driver

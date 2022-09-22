@@ -1,3 +1,6 @@
+"""
+File containing functions for postprocessing raw data gathered from the sampler and information for the model's info dictionary.
+"""
 import os
 
 import numpy as np

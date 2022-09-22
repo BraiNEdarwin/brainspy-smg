@@ -1,3 +1,6 @@
+"""
+File containing a class for checking a device (or/and a surrogate model) against previously obtained reference measurements.
+"""
 import os
 import time
 import torch

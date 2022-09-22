@@ -1,3 +1,6 @@
+"""
+File containing a class for loading sampling data as a dataset, as well as a function for loading the dataset into a PyTorch dataloader.
+"""
 import torch
 import math
 import numpy as np
@@ -344,7 +347,7 @@ def get_dataloaders(
     If True, the data loader will copy Tensors into CUDA pinned memory before returning
     them. If your data elements are a custom type, or your collate_fn returns a batch that
     is a custom type.
-    
+
     Returns
     -------
     dataloaders : list[torch.utils.dataDataLoader]

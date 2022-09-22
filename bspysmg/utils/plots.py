@@ -1,3 +1,6 @@
+"""
+File containing several methods for plotting purposes.
+"""
 import os
 import numpy as np
 import matplotlib.pyplot as plt

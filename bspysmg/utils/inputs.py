@@ -1,3 +1,6 @@
+"""
+File containing different methods for generating input waves for sampling purposes.
+"""
 import numpy as np
 from scipy import signal
 from typing import Tuple, Callable

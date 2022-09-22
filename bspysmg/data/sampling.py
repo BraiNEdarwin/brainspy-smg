@@ -1,3 +1,6 @@
+"""
+File containing a class for sampling a device.
+"""
 from __future__ import generator_stop
 from brainspy.utils.manager import get_driver
 from bspysmg.utils.inputs import get_input_generator
