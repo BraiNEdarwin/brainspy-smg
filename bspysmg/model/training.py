@@ -68,62 +68,64 @@ def generate_surrogate_model(
     Parameters
     ----------
     configs : dict
-    Training configurations for training a model with following keys:
-    1. results_base_dir: str
-    Directory where the trained model and corresponding performance plots will be stored.
+        Training configurations for training a model with following keys:
+        
+        1. results_base_dir: str
+        Directory where the trained model and corresponding performance plots will be stored.
 
-    2. seed: int
-    Sets the seed for generating random numbers to a non-deterministic random number.
+        2. seed: int
+        Sets the seed for generating random numbers to a non-deterministic random number.
 
-    3. hyperparameters:
-    epochs: int
-    learning_rate: float
-    4. model_structure: dict
-    The definition of the internal structure of the surrogate model, which is typically five
-    fully-connected layers of 90 nodes each.
+        3. hyperparameters:
+        epochs: int
+        learning_rate: float
+        
+        4. model_structure: dict
+        The definition of the internal structure of the surrogate model, which is typically five
+        fully-connected layers of 90 nodes each.
 
-    4.1 hidden_sizes : list
-    A list containing the number of nodes of each layer of the surrogate model.
-    E.g., [90,90,90,90,90]
+        4.1 hidden_sizes : list
+        A list containing the number of nodes of each layer of the surrogate model.
+        E.g., [90,90,90,90,90]
 
-    4.2 D_in: int
-    Number of input features of the surrogate model structure. It should correspond to
-    the activation electrode number.
+        4.2 D_in: int
+        Number of input features of the surrogate model structure. It should correspond to
+        the activation electrode number.
 
-    4.3 D_out: int
-    Number of output features of the surrogate model structure. It should correspond to
-    the readout electrode number.
+        4.3 D_out: int
+        Number of output features of the surrogate model structure. It should correspond to
+        the readout electrode number.
 
-    5. data:
-    5.1 dataset_paths: list[str]
-    A list of paths to the Training, Validation and Test datasets, stored as
-    postprocessed_data.npz
+        5. data:
+        5.1 dataset_paths: list[str]
+        A list of paths to the Training, Validation and Test datasets, stored as
+        postprocessed_data.npz
 
-    5.2 steps : int
-    It allows to skip parts of the data when loading it into memory. The number indicates
-    how many items will be skipped in between. By default, step number is one (no values
-    are skipped). E.g., if steps = 2, and the inputs are [0, 1, 2, 3, 4, 5, 6]. The only
-    inputs taken into account would be: [0, 2, 4, 6].
+        5.2 steps : int
+        It allows to skip parts of the data when loading it into memory. The number indicates
+        how many items will be skipped in between. By default, step number is one (no values
+        are skipped). E.g., if steps = 2, and the inputs are [0, 1, 2, 3, 4, 5, 6]. The only
+        inputs taken into account would be: [0, 2, 4, 6].
 
-    5.3 batch_size: int
-    How many samples will contain each forward pass.
+        5.3 batch_size: int
+        How many samples will contain each forward pass.
 
-    5.4 worker_no: int
-    How many subprocesses to use for data loading. 0 means that the data will be loaded in
-    the main process. (default: 0)
+        5.4 worker_no: int
+        How many subprocesses to use for data loading. 0 means that the data will be loaded in
+        the main process. (default: 0)
 
-    5.5 pin_memory: boolean
-    If True, the data loader will copy Tensors into CUDA pinned memory before returning
-    them. If your data elements are a custom type, or your collate_fn returns a batch that
-    is a custom type.
-    custom_model : custom model of type torch.nn.Module
-        Model to be trained.
-    criterion : <method>
-        Loss function that will be used to train the model.
-    custom_optimizer : torch.optim.Optimizer
-        Optimization method used to train the model which decreases model's loss.
-    save_dir : string [Optional]
-        Name of the path where the trained model is to be saved.
+        5.5 pin_memory: boolean
+        If True, the data loader will copy Tensors into CUDA pinned memory before returning
+        them. If your data elements are a custom type, or your collate_fn returns a batch that
+        is a custom type.
+        custom_model : custom model of type torch.nn.Module
+            Model to be trained.
+        criterion : <method>
+            Loss function that will be used to train the model.
+        custom_optimizer : torch.optim.Optimizer
+            Optimization method used to train the model which decreases model's loss.
+        save_dir : string [Optional]
+            Name of the path where the trained model is to be saved.
     
     Return
     ------

@@ -290,63 +290,63 @@ def get_dataloaders(
     configs : dict
         Surrogate model generation configurations.
 
-    1. results_base_dir: str
-    Directory where the trained model and corresponding performance plots will be stored.
+        1. results_base_dir: str
+        Directory where the trained model and corresponding performance plots will be stored.
 
-    2. seed: int
-    Sets the seed for generating random numbers to a non-deterministic random number.
+        2. seed: int
+        Sets the seed for generating random numbers to a non-deterministic random number.
 
-    3. hyperparameters:
-    epochs: int
-    learning_rate: float
+        3. hyperparameters:
+        epochs: int
+        learning_rate: float
 
-    4. model_structure: dict
-    The definition of the internal structure of the surrogate model, which is typically five
-    fully-connected layers of 90 nodes each.
+        4. model_structure: dict
+        The definition of the internal structure of the surrogate model, which is typically five
+        fully-connected layers of 90 nodes each.
 
-    4.1 hidden_sizes : list
-    A list containing the number of nodes of each layer of the surrogate model.
-    E.g., [90,90,90,90,90]
+        4.1 hidden_sizes : list
+        A list containing the number of nodes of each layer of the surrogate model.
+        E.g., [90,90,90,90,90]
 
-    4.2 D_in: int
-    Number of input features of the surrogate model structure. It should correspond to
-    the activation electrode number.
+        4.2 D_in: int
+        Number of input features of the surrogate model structure. It should correspond to
+        the activation electrode number.
 
-    4.3 D_out: int
-    Number of output features of the surrogate model structure. It should correspond to
-    the readout electrode number.
+        4.3 D_out: int
+        Number of output features of the surrogate model structure. It should correspond to
+        the readout electrode number.
 
-    5. data:
-    5.1 dataset_paths: list[str]
-    A list of paths to the Training, Validation and Test datasets, stored as
-    postprocessed_data.npz. It also supports adding a single training dataset, and splitting
-    it using the configuration split_percentages.
+        5. data:
+        5.1 dataset_paths: list[str]
+        A list of paths to the Training, Validation and Test datasets, stored as
+        postprocessed_data.npz. It also supports adding a single training dataset, and splitting
+        it using the configuration split_percentages.
 
-    5.2 split_percentages: list[float] (Optional)
-    When provided together a single dataset path, in the dataset_paths list, this variable
-    allows to split it into training, validation and test datasets by providing the split
-    percentage values. E.g. [0.8, 0.2] will split the training dataset into 80% of the data
-    for training and 20% of the data for validation. Similarly, [0.8, 0.1, 0.1] will split
-    the training dataset into 80%, 10% for validation dataset and 10% for test dataset. Note
-    that all split values in the list should add to 1.
+        5.2 split_percentages: list[float] (Optional)
+        When provided together a single dataset path, in the dataset_paths list, this variable
+        allows to split it into training, validation and test datasets by providing the split
+        percentage values. E.g. [0.8, 0.2] will split the training dataset into 80% of the data
+        for training and 20% of the data for validation. Similarly, [0.8, 0.1, 0.1] will split
+        the training dataset into 80%, 10% for validation dataset and 10% for test dataset. Note
+        that all split values in the list should add to 1.
 
-    5.3 steps : int
-    It allows to skip parts of the data when loading it into memory. The number indicates
-    how many items will be skipped in between. By default, step number is one (no values
-    are skipped). E.g., if steps = 2, and the inputs are [0, 1, 2, 3, 4, 5, 6]. The only
-    inputs taken into account would be: [0, 2, 4, 6].
+        5.3 steps : int
+        It allows to skip parts of the data when loading it into memory. The number indicates
+        how many items will be skipped in between. By default, step number is one (no values
+        are skipped). E.g., if steps = 2, and the inputs are [0, 1, 2, 3, 4, 5, 6]. The only
+        inputs taken into account would be: [0, 2, 4, 6].
 
-    5.4 batch_size: int
-    How many samples will contain each forward pass.
+        5.4 batch_size: int
+        How many samples will contain each forward pass.
 
-    5.5 worker_no: int
-    How many subprocesses to use for data loading. 0 means that the data will be loaded in
-    the main process. (default: 0)
+        5.5 worker_no: int
+        How many subprocesses to use for data loading. 0 means that the data will be loaded in
+        the main process. (default: 0)
 
-    5.6 pin_memory: boolean
-    If True, the data loader will copy Tensors into CUDA pinned memory before returning
-    them. If your data elements are a custom type, or your collate_fn returns a batch that
-    is a custom type.
+        5.6 pin_memory: boolean
+        If True, the data loader will copy Tensors into CUDA pinned memory before returning
+        them. If your data elements are a custom type, or your collate_fn returns a batch that
+        is a custom type.
 
     Returns
     -------
