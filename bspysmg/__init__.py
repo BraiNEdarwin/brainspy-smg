@@ -8,5 +8,7 @@ Automatised generation of deep neural-network based surrogate models of multi-te
 -Model training: A model is trained using a Pytorch based neural network. The user can customise the size of the neural network as well as the activation functions used for this model. The tool produces error plots of the trained surrogate model on all training, validation and test datasets. It also saves relevant information about how the data was acquired, how the model was trained, and other relevant electrode information that is required for using surrogate models in brains-py.
 
 -Model maintenance: It could be that devices change its behaviour after receiving abrupt changes in temperature or high voltages. In order to check if a model is still behaving as the original hardware, some consistency checks are provided, that help understand the differences between the actual signal of the device, and the signal from the surrogate model, compared to the original data that was gathered for training the device.
+
+More information at: https://github.com/BraiNEdarwin/brains-py/wiki
 """
 TEST_MODE = "SIMULATION_PC"
