@@ -24,64 +24,78 @@ class Sampler:
         ----------
         configs : dict
             Sampling configurations, the dictionary has the following keys:
-            * save_directory: str
-                Directory where the all the sampling data will be stored.
-            * data_name: str
-                Inside the path specified on the variable save_directory, a folder will be created,
-                with the format: <data_name>+<current_timestamp>. This variable specified the
-                prefix of that folder before the timestamp.
-            * driver: dict
-                Dictionary containing the driver configurations. For more information check the
-                documentation about this configuration file, check the documentation of
-                brainspy.processors.hardware.drivers.ni.setup.NationalInstrumentsSetup
-            * input_data : dict
-                Dictionary containing the information necessary to create the input sampling data.
-                - input_distribution: str
-                    It determines the wave shape of the input. Two main options availeble 'sawtooth'
-                    and 'sine'. The first option will create saw-like signals, and the second
-                    sine-wave signals. Sawtooth signals have more coverage on the edges of the
-                    input range.
-                - activation_electrode_no: int
-                    Number of activation electrodes in the device that wants to be sampled.
-                - readout_electrode_no : int
-                    Number of readout electrodes in the device that wants to be sampled.
-                - input_frequency: list
-                    Base frequencies of the input waves that will be created. In order to optimise
-                    coverage, irrational numbers are recommended. The list should have the same
-                    length as the activation electrode number. E.g., for 7 activation electrodes:
-                    input_frequency = [2, 3, 5, 7, 13, 17, 19]
-                - random_phase_shift_each : int
-                    The input data for each activation electrode can be shifted horizontally by
-                    changing its phase. This is a randomised process. This variable represents
-                    at how many batched samples the phase will be randomised. This will cover the
-                    input space faster and increase the data quality such that less data is needed.
-                    If the value is 0, no phase shift will be applied.
-                - factor : float
-                    Given factor by which the input frequencies will be multiplied after square
-                    rooting them.
-                - amplitude : Optional[list[float]]
-                    Amplitude of the generated input wave signal. It is calculated according to the
-                    minimum and maximum ranges of each electrode. Where the amplitude value should
-                    correspond with (max_range_value - min_range_value) / 2. If no amplitude is
-                    given it will be automatically calculated from the driver configurations for
-                    activation electrode ranges. If it wants to be manually set, the offset
-                    variable should also be included in the dictionary.
-                - offset: Optional[list[float]]
-                    Vertical offset of the generated input wave signal. It is calculated according
-                    to the minimum and maximum ranges of each electrode. Where the offset value
-                    should correspond with (max_range_value + min_range_value) / 2. If no offset
-                    is given it will be automatically calculated from the driver configurations for
-                    activation electrode ranges. If it wants to be manually set, the offset
-                    variable should also be included in the dictionary.
-                - ramp_time: float
-                    Time that will be taken before sending each batch to go from zero to the first
-                    point of the batch and to zero from the last point of the batch.
-                - batch_time:
-                    Time that the sampling of each batch will take.
-                - number_batches: int
-                    Number of batches that will be sampled. A default value of 3880 is reccommended.
-                - randomise_phase_each: int (Optional)
-                    Specifies at how many epochs the phases will be randomly generated again. 
+            1. save_directory: str
+            Directory where the all the sampling data will be stored.
+
+            2. data_name: str
+            Inside the path specified on the variable save_directory, a folder will be created,
+            with the format: <data_name>+<current_timestamp>. This variable specified the
+            prefix of that folder before the timestamp.
+
+            3. driver: dict
+            Dictionary containing the driver configurations. For more information check the
+            documentation about this configuration file, check the documentation of
+            brainspy.processors.hardware.drivers.ni.setup.NationalInstrumentsSetup
+
+            4. input_data : dict
+            Dictionary containing the information necessary to create the input sampling data.
+            4.1 input_distribution: str
+            It determines the wave shape of the input. Two main options availeble 'sawtooth'
+            and 'sine'. The first option will create saw-like signals, and the second
+            sine-wave signals. Sawtooth signals have more coverage on the edges of the
+            input range.
+
+            4.2 activation_electrode_no: int
+            Number of activation electrodes in the device that wants to be sampled.
+
+            4.3 readout_electrode_no : int
+            Number of readout electrodes in the device that wants to be sampled.
+
+            4.4 input_frequency: list
+            Base frequencies of the input waves that will be created. In order to optimise
+            coverage, irrational numbers are recommended. The list should have the same
+            length as the activation electrode number. E.g., for 7 activation electrodes:
+            input_frequency = [2, 3, 5, 7, 13, 17, 19]
+
+            4.5 random_phase_shift_each : int
+            The input data for each activation electrode can be shifted horizontally by
+            changing its phase. This is a randomised process. This variable represents
+            at how many batched samples the phase will be randomised. This will cover the
+            input space faster and increase the data quality such that less data is needed.
+            If the value is 0, no phase shift will be applied.
+
+            4.6 factor : float
+            Given factor by which the input frequencies will be multiplied after square
+            rooting them.
+
+            4.7 amplitude : Optional[list[float]]
+            Amplitude of the generated input wave signal. It is calculated according to the
+            minimum and maximum ranges of each electrode. Where the amplitude value should
+            correspond with (max_range_value - min_range_value) / 2. If no amplitude is
+            given it will be automatically calculated from the driver configurations for
+            activation electrode ranges. If it wants to be manually set, the offset
+            variable should also be included in the dictionary.
+
+            4.8 offset: Optional[list[float]]
+            Vertical offset of the generated input wave signal. It is calculated according
+            to the minimum and maximum ranges of each electrode. Where the offset value
+            should correspond with (max_range_value + min_range_value) / 2. If no offset
+            is given it will be automatically calculated from the driver configurations for
+            activation electrode ranges. If it wants to be manually set, the offset
+            variable should also be included in the dictionary.
+
+            4.9 ramp_time: float
+            Time that will be taken before sending each batch to go from zero to the first
+            point of the batch and to zero from the last point of the batch.
+
+            4.10  batch_time:
+            Time that the sampling of each batch will take.
+
+            4.11 number_batches: int
+            Number of batches that will be sampled. A default value of 3880 is reccommended.
+
+            4.12 randomise_phase_each: int (Optional)
+            Specifies at how many epochs the phases will be randomly generated again. 
         """
         self.driver = get_driver(configs["driver"])
         self.configs = configs
@@ -139,11 +153,12 @@ class Sampler:
         """
         The input batch is prepared for sampling on the device by ramping it from zero until the
         beginning of the batch until the first point, and a ramping from the last point to zero.
+
         Parameters
         ----------
         x : np.array
             Input batch that will be sent to the device in order to sample its corresponding output.
-            The dimension of the sample should be (activation_electrode_no, batch_size).
+            The dimension of the sample should be (activation_electrode_no, batch_size). 
 
         Returns
         -------
@@ -387,16 +402,17 @@ def convert(num_batches, total_batches, time_taken):
     a string containing an estimation of the time left in HH:MM:SS format.
 
     Parameters
-     ----------
-     num_batches: int
+    ----------
+    num_batches: int
         Number of batches that have been already sampled.
-     total_batches:int
+    total_batches:int
         Total batches that will be sampled.
-     time_taken: float
+    time_taken: float
         Time that the last measurement has taken.
+    
     Return
-     ----------
-     str: A string containing the time left in HH:MM:SS
+    ----------
+        str: A string containing the time left in HH:MM:SS
     """
     seconds = (total_batches - num_batches) * time_taken
     min, sec = divmod(seconds, 60)

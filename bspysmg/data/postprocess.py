@@ -60,77 +60,89 @@ def post_process(data_dir: str,
 
     Parameters
     ----------
-        - data_dir: str
-            A string with path to the directory with the data: it is assumed at least two
-            files exist, named sampler_configs.json and a IO.dat respectively.
+    data_dir: str
+        A string with path to the directory with the data: it is assumed at least two
+        files exist, named sampler_configs.json and a IO.dat respectively.
+    clipping_value : [float,float]
+        Will apply a clipping to the input and output sampling data within the
+        specified values. The the setups have a limit in the range they can read.
+        They typically clip at approximately +-4 V. Note that in order to
+        calculate the clipping_range, it needs to be multiplied by the
+        amplification value of the setup. (e.g., in the Brains setup the
+        amplification is 28.5, is the clipping_value is +-4 (V), therefore, the
+        clipping value should be +-4 * 28.5, which is [-110,110] (nA) ).
+        This variable represents a lower and upper clipping_value to crop data.
+        It can be either None, 'default' or [float,float]. The 'default' str
+        input will automatically take the clipping value by multiplying the
+        amplification of the data by -4 and 4. The None input will not apply any
+        clipping. 
+        
+        N O T E: When the clipping value is set to None, the model will accurately
+        represent the hardware setup (feedback resistance of the operational
+        amplifier). When clipping value set to the values that
+        are clipping, the model will extrapolate the results outside of the clipping
+        range caused by the hardaware setup.
+    charging_signal_batch_no: [int]
+        Number of batches that will be used for extracting the charging signal.
+    reference_signal_batch_no: [int]
+        Number of batches that will be used for extracting the reference signal.
+    filename: [str]
+        The name of the file that will be produced after postprocessing. By default: postprocessed_data.npz
+    kwargs: Optional kwargs are as follows:
+        1. list_data: A list of strings indicating directories with postprocessed_data.npz
+        containing input and output data relationships from the device, as well
+        as the configuration with which the data was acquired.
 
-        - clipping_value : [float,float]
-                           Will apply a clipping to the input and output sampling data within the
-                           specified values. The the setups have a limit in the range they can read.
-                           They typically clip at approximately +-4 V. Note that in order to
-                           calculate the clipping_range, it needs to be multiplied by the
-                           amplification value of the setup. (e.g., in the Brains setup the
-                           amplification is 28.5, is the clipping_value is +-4 (V), therefore, the
-                           clipping value should be +-4 * 28.5, which is [-110,110] (nA) ).
-                           This variable represents a lower and upper clipping_value to crop data.
-                           It can be either None, 'default' or [float,float]. The 'default' str
-                           input will automatically take the clipping value by multiplying the
-                           amplification of the data by -4 and 4. The None input will not apply any
-                           clipping. 
-                           NOTE: When the clipping value is set to None, the model will accurately
-                           represent the hardware setup (feedback resistance of the operational
-                           amplifier). When clipping value set to the values that
-                           are clipping, the model will extrapolate the results outside of the clipping
-                           range caused by the hardaware setup.
-        - charging_signal_batch_no: [int]
-                                    Number of batches that will be used for extracting the charging signal.
-        - reference_signal_batch_no: [int]
-                              Number of batches that will be used for extracting the reference signal.
-        - filename: [str]
-                    The name of the file that will be produced after postprocessing. By default: postprocessed_data.npz
-        - kwargs: Optional kwargs are as follows:
-            - list_data: A list of strings indicating directories with postprocessed_data.npz
-                         containing input and output data relationships from the device, as well
-                         as the configuration with which the data was acquired.
+    Examples
+    --------
 
-    Example
-    ----------
+    >>> inputs, outputs, configs = post_process('tmp/data/training/TEST/17-02-2021/')
 
-    inputs, outputs, configs = post_process('tmp/data/training/TEST/17-02-2021/')
+    Notes
+    -----
+    The postprocessed data is a .npz file called postprocessed_data.npz
+    with keys: inputs, outputs and info (dict)
 
-    Storage
-    ----------
-        The postprocessed data is saved in data_dir to a .npz file called postprocessed_data.npz
-        with keys: inputs, outputs and info (dict)
-            - The input(s) is(are) gathered for all activation electrodes. The units is in Volts.
-            - The output(s) is(are) gathered from all the readout electrodes. The units are in nA.
-              The output data is raw. Additional amplification correction might be needed, this is
-              left for the user to decide.
+    1. inputs: np.array
+    The input(s) is(are) gathered for all activation electrodes. The units is in Volts.
 
-        Data structure of output and input are arrays of NxD, where N is the number of samples and
-        D is the dimension.
+    2. outputs: The output(s) is(are) gathered from all the readout electrodes. The units are in nA.
+    The output data is raw. Additional amplification correction might be needed, this is
+    left for the user to decide.
 
-        The configs dictionary contains a copy of the configurations used for sampling the data.
-        In addition, the configs dictionary has a key named electrode_info, which is created during
-        the postprocessing step. The electrode_info key contains the following keys:
-            * electrode_no: int
-                Total number of electrodes in the device
-            * activation_electrodes: dict
-                - electrode_no: int
-                    Number of activation electrodes used for gathering the data
-                - voltage_ranges: list
-                    Voltage ranges used for gathering the data. It contains the ranges per
-                    electrode, where the shape is (electrode_no,2). Being 2 the minimum and maximum
-                    of the ranges, respectively.
-            * output_electrodes: dict
-                - electrode_no : int
-                    Number of output electrodes used for gathering the data
-                - clipping_value: list[float,float]
-                    Value used to apply a clipping to the sampling data within the specified values.
-                - amplification: float
-                    Amplification correction factor used in the device to correct the amplification
-                    applied to the output current in order to convert it into voltage before its
-                    readout.
+    3. info: dict
+    Data structure of output and input are arrays of NxD, where N is the number of samples
+    and D is the dimension.
+
+    The configs dictionary contains a copy of the configurations used for sampling the data.
+    In addition, the configs dictionary has a key named electrode_info, which is created
+    during the postprocessing step. The electrode_info key contains the following keys:
+    3.1 electrode_no: int
+    Total number of electrodes in the device
+
+    3.2 activation_electrodes: dict
+
+    3.2.1 electrode_no: int
+    Number of activation electrodes used for gathering the data
+
+    3.2.2 voltage_ranges: list
+    Voltage ranges used for gathering the data. It contains the ranges per
+    electrode, where the shape is (electrode_no,2). Being 2 the minimum and
+    maximum of the ranges, respectively.
+
+    3.3 output_electrodes: dict
+    
+    3.3.1 electrode_no : int
+    Number of output electrodes used for gathering the data
+
+    3.3.2 clipping_value: list[float,float]
+    Value used to apply a clipping to the sampling data within the specified
+    values.
+
+    3.3.3 amplification: float
+    Amplification correction factor used in the device to correct the
+    amplification applied to the output current in order to convert it into
+    voltage before its readout.
 
     """
     assert type(charging_signal_batch_no
@@ -242,60 +254,74 @@ def save_npz(data_dir: str, file_name: str, inputs: np.array,
         to the inputs to the device.
     configs : dict
         Sampling configurations with the following keys:
-        -save_directory: str
-            Directory where the all the sampling data will be stored.
-        -data_name: str
-            Inside the path specified on the variable save_directory, a folder will be created,
-            with the format: <data_name>+<current_timestamp>. This variable specified the
-            prefix of that folder before the timestamp.
-        -driver: dict
-            Dictionary containing the driver configurations. For more information check the
-            documentation about this configuration file, check the documentation of
-            brainspy.processors.hardware.drivers.ni.setup.NationalInstrumentsSetup
-        -input_data : dict
-            Dictionary containing the information necessary to create the input sampling data.
-            - input_distribution: str
-                It determines the wave shape of the input. Two main options availeble 'sawtooth'
-                and 'sine'. The first option will create saw-like signals, and the second
-                sine-wave signals. Sawtooth signals have more coverage on the edges of the
-                input range.
-            - activation_electrode_no: int
-                Number of activation electrodes in the device that wants to be sampled.
-            - readout_electrode_no : int
-                Number of readout electrodes in the device that wants to be sampled.
-            - input_frequency: list
-                Base frequencies of the input waves that will be created. In order to optimise
-                coverage, irrational numbers are recommended. The list should have the same
-                length as the activation electrode number. E.g., for 7 activation electrodes:
-                input_frequency = [2, 3, 5, 7, 13, 17, 19]
-            - phase : float
-                Horizontal shift of the input signals. It is recommended to have random numbers
-                which are different for the training, validation and test datasets. These
-                numbers will be square rooted and multiplied by a given factor.
-            - factor : float
-                Given factor by which the input frequencies will be multiplied after square
-                rooting them.
-            - amplitude : Optional[list[float]]
-                Amplitude of the generated input wave signal. It is calculated according to the
-                minimum and maximum ranges of each electrode. Where the amplitude value should
-                correspond with (max_range_value - min_range_value) / 2. If no amplitude is
-                given it will be automatically calculated from the driver configurations for
-                activation electrode ranges. If it wants to be manually set, the offset
-                variable should also be included in the dictionary.
-            - offset: Optional[list[float]]
-                Vertical offset of the generated input wave signal. It is calculated according
-                to the minimum and maximum ranges of each electrode. Where the offset value
-                should correspond with (max_range_value + min_range_value) / 2. If no offset
-                is given it will be automatically calculated from the driver configurations for
-                activation electrode ranges. If it wants to be manually set, the offset
-                variable should also be included in the dictionary.
-            - ramp_time: float
-                Time that will be taken before sending each batch to go from zero to the first
-                point of the batch and to zero from the last point of the batch.
-            - batch_time:
-                Time that the sampling of each batch will take.
-            - number_batches: int
-                Number of batches that will be sampled. A default value of 3880 is reccommended.
+
+        1. save_directory: str
+        Directory where the all the sampling data will be stored.
+
+        2. data_name: str
+        Inside the path specified on the variable save_directory, a folder will be created,
+        with the format: <data_name>+<current_timestamp>. This variable specified the
+        prefix of that folder before the timestamp.
+
+        3. driver: dict
+        Dictionary containing the driver configurations. For more information check the
+        documentation about this configuration file, check the documentation of
+        brainspy.processors.hardware.drivers.ni.setup.NationalInstrumentsSetup
+
+        4. input_data : dict
+        Dictionary containing the information necessary to create the input sampling data.
+        4.1 input_distribution: str
+        It determines the wave shape of the input. Two main options availeble 'sawtooth'
+        and 'sine'. The first option will create saw-like signals, and the second
+        sine-wave signals. Sawtooth signals have more coverage on the edges of the
+        input range.
+
+        4.2 activation_electrode_no: int
+        Number of activation electrodes in the device that wants to be sampled.
+
+        4.3 readout_electrode_no : int
+        Number of readout electrodes in the device that wants to be sampled.
+
+        4.4 input_frequency: list
+        Base frequencies of the input waves that will be created. In order to optimise
+        coverage, irrational numbers are recommended. The list should have the same
+        length as the activation electrode number. E.g., for 7 activation electrodes:
+        input_frequency = [2, 3, 5, 7, 13, 17, 19]
+
+        4.5 phase : float
+        Horizontal shift of the input signals. It is recommended to have random numbers
+        which are different for the training, validation and test datasets. These
+        numbers will be square rooted and multiplied by a given factor.
+
+        4.6 factor : float
+        Given factor by which the input frequencies will be multiplied after square
+        rooting them.
+
+        4.7 amplitude : Optional[list[float]]
+        Amplitude of the generated input wave signal. It is calculated according to the
+        minimum and maximum ranges of each electrode. Where the amplitude value should
+        correspond with (max_range_value - min_range_value) / 2. If no amplitude is
+        given it will be automatically calculated from the driver configurations for
+        activation electrode ranges. If it wants to be manually set, the offset
+        variable should also be included in the dictionary.
+
+        4.8 offset: Optional[list[float]]
+        Vertical offset of the generated input wave signal. It is calculated according
+        to the minimum and maximum ranges of each electrode. Where the offset value
+        should correspond with (max_range_value + min_range_value) / 2. If no offset
+        is given it will be automatically calculated from the driver configurations for
+        activation electrode ranges. If it wants to be manually set, the offset
+        variable should also be included in the dictionary.
+
+        4.9 ramp_time: float
+        Time that will be taken before sending each batch to go from zero to the first
+        point of the batch and to zero from the last point of the batch.
+
+        4.10 batch_time:
+        Time that the sampling of each batch will take.
+
+        4.11 number_batches: int
+        Number of batches that will be sampled. A default value of 3880 is reccommended.
     """
     save_to = os.path.join(data_dir, file_name)
     print(f"Data saved to: {save_to}.npz")
@@ -310,30 +336,34 @@ def get_electrode_info(configs: dict, clipping_value) -> dict:
     ----------
     configs : dict
         Sampling configurations with the following keys:
-        -driver: dict
-            Dictionary containing the driver configurations. For more information check the
-            documentation about this configuration file, check the documentation of
-            brainspy.processors.hardware.drivers.ni.setup.NationalInstrumentsSetup
-        -input_data : dict
-            Dictionary containing the information necessary to create the input sampling data.
-            - activation_electrode_no: int
-                Number of activation electrodes in the device that wants to be sampled.
-            - readout_electrode_no : int
-                Number of readout electrodes in the device that wants to be sampled.
-            - amplitude : [list[float]]
-                Amplitude of the generated input wave signal. It is calculated according to the
-                minimum and maximum ranges of each electrode. Where the amplitude value should
-                correspond with (max_range_value - min_range_value) / 2. If no amplitude is
-                given it will be automatically calculated from the driver configurations for
-                activation electrode ranges. If it wants to be manually set, the offset
-                variable should also be included in the dictionary.
-            - offset: [list[float]]
-                Vertical offset of the generated input wave signal. It is calculated according
-                to the minimum and maximum ranges of each electrode. Where the offset value
-                should correspond with (max_range_value + min_range_value) / 2. If no offset
-                is given it will be automatically calculated from the driver configurations for
-                activation electrode ranges. If it wants to be manually set, the offset
-                variable should also be included in the dictionary.
+        1. driver: dict
+        Dictionary containing the driver configurations. For more information check the
+        documentation about this configuration file, check the documentation of
+        brainspy.processors.hardware.drivers.ni.setup.NationalInstrumentsSetup
+        
+        2. input_data : dict
+        Dictionary containing the information necessary to create the input sampling data.
+        2.1 activation_electrode_no: int
+        Number of activation electrodes in the device that wants to be sampled.
+
+        2.2 readout_electrode_no : int
+        Number of readout electrodes in the device that wants to be sampled.
+
+        2.3 amplitude : [list[float]]
+        Amplitude of the generated input wave signal. It is calculated according to the
+        minimum and maximum ranges of each electrode. Where the amplitude value should
+        correspond with (max_range_value - min_range_value) / 2. If no amplitude is
+        given it will be automatically calculated from the driver configurations for
+        activation electrode ranges. If it wants to be manually set, the offset
+        variable should also be included in the dictionary.
+
+        2.4 offset: [list[float]]
+        Vertical offset of the generated input wave signal. It is calculated according
+        to the minimum and maximum ranges of each electrode. Where the offset value
+        should correspond with (max_range_value + min_range_value) / 2. If no offset
+        is given it will be automatically calculated from the driver configurations for
+        activation electrode ranges. If it wants to be manually set, the offset
+        variable should also be included in the dictionary.
     clipping_value : str or list
         The value that will be used to clip the sampling data within a specific range. if
         default is passed, a default clipping value will be used. 
@@ -342,24 +372,29 @@ def get_electrode_info(configs: dict, clipping_value) -> dict:
     -------
     electrode_info : dict
         Configuration dictionary containing all the keys related to the electrode information:
-            * electrode_no: int
-                Total number of electrodes in the device
-            * activation_electrodes: dict
-                - electrode_no: int
-                    Number of activation electrodes used for gathering the data
-                - voltage_ranges: list
-                    Voltage ranges used for gathering the data. It contains the ranges per
-                    electrode, where the shape is (electrode_no,2). Being 2 the minimum and maximum
-                    of the ranges, respectively.
-            * output_electrodes: dict
-                - electrode_no : int
-                    Number of output electrodes used for gathering the data
-                - clipping_value: list[float,float]
-                    Value used to apply a clipping to the sampling data within the specified values.
-                - amplification: float
-                    Amplification correction factor used in the device to correct the amplification
-                    applied to the output current in order to convert it into voltage before its
-                    readout.
+        1. electrode_no: int
+        Total number of electrodes in the device
+
+        2. activation_electrodes: dict
+        2.1 electrode_no: int
+        Number of activation electrodes used for gathering the data
+
+        2.2 voltage_ranges: list
+        Voltage ranges used for gathering the data. It contains the ranges per
+        electrode, where the shape is (electrode_no,2). Being 2 the minimum and maximum
+        of the ranges, respectively.
+
+        3. output_electrodes: dict
+        3.1 electrode_no : int
+        Number of output electrodes used for gathering the data
+
+        3.2 clipping_value: list[float,float]
+        Value used to apply a clipping to the sampling data within the specified values.
+
+        3.3 amplification: float
+        Amplification correction factor used in the device to correct the amplification
+        applied to the output current in order to convert it into voltage before its
+        readout.
     """
     electrode_info = {}
     electrode_info["electrode_no"] = (
@@ -426,24 +461,28 @@ def print_electrode_info(configs: dict) -> None:
     ----------
     configs : dict
         Configuration dictionary containing all the keys related to the electrode information:
-            * electrode_no: int
-                Total number of electrodes in the device
-            * activation_electrodes: dict
-                - electrode_no: int
-                    Number of activation electrodes used for gathering the data
-                - voltage_ranges: list
-                    Voltage ranges used for gathering the data. It contains the ranges per
-                    electrode, where the shape is (electrode_no,2). Being 2 the minimum and maximum
-                    of the ranges, respectively.
-            * output_electrodes: dict
-                - electrode_no : int
-                    Number of output electrodes used for gathering the data
-                - clipping_value: list[float,float]
-                    Value used to apply a clipping to the sampling data within the specified values.
-                - amplification: float
-                    Amplification correction factor used in the device to correct the amplification
-                    applied to the output current in order to convert it into voltage before its
-                    readout.
+        1. electrode_no: int
+        Total number of electrodes in the device
+
+        2. activation_electrodes: dict
+        2.1 electrode_no: int
+        Number of activation electrodes used for gathering the data
+
+        2.2 voltage_ranges: list
+        Voltage ranges used for gathering the data. It contains the ranges per
+        electrode, where the shape is (electrode_no,2). Being 2 the minimum and maximum
+        of the ranges, respectively.
+        3. output_electrodes: dict
+        3.1 electrode_no : int
+        Number of output electrodes used for gathering the data
+
+        3.2 clipping_value: list[float,float]
+        Value used to apply a clipping to the sampling data within the specified values.
+
+        3.3 amplification: float
+        Amplification correction factor used in the device to correct the amplification
+        applied to the output current in order to convert it into voltage before its
+        readout.
     """
     print(
         "\nThe following data is inferred from the input data. Please check if it is correct. "

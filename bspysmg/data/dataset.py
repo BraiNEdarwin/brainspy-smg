@@ -8,7 +8,8 @@ from typing import Tuple, List
 
 class ModelDataset(Dataset):
     def __init__(self, filename: str, steps: int = 1) -> None:
-        """Initialisation of the dataset. It loads a posprocessed_data.npz file into memory.
+        """
+        Initialisation of the dataset. It loads a posprocessed_data.npz file into memory.
         The targets of this file are divided by the amplification correction factor, so that
         data is made setup independent.
 
@@ -22,43 +23,51 @@ class ModelDataset(Dataset):
             are skipped). E.g., if steps = 2, and the inputs are [0, 1, 2, 3, 4, 5, 6]. The only
             inputs taken into account would be: [0, 2, 4, 6].
 
-        Storage
-        ----------
-            The postprocessed data is a .npz file called postprocessed_data.npz
-            with keys: inputs, outputs and info (dict)
-                - The input(s) is(are) gathered for all activation electrodes. The units is in
-                    Volts.
-                - The output(s) is(are) gathered from all the readout electrodes. The units are in
-                    nA.
-                The output data is raw. Additional amplification correction might be needed, this is
-                left for the user to decide.
+        Notes
+        -----
+        The postprocessed data is a .npz file called postprocessed_data.npz
+        with keys: inputs, outputs and info (dict)
 
-            Data structure of output and input are arrays of NxD, where N is the number of samples
-            and D is the dimension.
+        1. inputs: np.array
+        The input(s) is(are) gathered for all activation electrodes. The units is in Volts.
 
-            The configs dictionary contains a copy of the configurations used for sampling the data.
-            In addition, the configs dictionary has a key named electrode_info, which is created
-            during the postprocessing step. The electrode_info key contains the following keys:
-                * electrode_no: int
-                    Total number of electrodes in the device
-                * activation_electrodes: dict
-                    - electrode_no: int
-                        Number of activation electrodes used for gathering the data
-                    - voltage_ranges: list
-                        Voltage ranges used for gathering the data. It contains the ranges per
-                        electrode, where the shape is (electrode_no,2). Being 2 the minimum and
-                        maximum of the ranges, respectively.
-                * output_electrodes: dict
-                    - electrode_no : int
-                        Number of output electrodes used for gathering the data
-                    - clipping_value: list[float,float]
-                        Value used to apply a clipping to the sampling data within the specified
-                        values.
-                    - amplification: float
-                        Amplification correction factor used in the device to correct the
-                        amplification applied to the output current in order to convert it into
-                        voltage before its readout.
+        2. outputs: The output(s) is(are) gathered from all the readout electrodes. The units are in nA.
+        The output data is raw. Additional amplification correction might be needed, this is
+        left for the user to decide.
 
+        3. info: dict
+        Data structure of output and input are arrays of NxD, where N is the number of samples
+        and D is the dimension.
+
+        The configs dictionary contains a copy of the configurations used for sampling the data.
+        In addition, the configs dictionary has a key named electrode_info, which is created
+        during the postprocessing step. The electrode_info key contains the following keys:
+        3.1 electrode_no: int
+        Total number of electrodes in the device
+
+        3.2 activation_electrodes: dict
+
+        3.2.1 electrode_no: int
+        Number of activation electrodes used for gathering the data
+
+        3.2.2 voltage_ranges: list
+        Voltage ranges used for gathering the data. It contains the ranges per
+        electrode, where the shape is (electrode_no,2). Being 2 the minimum and
+        maximum of the ranges, respectively.
+
+        3.3 output_electrodes: dict
+        
+        3.3.1 electrode_no : int
+        Number of output electrodes used for gathering the data
+
+        3.3.2 clipping_value: list[float,float]
+        Value used to apply a clipping to the sampling data within the specified
+        values.
+
+        3.3.3 amplification: float
+        Amplification correction factor used in the device to correct the
+        amplification applied to the output current in order to convert it into
+        voltage before its readout.
         """
         self.inputs, targets, self.sampling_configs = self.load_data_from_npz(
             filename, steps)
@@ -71,7 +80,8 @@ class ModelDataset(Dataset):
             self.targets), "Inputs and Outpus have NOT the same length"
 
     def __len__(self) -> int:
-        """Overwrittes the __len__ method from the super class torch.utils.data.
+        """
+        Overwrittes the __len__ method from the super class torch.utils.data.
 
         Returns
         -------
@@ -81,7 +91,8 @@ class ModelDataset(Dataset):
         return len(self.inputs)
 
     def __getitem__(self, index: int) -> Tuple[np.array]:
-        """Overwrittes the __getitem__ method from the super class torch.utils.data.
+        """
+        Overwrittes the __getitem__ method from the super class torch.utils.data.
         The method supports fetching a data sample for a given key.
 
         Parameters
@@ -123,42 +134,51 @@ class ModelDataset(Dataset):
             Dictionary containing the sampling configurations with which the data was
             acquired.
 
-        Storage
-        ----------
-            The postprocessed data is a .npz file called postprocessed_data.npz
-            with keys: inputs, outputs and info (dict)
-                - The input(s) is(are) gathered for all activation electrodes. The units is in
-                    Volts.
-                - The output(s) is(are) gathered from all the readout electrodes. The units are in
-                    nA.
-                The output data is raw. Additional amplification correction might be needed, this is
-                left for the user to decide.
+        Notes
+        -----
+        The postprocessed data is a .npz file called postprocessed_data.npz
+        with keys: inputs, outputs and info (dict)
 
-            Data structure of output and input are arrays of NxD, where N is the number of samples
-            and D is the dimension.
+        1. inputs: np.array
+        The input(s) is(are) gathered for all activation electrodes. The units is in Volts.
 
-            The configs dictionary contains a copy of the configurations used for sampling the data.
-            In addition, the configs dictionary has a key named electrode_info, which is created
-            during the postprocessing step. The electrode_info key contains the following keys:
-                * electrode_no: int
-                    Total number of electrodes in the device
-                * activation_electrodes: dict
-                    - electrode_no: int
-                        Number of activation electrodes used for gathering the data
-                    - voltage_ranges: list
-                        Voltage ranges used for gathering the data. It contains the ranges per
-                        electrode, where the shape is (electrode_no,2). Being 2 the minimum and
-                        maximum of the ranges, respectively.
-                * output_electrodes: dict
-                    - electrode_no : int
-                        Number of output electrodes used for gathering the data
-                    - clipping_value: list[float,float]
-                        Value used to apply a clipping to the sampling data within the specified
-                        values.
-                    - amplification: float
-                        Amplification correction factor used in the device to correct the
-                        amplification applied to the output current in order to convert it into
-                        voltage before its readout.
+        2. outputs: The output(s) is(are) gathered from all the readout electrodes. The units are in nA.
+        The output data is raw. Additional amplification correction might be needed, this is
+        left for the user to decide.
+
+        3. info: dict
+        Data structure of output and input are arrays of NxD, where N is the number of samples
+        and D is the dimension.
+
+        The configs dictionary contains a copy of the configurations used for sampling the data.
+        In addition, the configs dictionary has a key named electrode_info, which is created
+        during the postprocessing step. The electrode_info key contains the following keys:
+        3.1 electrode_no: int
+        Total number of electrodes in the device
+
+        3.2 activation_electrodes: dict
+
+        3.2.1 electrode_no: int
+        Number of activation electrodes used for gathering the data
+
+        3.2.2 voltage_ranges: list
+        Voltage ranges used for gathering the data. It contains the ranges per
+        electrode, where the shape is (electrode_no,2). Being 2 the minimum and
+        maximum of the ranges, respectively.
+
+        3.3 output_electrodes: dict
+        
+        3.3.1 electrode_no : int
+        Number of output electrodes used for gathering the data
+
+        3.3.2 clipping_value: list[float,float]
+        Value used to apply a clipping to the sampling data within the specified
+        values.
+
+        3.3.3 amplification: float
+        Amplification correction factor used in the device to correct the
+        amplification applied to the output current in order to convert it into
+        voltage before its readout.
         """
         print("\n* Loading data from file:\n" + filename)
         # Pickle = True, since it also contains a dictionary.
@@ -193,43 +213,57 @@ def get_info_dict(training_configs: dict, sampling_configs: dict) -> dict:
     info_dict
         This dictionary is required in order to initialise a surrogate
         model. It contains the following keys:
-        * model_structure: dict
-            The definition of the internal structure of the surrogate model, which is typically five
-            fully-connected layers of 90 nodes each.
-            - hidden_sizes : list
-                A list containing the number of nodes of each layer of the surrogate model.
-                E.g., [90,90,90,90,90]
-            - D_in: int
-                Number of input features of the surrogate model structure. It should correspond to
-                the activation electrode number.
-            - D_out: int
-                Number of output features of the surrogate model structure. It should correspond to
-                the readout electrode number.
-        * electrode_info: dict
-            It contains all the information required for the surrogate model about the electrodes.
-                * electrode_no: int
-                    Total number of electrodes in the device
-                * activation_electrodes: dict
-                    - electrode_no: int
-                        Number of activation electrodes used for gathering the data
-                    - voltage_ranges: list
-                        Voltage ranges used for gathering the data. It contains the ranges per
-                        electrode, where the shape is (electrode_no,2). Being 2 the minimum and
-                        maximum of the ranges, respectively.
-                * output_electrodes: dict
-                    - electrode_no : int
-                        Number of output electrodes used for gathering the data
-                    - clipping_value: list[float,float]
-                        Value used to apply a clipping to the sampling data within the specified
-                        values.
-                    - amplification: float
-                        Amplification correction factor used in the device to correct the
-                        amplification applied to the output current in order to convert it into
-                        voltage before its readout.
-        * training_configs: dict
-            A copy of the configurations used for training the surrogate model.
-        * sampling_configs : dict
-            A copy of the configurations used for gathering the training data.
+        1. model_structure: dict
+        The definition of the internal structure of the surrogate model, which is typically five
+        fully-connected layers of 90 nodes each.
+
+        1.1 hidden_sizes : list
+        A list containing the number of nodes of each layer of the surrogate model.
+        E.g., [90,90,90,90,90]
+        
+        1.2 D_in: int
+        Number of input features of the surrogate model structure. It should correspond to
+        the activation electrode number.
+
+        1.3 D_out: int
+        Number of output features of the surrogate model structure. It should correspond to
+        the readout electrode number.
+
+        2. electrode_info: dict
+        It contains all the information required for the surrogate model about the electrodes.
+
+        2.1 electrode_no: int
+        Total number of electrodes in the device
+
+        2.2 activation_electrodes: dict
+
+        2.2.1 electrode_no: int
+        Number of activation electrodes used for gathering the data
+
+        2.2.2 voltage_ranges: list
+        Voltage ranges used for gathering the data. It contains the ranges per
+        electrode, where the shape is (electrode_no,2). Being 2 the minimum and
+        maximum of the ranges, respectively.
+
+        2.3 output_electrodes: dict
+
+        2.3.1 electrode_no : int
+        Number of output electrodes used for gathering the data
+
+        2.3.2 clipping_value: list[float,float]
+        Value used to apply a clipping to the sampling data within the specified
+        values.
+
+        2.3.3 amplification: float
+        Amplification correction factor used in the device to correct the
+        amplification applied to the output current in order to convert it into
+        voltage before its readout.
+
+        3. training_configs: dict
+        A copy of the configurations used for training the surrogate model.
+
+        4. sampling_configs : dict
+        A copy of the configurations used for gathering the training data.
     """
     info_dict = {}
     info_dict["model_structure"] = training_configs["model_structure"].copy()
@@ -253,51 +287,64 @@ def get_dataloaders(
     configs : dict
         Surrogate model generation configurations.
 
-        * results_base_dir: str
-            Directory where the trained model and corresponding performance plots will be stored.
-        * seed: int
-            Sets the seed for generating random numbers to a non-deterministic random number.
-        * hyperparameters:
-            epochs: int
-            learning_rate: float
-        * model_structure: dict
-            The definition of the internal structure of the surrogate model, which is typically five
-            fully-connected layers of 90 nodes each.
-            - hidden_sizes : list
-                A list containing the number of nodes of each layer of the surrogate model.
-                E.g., [90,90,90,90,90]
-            - D_in: int
-                Number of input features of the surrogate model structure. It should correspond to
-                the activation electrode number.
-            - D_out: int
-                Number of output features of the surrogate model structure. It should correspond to
-                the readout electrode number.
-        * data:
-        dataset_paths: list[str]
-            A list of paths to the Training, Validation and Test datasets, stored as
-            postprocessed_data.npz. It also supports adding a single training dataset, and splitting
-            it using the configuration split_percentages.
-        split_percentages: list[float] (Optional)
-            When provided together a single dataset path, in the dataset_paths list, this variable
-            allows to split it into training, validation and test datasets by providing the split
-            percentage values. E.g. [0.8, 0.2] will split the training dataset into 80% of the data
-            for training and 20% of the data for validation. Similarly, [0.8, 0.1, 0.1] will split
-            the training dataset into 80%, 10% for validation dataset and 10% for test dataset. Note
-            that all split values in the list should add to 1.
-        steps : int
-            It allows to skip parts of the data when loading it into memory. The number indicates
-            how many items will be skipped in between. By default, step number is one (no values
-            are skipped). E.g., if steps = 2, and the inputs are [0, 1, 2, 3, 4, 5, 6]. The only
-            inputs taken into account would be: [0, 2, 4, 6].
-        batch_size: int
-            How many samples will contain each forward pass.
-        worker_no: int
-            How many subprocesses to use for data loading. 0 means that the data will be loaded in
-            the main process. (default: 0)
-        pin_memory: boolean
-            If True, the data loader will copy Tensors into CUDA pinned memory before returning
-            them. If your data elements are a custom type, or your collate_fn returns a batch that
-            is a custom type.
+    1. results_base_dir: str
+    Directory where the trained model and corresponding performance plots will be stored.
+
+    2. seed: int
+    Sets the seed for generating random numbers to a non-deterministic random number.
+
+    3. hyperparameters:
+    epochs: int
+    learning_rate: float
+
+    4. model_structure: dict
+    The definition of the internal structure of the surrogate model, which is typically five
+    fully-connected layers of 90 nodes each.
+
+    4.1 hidden_sizes : list
+    A list containing the number of nodes of each layer of the surrogate model.
+    E.g., [90,90,90,90,90]
+
+    4.2 D_in: int
+    Number of input features of the surrogate model structure. It should correspond to
+    the activation electrode number.
+
+    4.3 D_out: int
+    Number of output features of the surrogate model structure. It should correspond to
+    the readout electrode number.
+
+    5. data:
+    5.1 dataset_paths: list[str]
+    A list of paths to the Training, Validation and Test datasets, stored as
+    postprocessed_data.npz. It also supports adding a single training dataset, and splitting
+    it using the configuration split_percentages.
+
+    5.2 split_percentages: list[float] (Optional)
+    When provided together a single dataset path, in the dataset_paths list, this variable
+    allows to split it into training, validation and test datasets by providing the split
+    percentage values. E.g. [0.8, 0.2] will split the training dataset into 80% of the data
+    for training and 20% of the data for validation. Similarly, [0.8, 0.1, 0.1] will split
+    the training dataset into 80%, 10% for validation dataset and 10% for test dataset. Note
+    that all split values in the list should add to 1.
+
+    5.3 steps : int
+    It allows to skip parts of the data when loading it into memory. The number indicates
+    how many items will be skipped in between. By default, step number is one (no values
+    are skipped). E.g., if steps = 2, and the inputs are [0, 1, 2, 3, 4, 5, 6]. The only
+    inputs taken into account would be: [0, 2, 4, 6].
+
+    5.4 batch_size: int
+    How many samples will contain each forward pass.
+
+    5.5 worker_no: int
+    How many subprocesses to use for data loading. 0 means that the data will be loaded in
+    the main process. (default: 0)
+
+    5.6 pin_memory: boolean
+    If True, the data loader will copy Tensors into CUDA pinned memory before returning
+    them. If your data elements are a custom type, or your collate_fn returns a batch that
+    is a custom type.
+    
     Returns
     -------
     dataloaders : list[torch.utils.dataDataLoader]
