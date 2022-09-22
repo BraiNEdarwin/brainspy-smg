@@ -9,7 +9,7 @@
 project = 'brainspy-smg'
 copyright = '2022, Unai Alegre-Ibarra et al.'
 author = 'Unai Alegre-Ibarra et al.'
-release = '1.0.6'
+release = '1.0.7'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
