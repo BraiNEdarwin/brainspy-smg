@@ -12,51 +12,62 @@ def get_input_generator(configs: dict) -> Tuple[dict, Callable]:
     ----------
     configs: dict
         Sampling configurations, the dictionary has the following keys:
-        * input_data : dict
-            Dictionary containing the information necessary to create the input sampling data.
-            - input_distribution: str
-                It determines the wave shape of the input. Two main options availeble 'sawtooth'
-                and 'sine'. The first option will create saw-like signals, and the second
-                sine-wave signals. Sawtooth signals have more coverage on the edges of the
-                input range.
-            - activation_electrode_no: int
-                Number of activation electrodes in the device that wants to be sampled.
-            - readout_electrode_no : int
-                Number of readout electrodes in the device that wants to be sampled.
-            - input_frequency: list
-                Base frequencies of the input waves that will be created. In order to optimise
-                coverage, irrational numbers are recommended. The list should have the same
-                length as the activation electrode number. The input frequency list will be
-                square rooted. E.g., for 7 activation electrodes:
-                input_frequency = [2, 3, 5, 7, 13, 17, 19]
-            - phase : float
-                Horizontal shift of the input signals. It is recommended to have random numbers
-                which are different for the training, validation and test datasets. These
-                numbers will be square rooted and multiplied by a given factor.
-            - factor : float
-                Given factor by which the input frequencies will be multiplied after square
-                rooting them.
-            - amplitude : Optional[list[float]]
-                Amplitude of the generated input wave signal. It is calculated according to the
-                minimum and maximum ranges of each electrode. Where the amplitude value should
-                correspond with (max_range_value - min_range_value) / 2. If no amplitude is
-                given it will be automatically calculated from the driver configurations for
-                activation electrode ranges. If it wants to be manually set, the offset
-                variable should also be included in the dictionary.
-            - offset: Optional[list[float]]
-                Vertical offset of the generated input wave signal. It is calculated according
-                to the minimum and maximum ranges of each electrode. Where the offset value
-                should correspond with (max_range_value + min_range_value) / 2. If no offset
-                is given it will be automatically calculated from the driver configurations for
-                activation electrode ranges. If it wants to be manually set, the offset
-                variable should also be included in the dictionary.
-            - ramp_time: float
-                Time that will be taken before sending each batch to go from zero to the first
-                point of the batch and to zero from the last point of the batch.
-            - batch_time:
-                Time that the sampling of each batch will take.
-            - number_batches: int
-                Number of batches that will be sampled. A default value of 3880 is reccommended.
+        1. input_data : dict
+        Dictionary containing the information necessary to create the input sampling data.
+
+        1.1 input_distribution: str
+        It determines the wave shape of the input. Two main options availeble 'sawtooth'
+        and 'sine'. The first option will create saw-like signals, and the second
+        sine-wave signals. Sawtooth signals have more coverage on the edges of the
+        input range.
+
+        1.2 activation_electrode_no: int
+        Number of activation electrodes in the device that wants to be sampled.
+
+        1.3 readout_electrode_no : int
+        Number of readout electrodes in the device that wants to be sampled.
+
+        1.4 input_frequency: list
+        Base frequencies of the input waves that will be created. In order to optimise
+        coverage, irrational numbers are recommended. The list should have the same
+        length as the activation electrode number. The input frequency list will be
+        square rooted. E.g., for 7 activation electrodes:
+        input_frequency = [2, 3, 5, 7, 13, 17, 19]
+
+        1.5 phase : float
+        Horizontal shift of the input signals. It is recommended to have random numbers
+        which are different for the training, validation and test datasets. These
+        numbers will be square rooted and multiplied by a given factor.
+        
+        1.6 factor : float
+        Given factor by which the input frequencies will be multiplied after square
+        rooting them.
+
+        1.7 amplitude : Optional[list[float]]
+        Amplitude of the generated input wave signal. It is calculated according to the
+        minimum and maximum ranges of each electrode. Where the amplitude value should
+        correspond with (max_range_value - min_range_value) / 2. If no amplitude is
+        given it will be automatically calculated from the driver configurations for
+        activation electrode ranges. If it wants to be manually set, the offset
+        variable should also be included in the dictionary.
+
+        1.8 offset: Optional[list[float]]
+        Vertical offset of the generated input wave signal. It is calculated according
+        to the minimum and maximum ranges of each electrode. Where the offset value
+        should correspond with (max_range_value + min_range_value) / 2. If no offset
+        is given it will be automatically calculated from the driver configurations for
+        activation electrode ranges. If it wants to be manually set, the offset
+        variable should also be included in the dictionary.
+
+        1.9 ramp_time: float
+        Time that will be taken before sending each batch to go from zero to the first
+        point of the batch and to zero from the last point of the batch.
+
+        1.10 batch_time:
+        Time that the sampling of each batch will take.
+        
+        1.11 number_batches: int
+        Number of batches that will be sampled. A default value of 3880 is reccommended.
 
     Returns
     ----------
@@ -147,68 +158,82 @@ def sawtooth_wave(time_points: np.array, frequency: float, phase: float,
 def load_configs(config_dict: dict) -> dict:
     """
     Creates a dictionary with sampling configurations.
+
     Parameters
     ----------
     configs: dict
         Sampling configurations, the dictionary has the following keys:
-        * driver: dict
-            Dictionary containing the driver configurations. For more information check the
-            documentation about this configuration file, check the documentation of
-            brainspy.processors.hardware.drivers.ni.setup.NationalInstrumentsSetup
-        * input_data : dict
-            Dictionary containing the information necessary to create the input sampling data.
-            - input_distribution: str
-                It determines the wave shape of the input. Two main options availeble 'sawtooth'
-                and 'sine'. The first option will create saw-like signals, and the second
-                sine-wave signals. Sawtooth signals have more coverage on the edges of the
-                input range.
-            - activation_electrode_no: int
-                Number of activation electrodes in the device that wants to be sampled.
-            - readout_electrode_no : int
-                Number of readout electrodes in the device that wants to be sampled.
-            - input_frequency: list
-                Base frequencies of the input waves that will be created. In order to optimise
-                coverage, irrational numbers are recommended. The list should have the same
-                length as the activation electrode number. The input frequency list will be
-                square rooted. E.g., for 7 activation electrodes:
-                input_frequency = [2, 3, 5, 7, 13, 17, 19]
-            - phase : float
-                Horizontal shift of the input signals. It is recommended to have random numbers
-                which are different for the training, validation and test datasets. These
-                numbers will be square rooted and multiplied by a given factor.
-            - factor : float
-                Given factor by which the input frequencies will be multiplied after square
-                rooting them.
-            - amplitude : Optional[list[float]]
-                Amplitude of the generated input wave signal. It is calculated according to the
-                minimum and maximum ranges of each electrode. Where the amplitude value should
-                correspond with (max_range_value - min_range_value) / 2. If no amplitude is
-                given it will be automatically calculated from the driver configurations for
-                activation electrode ranges. If it wants to be manually set, the offset
-                variable should also be included in the dictionary.
-            - offset: Optional[list[float]]
-                Vertical offset of the generated input wave signal. It is calculated according
-                to the minimum and maximum ranges of each electrode. Where the offset value
-                should correspond with (max_range_value + min_range_value) / 2. If no offset
-                is given it will be automatically calculated from the driver configurations for
-                activation electrode ranges. If it wants to be manually set, the offset
-                variable should also be included in the dictionary.
-            - ramp_time: float
-                Time that will be taken before sending each batch to go from zero to the first
-                point of the batch and to zero from the last point of the batch.
-            - batch_time:
-                Time that the sampling of each batch will take.
-            - number_batches: int
-                Number of batches that will be sampled. A default value of 3880 is reccommended.
+        1. driver: dict
+        Dictionary containing the driver configurations. For more information check the
+        documentation about this configuration file, check the documentation of
+        brainspy.processors.hardware.drivers.ni.setup.NationalInstrumentsSetup
+        2. input_data : dict
+        Dictionary containing the information necessary to create the input sampling data.
+
+        2.1 input_distribution: str
+        It determines the wave shape of the input. Two main options availeble 'sawtooth'
+        and 'sine'. The first option will create saw-like signals, and the second
+        sine-wave signals. Sawtooth signals have more coverage on the edges of the
+        input range.
+
+        2.2 activation_electrode_no: int
+        Number of activation electrodes in the device that wants to be sampled.
+
+        2.3 readout_electrode_no : int
+        Number of readout electrodes in the device that wants to be sampled.
+
+        2.4 input_frequency: list
+        Base frequencies of the input waves that will be created. In order to optimise
+        coverage, irrational numbers are recommended. The list should have the same
+        length as the activation electrode number. The input frequency list will be
+        square rooted. E.g., for 7 activation electrodes:
+        input_frequency = [2, 3, 5, 7, 13, 17, 19]
+
+        2.5 phase : float
+        Horizontal shift of the input signals. It is recommended to have random numbers
+        which are different for the training, validation and test datasets. These
+        numbers will be square rooted and multiplied by a given factor.
+
+        2.6 factor : float
+        Given factor by which the input frequencies will be multiplied after square
+        rooting them.
+
+        2.7 amplitude : Optional[list[float]]
+        Amplitude of the generated input wave signal. It is calculated according to the
+        minimum and maximum ranges of each electrode. Where the amplitude value should
+        correspond with (max_range_value - min_range_value) / 2. If no amplitude is
+        given it will be automatically calculated from the driver configurations for
+        activation electrode ranges. If it wants to be manually set, the offset
+        variable should also be included in the dictionary.
+
+        2.8 offset: Optional[list[float]]
+        Vertical offset of the generated input wave signal. It is calculated according
+        to the minimum and maximum ranges of each electrode. Where the offset value
+        should correspond with (max_range_value + min_range_value) / 2. If no offset
+        is given it will be automatically calculated from the driver configurations for
+        activation electrode ranges. If it wants to be manually set, the offset
+        variable should also be included in the dictionary.
+
+        2.9 ramp_time: float
+        Time that will be taken before sending each batch to go from zero to the first
+        point of the batch and to zero from the last point of the batch.
+
+        2.10 batch_time:
+        Time that the sampling of each batch will take.
+
+        2.11 number_batches: int
+        Number of batches that will be sampled. A default value of 3880 is reccommended.
 
     Returns
     ----------
     dict
         Sampling configuration dictionary with additional keys as follows:
-            - batch_points: int
-                Number of data points in the signal of a single batch
-            - ramp_points: int
-                Number of data points in the waiting signal between each batch.
+
+        1. batch_points: int
+        Number of data points in the signal of a single batch
+
+        2. ramp_points: int
+        Number of data points in the waiting signal between each batch.
     """
     configs = config_dict["input_data"]
     
@@ -250,12 +275,12 @@ def get_frequency(configs: dict) -> np.array:
     ----------
     configs: dict
         Sampling configurations, the dictionary has the following keys:
-            - input_frequency: list
-                Base frequencies of the input waves that will be created. In order to optimise
-                coverage, irrational numbers are recommended. The list should have the same
-                length as the activation electrode number. The input frequency list will be
-                square rooted. E.g., for 7 activation electrodes:
-                input_frequency = [2, 3, 5, 7, 13, 17, 19]
+        1. input_frequency: list
+        Base frequencies of the input waves that will be created. In order to optimise
+        coverage, irrational numbers are recommended. The list should have the same
+        length as the activation electrode number. The input frequency list will be
+        square rooted. E.g., for 7 activation electrodes:
+        input_frequency = [2, 3, 5, 7, 13, 17, 19]
     
     Returns
     ---------
@@ -323,7 +348,8 @@ def generate_sawtooth_simple(v_low: float,
                              v_high: float,
                              point_no: int,
                              up_direction: bool = False) -> np.array:
-    """Generates a simple sawtooth for a single channel (electrode). It goes from zero to a certain
+    """
+    Generates a simple sawtooth for a single channel (electrode). It goes from zero to a certain
     point (v_low), from that point to another point (v_max), and from that last point to zero again.
     The direction can be inverted using up_direction=True so that the sawtooth goes from zero to 
     v_max, from v_max to v_min, and from v_min to zero.
